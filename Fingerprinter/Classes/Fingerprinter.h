@@ -9,6 +9,11 @@
 #include <vector>
 #include <string>
 
+#import <AudioUnit/AudioUnit.h>
+#import <AudioToolbox/AudioToolbox.h>
+#import <CoreAudio/CoreAudioTypes.h>
+#import "CAStreamBasicDescription.h"
+
 
 // DATA TYPES
 /* Fingerprint is a summary of room ambient noise; essentially the power spectrum of the ambient noise */
@@ -61,6 +66,13 @@ public:
 	static const unsigned int fpLength; /* number of elements in the fingerprint vector */
 	
 private:
-	// The private members will be added when this class is implemented.
 	Fingerprint* makeRandomFingerprint();
+	bool startRecording();
+	
+	/* private data members */
+	AudioUnit					rioUnit;
+	bool						unitIsRunning;
+	AURenderCallbackStruct		inputProc;
+	CAStreamBasicDescription	thruFormat;
+	Float64						hwSampleRate;	
 };

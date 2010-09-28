@@ -15,7 +15,7 @@
 using namespace std;
 
 void printFingerprint( Fingerprint* fingerprint ){
-	for( int i=0; i<Fingerprinter::fpLength; ++i ){
+	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
 		cout << (*fingerprint)[i] << ' ';
 	}
 	cout << endl;
@@ -45,5 +45,6 @@ int main(){
 	// assuming that we were not satisfied with any of the results, add this as a new room
 	fp.insertFingerprint( observed, string( "newRoom" ) );
 						 
-	delete observed, qr;
+	delete observed;
+	delete qr;
 }
