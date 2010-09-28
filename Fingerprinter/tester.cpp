@@ -11,6 +11,7 @@
 
 #import "Fingerprinter.h"
 #import <iostream>
+#include <unistd.h>
 
 using namespace std;
 
@@ -28,6 +29,8 @@ int main(){
 	Fingerprint* observed = fp.recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
 	printFingerprint(observed);
+	
+	sleep(1);
 	
 	// query for a list of matches
 	cout << endl << "DB Matches:" <<endl;

@@ -63,6 +63,9 @@ public:
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
 
+	/* public accessors */
+	AudioUnit getAUnit();
+	
 	static const unsigned int fpLength; /* number of elements in the fingerprint vector */
 	
 private:

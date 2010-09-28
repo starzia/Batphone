@@ -11,6 +11,7 @@
 #include <stdlib.h> // for random()
 #include "CAXException.h" // for Core Audio exception handling
 #import <Accelerate/Accelerate.h> // for vector operations and FFT
+#include <iostream> // for debugging printouts
 
 using namespace std;
 
@@ -45,9 +46,9 @@ int SetupRemoteIO( AudioUnit& inRemoteIOUnit, AURenderCallbackStruct inRenderPro
 		desc.componentFlagsMask = 0;
 		
 		AudioComponent comp = AudioComponentFindNext(NULL, &desc);
-		
 		XThrowIfError(AudioComponentInstanceNew(comp, &inRemoteIOUnit), "couldn't open the remote I/O unit");
 		
+		// enable input on the AU
 		UInt32 one = 1;
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &one, sizeof(one)), "couldn't enable input on the remote I/O unit");
 		
@@ -56,10 +57,15 @@ int SetupRemoteIO( AudioUnit& inRemoteIOUnit, AURenderCallbackStruct inRenderPro
 		
         // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
         outFormat.SetAUCanonical(1 /*numChannels*/, false /*interleaved*/);
-		///outFormat.NormalizeLinearPCMFormat(  );
+		// set input format
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's output client format");
+		// set output format
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's input client format");
 		
+		// allocate buffers
+		// NOTE that buffers are allocated automatically by default.  see kAudioUnitProperty_ShouldAllocateBuffer
+		
+		// initialize AU
 		XThrowIfError(AudioUnitInitialize(inRemoteIOUnit), "couldn't initialize the remote I/O unit");
 	}
 	catch (CAXException &e) {
@@ -85,22 +91,15 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 							 UInt32 					inNumberFrames, 
 							 AudioBufferList 			*ioData ){
 	// cast our data structure
-	AudioUnit rioUnit = (AudioUnit)inRefCon;
-	
+	Fingerprinter* THIS = (Fingerprinter*)inRefCon;
 	try{
-		XThrowIfError( AudioUnitRender(rioUnit, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "Callback: AudioUnitRender" );
+		XThrowIfError( AudioUnitRender(THIS->getAUnit(), ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "Callback: AudioUnitRender" );
 	}
 	catch (CAXException &e) {
 		char buf[256];
 		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
 		return 1;
 	}
-	
-	/*	AudioBuffer has fields:
-	 UInt32  mNumberChannels;
-	 UInt32  mDataByteSize;
-	 void*   mData;
-	 */
 	SInt32 *data_ptr = (SInt32 *)(ioData->mBuffers[0].mData);
 	// the samples are 24 bit but padded on the right to give 32 bits.  Hence the right shift
 	//printf( "%d  ", data_ptr[0]>>8 );
@@ -156,7 +155,6 @@ Fingerprinter::Fingerprinter(){
 	
 	try {			
 		// Initialize and configure the audio session
-		UInt32 size;
 #if TARGET_OS_IPHONE
 		// TODO: add interruption listener as follows
 		//XThrowIfError(AudioSessionInitialize(NULL, NULL, rioInterruptionListener, self), "couldn't initialize audio session");
@@ -172,22 +170,11 @@ Fingerprinter::Fingerprinter(){
 		Float32 preferredBufferSize = .005;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
 		
-		size = sizeof(hwSampleRate);
+		UInt32 size = sizeof(hwSampleRate);
 		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &size, &hwSampleRate), "couldn't get hw sample rate");
 #endif
 		
 		XThrowIfError(SetupRemoteIO(rioUnit, inputProc, thruFormat), "couldn't setup remote i/o unit");
-		
-		UInt32 maxFPS;
-		size = sizeof(maxFPS);
-		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
-		
-		//XThrowIfError(AudioOutputUnitStart(rioUnit), "couldn't start remote i/o unit");
-		
-		size = sizeof(thruFormat);
-		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &thruFormat, &size), "couldn't get the remote I/O unit's output client format");
-		
-		unitIsRunning = TRUE;
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -202,6 +189,7 @@ Fingerprinter::Fingerprinter(){
 
 
 Fingerprint* Fingerprinter::recordFingerprint(){
+	this->startRecording();
 	return this->makeRandomFingerprint();
 }
 
@@ -240,6 +228,10 @@ unsigned int Fingerprinter::insertFingerprint( Fingerprint* observation, string 
 Fingerprinter::~Fingerprinter(){}
 
 
+AudioUnit Fingerprinter::getAUnit(){
+	return this->rioUnit;
+}
+
 
 // -----------------------------------------------------------------------------
 // FINGERPRINTER CLASS: PRIVATE MEMBERS
@@ -256,7 +248,16 @@ Fingerprint* Fingerprinter::makeRandomFingerprint(){
 
 
 bool Fingerprinter::startRecording(){
-	XThrowIfError(AudioOutputUnitStart(rioUnit), "couldn't start remote i/o unit");	
-	return TRUE;
+	UInt32 maxFPS;
+	UInt32 size = sizeof(maxFPS);
+	XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
+	
+	XThrowIfError(AudioOutputUnitStart(rioUnit), "couldn't start remote i/o unit");
+	
+	size = sizeof(thruFormat);
+	XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &thruFormat, &size), "couldn't get the remote I/O unit's output client format");
+	
+	unitIsRunning = TRUE;
+	return unitIsRunning;
 }
 
