@@ -122,11 +122,12 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 		UInt32 flag = 1;
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input,
 										   kInputBus, &flag, sizeof(flag)), "couldn't enable input on the remote I/O unit");
+		/*
 		// disable output on the AU
 		flag = 0;
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output,
 										   kOutputBus, &flag, sizeof(flag)), "couldn't disable output on the remote I/O unit");
-		
+		*/
 #if !TARGET_OS_IPHONE
 		// Select the default input device
 		AudioDeviceID inputDeviceID = 0;
@@ -145,8 +146,12 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 		// set the callback fcn
 		inRenderProc.inputProc = PerformThru;
 		inRenderProc.inputProcRefCon = THIS;
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
+										   kOutputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
+		/* this looks more correct to me:
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 
 										   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
+		 */
 		//XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Output, 
 		//								   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
 
@@ -173,7 +178,7 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 		// set output format
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 
 										   kInputBus, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's input client format");
-		
+		/*
 		// allocate buffers
 		// NOTE that buffers are allocated automatically by default.  see kAudioUnitProperty_ShouldAllocateBuffer
 		flag = 1;
@@ -185,7 +190,7 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 									       kOutputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Input, 
 									       kOutputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
-		
+		*/
 		
 		// initialize AU
 		XThrowIfError(AudioUnitInitialize(inRemoteIOUnit), "couldn't initialize the remote I/O unit");
@@ -218,17 +223,20 @@ Fingerprinter::Fingerprinter(){
 		XThrowIfError(AudioSessionInitialize(NULL, NULL, NULL, NULL /* data struct passed to interruption listener */), "couldn't initialize audio session");
 		XThrowIfError(AudioSessionSetActive(true), "couldn't set audio session active\n");
 		
-		UInt32 audioCategory = kAudioSessionCategory_RecordAudio;
-		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory), "couldn't set audio category");
+		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
+		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, 
+											  sizeof(audioCategory), &audioCategory), "couldn't set audio category");
 
 		// TODO: add property listener as follows
 		//XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set property listener");	
 		
 		Float32 preferredBufferSize = .005;
-		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
+		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
+											  sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
 		
 		UInt32 size = sizeof(hwSampleRate);
-		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &size, &hwSampleRate), "couldn't get hw sample rate");
+		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, 
+											  &size, &hwSampleRate), "couldn't get hw sample rate");
 #endif
 		// set up Audio Unit
 		XThrowIfError(setupRemoteIO(this, rioUnit, inputProc, thruFormat), "couldn't setup remote i/o unit");
