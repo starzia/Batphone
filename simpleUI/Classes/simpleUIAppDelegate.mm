@@ -28,7 +28,7 @@ void test(){
 	cout << "Newly observed fingerprint:" <<endl;
 	printFingerprint(observed);
 	
-	sleep(1);
+	sleep(3);
 	
 	// query for a list of matches
 	cout << endl << "DB Matches:" <<endl;

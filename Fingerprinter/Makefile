@@ -1,13 +1,16 @@
 INCLUDES=-IClasses -IiPublicUtility
-LIBS=-framework Accelerate -framework AudioUnit
+LIBS=-framework Accelerate -framework AudioUnit -framework CoreAudio
 CFLAGS=-Wall
 
 
-tester: tester.cpp Fingerprinter.o
-	g++ ${CFLAGS} ${LIBS} ${INCLUDES} $^ -o tester
+build/tester: tester.cpp build/Fingerprinter.o
+	g++ ${CFLAGS} ${LIBS} ${INCLUDES} $^ -o build/tester
 
-Fingerprinter.o: Classes/Fingerprinter.cpp Classes/Fingerprinter.h
-	g++ -c ${CFLAGS} ${INCLUDES} $< -o Fingerprinter.o
+build/Fingerprinter.o: Classes/Fingerprinter.cpp Classes/Fingerprinter.h
+	g++ -c ${CFLAGS} ${INCLUDES} $< -o build/Fingerprinter.o
 
 clean:
-	rm Fingerprinter.o tester
+	rm build.Fingerprinter.o build/tester
+
+test: build/tester
+	./build/tester

@@ -13,6 +13,14 @@
 #import <Accelerate/Accelerate.h> // for vector operations and FFT
 #include <iostream> // for debugging printouts
 
+#import <CoreAudio/CoreAudioTypes.h>
+#import <AudioUnit/AudioUnit.h>
+#import <AudioToolbox/AudioToolbox.h>
+
+#if !TARGET_OS_IPHONE
+#import <CoreAudio/AudioHardware.h>
+#endif
+
 using namespace std;
 
 
@@ -20,65 +28,13 @@ using namespace std;
 // -----------------------------------------------------------------------------
 // CONSTANTS
 const unsigned int Fingerprinter::fpLength = 128;
+#define kOutputBus 0
+#define kInputBus 1
 
 
 
 // -----------------------------------------------------------------------------
 // HELPER FUNCTIONS FOR AUDIO
-
-
-/* Sets up audio.  This is called by Fingerprinter constructor and also whenever
- * audio needs to be reset, eg. when distrupted by some system event or state change.
- */
-int SetupRemoteIO( AudioUnit& inRemoteIOUnit, AURenderCallbackStruct inRenderProc, 
-				   CAStreamBasicDescription& outFormat){	
-	try {		
-		// create an output unit, ie a signal SOURCE (from the mic)
-		AudioComponentDescription desc;
-		desc.componentType = kAudioUnitType_Output;
-#if TARGET_OS_IPHONE
-		desc.componentSubType = kAudioUnitSubType_RemoteIO;
-#else
-		desc.componentSubType = kAudioUnitSubType_HALOutput;
-#endif
-		desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-		desc.componentFlags = 0;
-		desc.componentFlagsMask = 0;
-		
-		AudioComponent comp = AudioComponentFindNext(NULL, &desc);
-		XThrowIfError(AudioComponentInstanceNew(comp, &inRemoteIOUnit), "couldn't open the remote I/O unit");
-		
-		// enable input on the AU
-		UInt32 one = 1;
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &one, sizeof(one)), "couldn't enable input on the remote I/O unit");
-		
-		// set the callback fcn
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
-		
-        // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
-        outFormat.SetAUCanonical(1 /*numChannels*/, false /*interleaved*/);
-		// set input format
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's output client format");
-		// set output format
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's input client format");
-		
-		// allocate buffers
-		// NOTE that buffers are allocated automatically by default.  see kAudioUnitProperty_ShouldAllocateBuffer
-		
-		// initialize AU
-		XThrowIfError(AudioUnitInitialize(inRemoteIOUnit), "couldn't initialize the remote I/O unit");
-	}
-	catch (CAXException &e) {
-		char buf[256];
-		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
-		return 1;
-	}
-	catch (...) {
-		fprintf(stderr, "An unknown error occurred\n");
-		return 1;
-	}		
-	return 0;
-}
 
 
 /* Callback function for audio input.  This function is what actually processes
@@ -141,6 +97,112 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 }	
 
 
+/* Sets up audio.  This is called by Fingerprinter constructor and also whenever
+ * audio needs to be reset, eg. when distrupted by some system event or state change.
+ */
+int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit, 
+				  AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat){	
+	try {		
+		// create an output unit, ie a signal SOURCE (from the mic)
+		AudioComponentDescription desc;
+		desc.componentType = kAudioUnitType_Output;
+#if TARGET_OS_IPHONE
+		desc.componentSubType = kAudioUnitSubType_RemoteIO;
+#else
+		desc.componentSubType = kAudioUnitSubType_HALOutput;
+#endif
+		desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+		desc.componentFlags = 0;
+		desc.componentFlagsMask = 0;
+		
+		AudioComponent comp = AudioComponentFindNext(NULL, &desc);
+		XThrowIfError(AudioComponentInstanceNew(comp, &inRemoteIOUnit), "couldn't open the remote I/O unit");
+		
+		// enable input on the AU
+		UInt32 flag = 1;
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input,
+										   kInputBus, &flag, sizeof(flag)), "couldn't enable input on the remote I/O unit");
+		// disable output on the AU
+		flag = 0;
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output,
+										   kOutputBus, &flag, sizeof(flag)), "couldn't disable output on the remote I/O unit");
+		
+#if !TARGET_OS_IPHONE
+		// Select the default input device
+		AudioDeviceID inputDeviceID = 0;
+		UInt32 theSize = sizeof(AudioDeviceID);
+		AudioObjectPropertyAddress theAddress = { kAudioHardwarePropertyDefaultInputDevice,
+												  kAudioObjectPropertyScopeGlobal,
+												  kAudioObjectPropertyElementMaster };
+		XThrowIfError(AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &theSize, &inputDeviceID ), 
+					  "get default device" );
+		
+		// Set the current device to the default input unit.
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 
+										   kInputBus, &inputDeviceID, sizeof(AudioDeviceID) ), "set device" );
+#endif	
+		
+		// set the callback fcn
+		inRenderProc.inputProc = PerformThru;
+		inRenderProc.inputProcRefCon = THIS;
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 
+										   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
+		//XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Output, 
+		//								   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
+
+		
+		// Implicitly describe format
+        // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
+        outFormat.SetAUCanonical(1 /*numChannels*/, false /*interleaved*/);
+		
+		/*
+		 // Explicitly describe format
+		 outFormat.mSampleRate			= 44100.00;
+		 outFormat.mFormatID			= kAudioFormatLinearPCM;
+		 outFormat.mFormatFlags		= kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+		 outFormat.mFramesPerPacket	= 1;
+		 outFormat.mChannelsPerFrame	= 1;
+		 outFormat.mBitsPerChannel		= 16;
+		 outFormat.mBytesPerPacket		= 2;
+		 outFormat.mBytesPerFrame		= 2;
+		 */
+		
+		// set input format
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 
+										   kOutputBus, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's output client format");
+		// set output format
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 
+										   kInputBus, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's input client format");
+		
+		// allocate buffers
+		// NOTE that buffers are allocated automatically by default.  see kAudioUnitProperty_ShouldAllocateBuffer
+		flag = 1;
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Output, 
+									       kInputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Input, 
+									       kInputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Output, 
+									       kOutputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
+		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Input, 
+									       kOutputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
+		
+		
+		// initialize AU
+		XThrowIfError(AudioUnitInitialize(inRemoteIOUnit), "couldn't initialize the remote I/O unit");
+	}
+	catch (CAXException &e) {
+		char buf[256];
+		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
+		return 1;
+	}
+	catch (...) {
+		fprintf(stderr, "An unknown error occurred\n");
+		return 1;
+	}		
+	return 0;
+}
+
+
 
 // -----------------------------------------------------------------------------
 // FINGERPRINTER CLASS: PUBLIC MEMBERS
@@ -148,11 +210,6 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 
 /* Constructor initializes the audio system */
 Fingerprinter::Fingerprinter(){
-
-	// Initialize our remote i/o unit
-	inputProc.inputProc = PerformThru;
-	inputProc.inputProcRefCon = this;
-	
 	try {			
 		// Initialize and configure the audio session
 #if TARGET_OS_IPHONE
@@ -173,8 +230,8 @@ Fingerprinter::Fingerprinter(){
 		UInt32 size = sizeof(hwSampleRate);
 		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &size, &hwSampleRate), "couldn't get hw sample rate");
 #endif
-		
-		XThrowIfError(SetupRemoteIO(rioUnit, inputProc, thruFormat), "couldn't setup remote i/o unit");
+		// set up Audio Unit
+		XThrowIfError(setupRemoteIO(this, rioUnit, inputProc, thruFormat), "couldn't setup remote i/o unit");
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -225,7 +282,9 @@ unsigned int Fingerprinter::insertFingerprint( Fingerprint* observation, string 
 
 
 /* Destructor.  Cleans up. */
-Fingerprinter::~Fingerprinter(){}
+Fingerprinter::~Fingerprinter(){
+	AudioUnitUninitialize(rioUnit);
+}
 
 
 AudioUnit Fingerprinter::getAUnit(){
