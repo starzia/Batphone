@@ -27,7 +27,8 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 128;
+const unsigned int Fingerprinter::fpLength = 1024;
+const unsigned int Fingerprinter::historyLength = 100;
 #define kOutputBus 0
 #define kInputBus 1
 
@@ -61,7 +62,7 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	//printf( "%d  ", data_ptr[0]>>8 );
 	
 	// setup FFT
-	UInt32 log2FFTLength = 3; //log2f(inNumberFrames);
+	UInt32 log2FFTLength = log2f( Fingerprinter::fpLength );
 	FFTSetup fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 );
 	// prepare vecotrs for FFT
 	DSPSplitComplex compl_buf;
@@ -73,27 +74,34 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 		data_ptr[i] = 0;                       // set output.  NOTE: if we don't set this to zero we'll get feedback.
 	}
 	
-	// find RMS value
+	// find RMS value (must do this before the in-place FFT)
 	float rms;
 	vDSP_rmsqv( compl_buf.realp, 1, &rms, inNumberFrames );
 	printf( "RMS: %10.0f\tFFT: ", rms );
+	// add to history queue
+	THIS->RMS_history.push(rms);
+	if( THIS->RMS_history.size() > Fingerprinter::historyLength ){
+		THIS->RMS_history.pop();		
+	}
 	
 	// take fft and convert complex numbers to abs
 	vDSP_fft_zip( fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
+	Fingerprint newFP( Fingerprinter::fpLength );
 	for( int i=0; i<(1<<log2FFTLength); ++i ){
-		printf( "%10.0f\t", sqrt(compl_buf.realp[i]*compl_buf.realp[i] + compl_buf.imagp[i]*compl_buf.imagp[i] ) );
+		float thisAbsVal = sqrt(compl_buf.realp[i]*compl_buf.realp[i] + compl_buf.imagp[i]*compl_buf.imagp[i] );
+		newFP[i] = thisAbsVal;
+		//printf( "%10.0f\t", thisAbsVal );
 	}
+	THIS->spectrogram.push( newFP );
+	if( THIS->spectrogram.size() > Fingerprinter::historyLength ){
+		THIS->spectrogram.pop();		
+	}
+	
 	printf( "\n" );
 	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
 	
-	/*
-	// update display with RMS value
-	NSString *rmsLabel = [[NSString alloc] initWithFormat:@"%10.0f", rms];
-    THIS->myViewController.label.text = rmsLabel; 
-    [rmsLabel release];
-	*/
 	return 0;
 }	
 
@@ -231,7 +239,7 @@ Fingerprinter::Fingerprinter(){
 		// TODO: add property listener as follows
 		//XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set property listener");	
 		
-		Float32 preferredBufferSize = .005;
+		Float32 preferredBufferSize = .1;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
 											  sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
 		
@@ -255,8 +263,15 @@ Fingerprinter::Fingerprinter(){
 
 
 Fingerprint* Fingerprinter::recordFingerprint(){
-	this->startRecording();
-	return this->makeRandomFingerprint();
+	if( !unitIsRunning ) this->startRecording();
+	
+	// for now, just return the most recent FFT result.
+	Fingerprint* ret = new Fingerprint( Fingerprinter::fpLength );
+	if( spectrogram.size() > 2 ){ // two to avoid dealing with concurrency
+	    *ret = this->spectrogram.back(); // copy vector for return
+		(*ret)[0] = this->RMS_history.back(); // TODO HACK: copy rms value into fingerprint[0] for convenient display 
+	}
+	return ret;
 }
 
 

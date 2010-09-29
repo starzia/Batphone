@@ -7,6 +7,7 @@
  */
 
 #include <vector>
+#include <queue>
 #include <string>
 
 #import <AudioUnit/AudioUnit.h>
@@ -18,6 +19,7 @@
 // DATA TYPES
 /* Fingerprint is a summary of room ambient noise; essentially the power spectrum of the ambient noise */
 typedef std::vector<float> Fingerprint;
+typedef std::queue<Fingerprint> Spectrogram;
 
 /* Candidates room matches are returned when querying the DB */
 typedef struct {
@@ -65,9 +67,13 @@ public:
 
 	/* public accessors */
 	AudioUnit getAUnit();
+	/* recording history is public for callback funciton access*/
+	Spectrogram		spectrogram;
+	std::queue<float>	RMS_history;
+	
 	
 	static const unsigned int fpLength; /* number of elements in the fingerprint vector */
-	
+	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
 private:
 	Fingerprint* makeRandomFingerprint();
 	bool startRecording();
@@ -77,5 +83,5 @@ private:
 	bool						unitIsRunning;
 	AURenderCallbackStruct		inputProc;
 	CAStreamBasicDescription	thruFormat;
-	Float64						hwSampleRate;	
-};
+	Float64						hwSampleRate;
+	};

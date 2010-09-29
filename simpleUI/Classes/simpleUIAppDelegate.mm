@@ -25,8 +25,8 @@ using namespace std;
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
 		cout << (*fingerprint)[i] << ' ';
 	}
-	// just print last number in fingerprint vector
-    [label setText:[[NSString alloc] initWithFormat:@"%f",(*fingerprint)[Fingerprinter::fpLength-1]]];
+	// just print first number in fingerprint vector
+    [label setText:[[NSString alloc] initWithFormat:@"%10.0f",(*fingerprint)[0]]];
 	cout << endl;
 }
 
@@ -36,32 +36,6 @@ using namespace std;
 	Fingerprint* observed = fp.recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
 	[self printFingerprint:observed];
-	
-	return;
-	
-	//-----old stuff
-	sleep(1);
-	
-	// query for a list of matches
-	cout << endl << "DB Matches:" <<endl;
-	int NUM_MATCHES = 3;
-	QueryResult* qr = fp.queryMatches( observed, NUM_MATCHES );
-	for( int i=0; i<NUM_MATCHES; i++ ){
-		cout << "match #" << i << '\t'
-		<< "uid=" << (*qr)[i].uid << '\t' 
-		<< "name=" << fp.queryName( (*qr)[i].uid ) << '\t' 
-		<< "confidence=" << (*qr)[i].confidence << '\t'
-		<< "fingerprint= ";
-		[self printFingerprint:( fp.queryFingerprint( (*qr)[i].uid ) )];
-
-		sleep(1);
-	}
-	
-	// assuming that we were not satisfied with any of the results, add this as a new room
-	fp.insertFingerprint( observed, string( "newRoom" ) );
-	
-	delete observed;
-	delete qr;
 }
 
 -(void) buttonHandler:(id)sender{
