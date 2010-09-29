@@ -27,7 +27,7 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 1024;
+const unsigned int Fingerprinter::fpLength = 16; //1024;
 const unsigned int Fingerprinter::historyLength = 100;
 #define kOutputBus 0
 #define kInputBus 1
@@ -64,19 +64,16 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	// setup FFT
 	UInt32 log2FFTLength = log2f( Fingerprinter::fpLength );
 	FFTSetup fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 );
-	// prepare vecotrs for FFT
-	DSPSplitComplex compl_buf;
-	compl_buf.realp = new float[inNumberFrames];
-	compl_buf.imagp = new float[inNumberFrames];
-	vDSP_vclr( compl_buf.imagp, 1, inNumberFrames ); // set imaginary part to zero
+	// prepare vectors for FFT
+	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
 	for( unsigned int i=0; i<inNumberFrames; ++i ){
-		compl_buf.realp[i] = (data_ptr[i]>>8); // read input
-		data_ptr[i] = 0;                       // set output.  NOTE: if we don't set this to zero we'll get feedback.
+		originalReal[i] = (data_ptr[i]>>8); // read input
+		data_ptr[i] = 0;                    // set output.  NOTE: if we don't set this to zero we'll get feedback.
 	}
 	
 	// find RMS value (must do this before the in-place FFT)
 	float rms;
-	vDSP_rmsqv( compl_buf.realp, 1, &rms, inNumberFrames );
+	vDSP_rmsqv( originalReal, 1, &rms, inNumberFrames );
 	printf( "RMS: %10.0f\tFFT: ", rms );
 	// add to history queue
 	THIS->RMS_history.push(rms);
@@ -84,13 +81,26 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 		THIS->RMS_history.pop();		
 	}
 	
+	// we are going to rearrange $originalReal into the two parts of $compl_buf
+	DSPSplitComplex compl_buf;
+	compl_buf.realp = new float[inNumberFrames/2];
+	compl_buf.imagp = new float[inNumberFrames/2];
+		
 	// take fft and convert complex numbers to abs
+	
+	/* ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
+	 * see vDSP documentation for details. */
+    vDSP_ctoz((COMPLEX*) originalReal, 2, &compl_buf, 1, inNumberFrames/2);
 	vDSP_fft_zip( fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
+    vDSP_ztoc(&compl_buf, 1, (COMPLEX*) originalReal, 2, inNumberFrames/2);
+	
+	// TODO: use vDSP_vdbcon to get decibels
+	// TODO: use vDSP_zaspec to get ABS
 	Fingerprint newFP( Fingerprinter::fpLength );
 	for( int i=0; i<(1<<log2FFTLength); ++i ){
 		float thisAbsVal = sqrt(compl_buf.realp[i]*compl_buf.realp[i] + compl_buf.imagp[i]*compl_buf.imagp[i] );
 		newFP[i] = thisAbsVal;
-		//printf( "%10.0f\t", thisAbsVal );
+		printf( "%10.0f\t", thisAbsVal );
 	}
 	THIS->spectrogram.push( newFP );
 	if( THIS->spectrogram.size() > Fingerprinter::historyLength ){
@@ -101,6 +111,7 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
+	delete originalReal;
 	
 	return 0;
 }	
