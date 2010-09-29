@@ -69,7 +69,8 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	compl_buf.imagp = new float[inNumberFrames];
 	vDSP_vclr( compl_buf.imagp, 1, inNumberFrames ); // set imaginary part to zero
 	for( unsigned int i=0; i<inNumberFrames; ++i ){
-		compl_buf.realp[i] = (data_ptr[i]>>8);
+		compl_buf.realp[i] = (data_ptr[i]>>8); // read input
+		data_ptr[i] = 0;                       // set output.  NOTE: if we don't set this to zero we'll get feedback.
 	}
 	
 	// find RMS value
@@ -148,7 +149,7 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 		inRenderProc.inputProcRefCon = THIS;
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
 										   kOutputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
-		/* this looks more correct to me:
+		/* TODO: play with this to eliminate feedback.  This looks more correct to me:
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 
 										   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
 		 */
@@ -292,6 +293,7 @@ unsigned int Fingerprinter::insertFingerprint( Fingerprint* observation, string 
 /* Destructor.  Cleans up. */
 Fingerprinter::~Fingerprinter(){
 	AudioUnitUninitialize(rioUnit);
+	AudioComponentInstanceDispose(rioUnit);
 }
 
 

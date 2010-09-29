@@ -13,22 +13,34 @@
 
 using namespace std;
 
-void printFingerprint( Fingerprint* fingerprint ){
+
+@implementation simpleUIAppDelegate
+
+@synthesize window;
+@synthesize label;
+@synthesize button;
+
+
+- (void) printFingerprint: (Fingerprint*) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
 		cout << (*fingerprint)[i] << ' ';
 	}
+	// just print last number in fingerprint vector
+    [label setText:[[NSString alloc] initWithFormat:@"%f",(*fingerprint)[Fingerprinter::fpLength-1]]];
 	cout << endl;
 }
 
-void test(){
-	Fingerprinter fp;
-	
+
+-(void)test{	
 	// record a new fingerprint using the microphone
 	Fingerprint* observed = fp.recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
-	printFingerprint(observed);
+	[self printFingerprint:observed];
 	
-	sleep(3);
+	return;
+	
+	//-----old stuff
+	sleep(1);
 	
 	// query for a list of matches
 	cout << endl << "DB Matches:" <<endl;
@@ -40,7 +52,9 @@ void test(){
 		<< "name=" << fp.queryName( (*qr)[i].uid ) << '\t' 
 		<< "confidence=" << (*qr)[i].confidence << '\t'
 		<< "fingerprint= ";
-		printFingerprint( fp.queryFingerprint( (*qr)[i].uid ) );
+		[self printFingerprint:( fp.queryFingerprint( (*qr)[i].uid ) )];
+
+		sleep(1);
 	}
 	
 	// assuming that we were not satisfied with any of the results, add this as a new room
@@ -50,10 +64,10 @@ void test(){
 	delete qr;
 }
 
-@implementation simpleUIAppDelegate
-
-@synthesize window;
-
+-(void) buttonHandler:(id)sender{
+	// run fingerprinter
+	[self test];
+}
 
 #pragma mark -
 #pragma mark Application lifecycle
@@ -61,11 +75,34 @@ void test(){
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
     
     // Override point for customization after application launch.
-	test();
 	
-    
+	// screen width / 2 - label width / 2
+    CGFloat x = 320/2 - 120/2;
+    // screen height / 2 - label height / 2
+    CGFloat y = 480/2 - 45/2;
+    CGRect rect = CGRectMake(x , y, 120.0f, 45.0f);
+
+    // Create the label.
+    self.label = [[[UILabel alloc] initWithFrame:rect] autorelease];
+    // Set the value of our string
+    [label setText:@"Hello World!"];
+    // Center Align the label's text
+    [label setTextAlignment:UITextAlignmentCenter];
+
+	// Add the label to the window.
+	[window addSubview:label];
+	
+	// Add button to the window
+	button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+	[button addTarget:self action:@selector(buttonHandler:) forControlEvents:UIControlEventTouchUpInside];
+	[button setTitle:@"get fingerprint" forState:UIControlStateNormal];
+	button.frame = CGRectMake(80.0, 100.0, 160.0, 40.0);
+	[window addSubview:button];
+	
+	
+	// update view
     [window makeKeyAndVisible];
-    
+	
     return YES;
 }
 
@@ -120,6 +157,8 @@ void test(){
 
 - (void)dealloc {
     [window release];
+	[label release];
+	[button release];
     [super dealloc];
 }
 
