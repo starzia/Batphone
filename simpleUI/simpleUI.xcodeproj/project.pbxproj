@@ -20,6 +20,7 @@
 		AA7B060912523FFA00FFA088 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B060812523FFA00FFA088 /* AudioToolbox.framework */; };
 		AA7B06261252402F00FFA088 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B06251252402F00FFA088 /* CoreAudio.framework */; };
 		AA7B066C1252433200FFA088 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B066B1252433200FFA088 /* Accelerate.framework */; };
+		AAC415D31254EFF0008DA27C /* plotView.m in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,8 @@
 		AA7B060812523FFA00FFA088 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		AA7B06251252402F00FFA088 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		AA7B066B1252433200FFA088 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
+		AAC415D21254EFF0008DA27C /* plotView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = plotView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +74,8 @@
 				AA7B05F312523F1200FFA088 /* Fingerprinter.h */,
 				1D3623240D0F684500981E51 /* simpleUIAppDelegate.h */,
 				1D3623250D0F684500981E51 /* simpleUIAppDelegate.mm */,
+				AAC415D11254EFF0008DA27C /* plotView.h */,
+				AAC415D21254EFF0008DA27C /* plotView.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -167,6 +172,9 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = "Northwestern University";
+			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "simpleUI" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
@@ -208,6 +216,7 @@
 				AA7B05FD12523F4000FFA088 /* CADebugMacros.cpp in Sources */,
 				AA7B05FE12523F4000FFA088 /* CAStreamBasicDescription.cpp in Sources */,
 				AA7B05FF12523F4000FFA088 /* CAXException.cpp in Sources */,
+				AAC415D31254EFF0008DA27C /* plotView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

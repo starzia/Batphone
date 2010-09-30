@@ -3,7 +3,7 @@
 //  simpleUI
 //
 //  Created by Stephen Tarzia on 9/28/10.
-//  Copyright 2010 __MyCompanyName__. All rights reserved.
+//  Copyright 2010 Northwestern University. All rights reserved.
 //
 
 #import "simpleUIAppDelegate.h"
@@ -19,6 +19,7 @@ using namespace std;
 @synthesize window;
 @synthesize label;
 @synthesize button;
+@synthesize plot;
 
 
 - (void) printFingerprint: (Fingerprint*) fingerprint{
@@ -54,10 +55,10 @@ using namespace std;
     CGFloat x = 320/2 - 120/2;
     // screen height / 2 - label height / 2
     CGFloat y = 480/2 - 45/2;
-    CGRect rect = CGRectMake(x , y, 120.0f, 45.0f);
+    CGRect labelRect = CGRectMake(x , y-80, 120.0f, 45.0f);
 
     // Create the label.
-    self.label = [[[UILabel alloc] initWithFrame:rect] autorelease];
+    self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
     // Set the value of our string
     [label setText:@"Hello World!"];
     // Center Align the label's text
@@ -70,9 +71,13 @@ using namespace std;
 	button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	[button addTarget:self action:@selector(buttonHandler:) forControlEvents:UIControlEventTouchUpInside];
 	[button setTitle:@"get fingerprint" forState:UIControlStateNormal];
-	button.frame = CGRectMake(80.0, 100.0, 160.0, 40.0);
+	button.frame = CGRectMake(80.0, 60.0, 160.0, 40.0);
 	[window addSubview:button];
 	
+	// Add plot to window
+	CGRect plotRect = CGRectMake(10, 270, 300.0f, 200.0f);
+	self.plot = [[[plotView alloc] initWithFrame:plotRect] autorelease];
+	[window addSubview:plot];
 	
 	// update view
     [window makeKeyAndVisible];
