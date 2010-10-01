@@ -7,21 +7,24 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "Fingerprinter.h"
+#import <vector>
+
+typedef std::vector<float> Vec;
 
 @interface plotView : UIView {
-    Fingerprinter* fp; // the data to plot
+    Vec* data; // the data to plot
 	// y axis range for plot:
 	float minY;
 	float maxY;
 }
 
-@property Fingerprinter* fp;
+@property Vec* data;
 @property float minY;
 @property float maxY;
 
 // set the y axis range of the plot
 -(void)setYRange_min: (float)Ymin  max:(float)Ymax;
--(id)initWith_Frame:(CGRect)frame Fingerprinter:(Fingerprinter*)fp;
+-(id)initWith_Frame:(CGRect)frame;
+-(void)setVector: (Vec*)data;
 
 @end

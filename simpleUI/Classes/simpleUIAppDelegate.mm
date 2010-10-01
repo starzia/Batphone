@@ -20,9 +20,10 @@ using namespace std;
 @synthesize label;
 @synthesize button;
 @synthesize plot;
+@synthesize plotOld;
 @synthesize plotTimer;
 @synthesize fp;
-
+@synthesize oldFingerprint;
 
 - (void) printFingerprint: (Fingerprint*) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -34,14 +35,25 @@ using namespace std;
 }
 
 
--(void)test{	
+-(void)test{
 	// record a new fingerprint using the microphone
 	Fingerprint* observed = fp->recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
 	[self printFingerprint:observed];
-
+	
+	// move current fingerprint to "Old" slot
+	Fingerprint* tmpFP = self.oldFingerprint;
+	self.oldFingerprint = new Fingerprint( Fingerprinter::fpLength );
+	for( int i=0; i<Fingerprinter::fpLength; ++i ){
+		(*self.oldFingerprint)[i] = self.fp->fingerprint[i]; // copy from fingerprinter
+	}
+	[self.plotOld setVector: oldFingerprint];
+	[self.plotOld setNeedsDisplay];
+	delete tmpFP;
+	
 	// reset fingerprint
-	fp->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f );
+	self.fp->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f );
+	[self.plot setVector: &self.fp->fingerprint];
 }
 
 -(void) buttonHandler:(id)sender{
@@ -62,7 +74,7 @@ using namespace std;
     CGFloat x = 320/2 - 120/2;
     // screen height / 2 - label height / 2
     CGFloat y = 480/2 - 45/2;
-    CGRect labelRect = CGRectMake(x , y-80, 120.0f, 45.0f);
+    CGRect labelRect = CGRectMake(x , y-120, 120.0f, 45.0f);
 
     // Create the label.
     self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
@@ -78,21 +90,27 @@ using namespace std;
 	button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	[button addTarget:self action:@selector(buttonHandler:) forControlEvents:UIControlEventTouchUpInside];
 	[button setTitle:@"get fingerprint" forState:UIControlStateNormal];
-	button.frame = CGRectMake(80.0, 60.0, 160.0, 40.0);
+	button.frame = CGRectMake(80.0, 40.0, 160.0, 40.0);
 	[window addSubview:button];
 	
 	// Add plot to window
-	CGRect plotRect = CGRectMake(10, 270, 300.0f, 200.0f);
-	self.plot = [[[plotView alloc] initWith_Frame:plotRect Fingerprinter:self.fp] autorelease];
+	CGRect plotRect = CGRectMake(10, 320, 300.0f, 150.0f);
+	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
 	[window addSubview:plot];
+
+	// Add another plot to window
+	plotRect = CGRectMake(10, 160, 300.0f, 150.0f);
+	self.plotOld = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
+	self.oldFingerprint = new Fingerprint(Fingerprinter::fpLength); // blank filler
+	[self.plotOld setVector: oldFingerprint];
+	[window addSubview:plotOld];
 	
 	// create timer to update the plot
 	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
 													  target:plot
 													selector:@selector(setNeedsDisplay)
 													userInfo:nil
-													 repeats:YES];
-	
+													 repeats:YES];	
 	// update view
     [window makeKeyAndVisible];
 	
