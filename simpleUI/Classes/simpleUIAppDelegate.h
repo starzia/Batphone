@@ -16,14 +16,18 @@
 	UILabel  *label;
 	UIButton *button;
 	plotView *plot;
-	Fingerprinter fp;
+	NSTimer  *plotTimer; // periodic timer to update the plot
+	Fingerprinter *fp;
 }
 
 // accessors
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *button;
-@property (nonatomic, retain) plotView *plot;
+@property (retain) plotView *plot;
+@property (retain) NSTimer* plotTimer;
+@property Fingerprinter* fp;
+
 
 // member functions
 -(void) printFingerprint: (Fingerprint*) fingerprint;

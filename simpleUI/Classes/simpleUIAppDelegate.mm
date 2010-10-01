@@ -20,6 +20,8 @@ using namespace std;
 @synthesize label;
 @synthesize button;
 @synthesize plot;
+@synthesize plotTimer;
+@synthesize fp;
 
 
 - (void) printFingerprint: (Fingerprint*) fingerprint{
@@ -34,7 +36,7 @@ using namespace std;
 
 -(void)test{	
 	// record a new fingerprint using the microphone
-	Fingerprint* observed = fp.recordFingerprint();
+	Fingerprint* observed = fp->recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
 	[self printFingerprint:observed];
 }
@@ -50,6 +52,8 @@ using namespace std;
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
     
     // Override point for customization after application launch.
+	
+	self.fp = new Fingerprinter();
 	
 	// screen width / 2 - label width / 2
     CGFloat x = 320/2 - 120/2;
@@ -76,8 +80,15 @@ using namespace std;
 	
 	// Add plot to window
 	CGRect plotRect = CGRectMake(10, 270, 300.0f, 200.0f);
-	self.plot = [[[plotView alloc] initWithFrame:plotRect] autorelease];
+	self.plot = [[[plotView alloc] initWith_Frame:plotRect Fingerprinter:self.fp] autorelease];
 	[window addSubview:plot];
+	
+	// create timer to update the plot
+	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
+													  target:plot
+													selector:@selector(setNeedsDisplay)
+													userInfo:nil
+													 repeats:YES];
 	
 	// update view
     [window makeKeyAndVisible];
@@ -138,6 +149,9 @@ using namespace std;
     [window release];
 	[label release];
 	[button release];
+	[plot release];
+	[plotTimer release];
+	delete fp;
     [super dealloc];
 }
 

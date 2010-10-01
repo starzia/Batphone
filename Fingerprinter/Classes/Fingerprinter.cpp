@@ -109,6 +109,9 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	
 	printf( "\n" );
 	
+	// compute fingerprint.  TODO: implement this properly
+	THIS->fingerprint = newFP;
+	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
 	delete originalReal;
@@ -235,6 +238,9 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 
 /* Constructor initializes the audio system */
 Fingerprinter::Fingerprinter(){
+	// set up member vars
+	this->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f ); // plotter must always have a FP available to plot, so init one here.
+	
 	try {			
 		// Initialize and configure the audio session
 #if TARGET_OS_IPHONE

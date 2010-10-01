@@ -71,9 +71,9 @@ public:
 	/* recording history is public for callback function access.  These are 
 	 * constantly updated by the callback function
 	 */
-	Spectrogram		spectrogram;
+	Spectrogram			spectrogram;
 	std::queue<float>	RMS_history;
-	Fingerprint		fingerprint;
+	Fingerprint			fingerprint;
 	
 	static const unsigned int fpLength; /* number of elements in the fingerprint vector */
 	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
@@ -88,4 +88,4 @@ private:
 	AURenderCallbackStruct		inputProc;
 	CAStreamBasicDescription	thruFormat;
 	Float64						hwSampleRate;
-	};
+};
