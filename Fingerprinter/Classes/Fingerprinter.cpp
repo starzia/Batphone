@@ -27,7 +27,7 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 16; //1024;
+const unsigned int Fingerprinter::fpLength = 256; //1024;
 const unsigned int Fingerprinter::historyLength = 100;
 #define kOutputBus 0
 #define kInputBus 1
@@ -74,7 +74,7 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	// find RMS value (must do this before the in-place FFT)
 	float rms;
 	vDSP_rmsqv( originalReal, 1, &rms, inNumberFrames );
-	printf( "RMS: %10.0f\tFFT: ", rms );
+	///printf( "RMS: %10.0f\tFFT: ", rms );
 	// add to history queue
 	THIS->RMS_history.push(rms);
 	if( THIS->RMS_history.size() > Fingerprinter::historyLength ){
@@ -93,21 +93,29 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
     vDSP_ctoz((COMPLEX*) originalReal, 2, &compl_buf, 1, inNumberFrames/2);
 	vDSP_fft_zip( fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
     vDSP_ztoc(&compl_buf, 1, (COMPLEX*) originalReal, 2, inNumberFrames/2);
-	
-	// TODO: use vDSP_vdbcon to get decibels
-	// TODO: use vDSP_zaspec to get ABS
+
+	// use vDSP_zaspec to get power spectrum
+	float* A = new float[inNumberFrames/2];
+	vDSP_zaspec( &compl_buf, A, inNumberFrames/2 );
+
+	// convert to dB
+	float* db = new float[inNumberFrames/2];
+	float reference=1.0f;
+	vDSP_vdbcon( A, 1, &reference, db, 1, inNumberFrames/2, 1 /* power, not amplitude */ );
+
+	// save in a fingerprint
 	Fingerprint newFP( Fingerprinter::fpLength );
 	for( int i=0; i<(1<<log2FFTLength); ++i ){
-		float thisAbsVal = sqrt(compl_buf.realp[i]*compl_buf.realp[i] + compl_buf.imagp[i]*compl_buf.imagp[i] );
-		newFP[i] = thisAbsVal;
-		printf( "%10.0f\t", thisAbsVal );
+		newFP[i] = db[i];
+		///printf( "%10.0f\t", thisAbsVal );
 	}
+
+	
 	THIS->spectrogram.push( newFP );
 	if( THIS->spectrogram.size() > Fingerprinter::historyLength ){
 		THIS->spectrogram.pop();		
 	}
-	
-	printf( "\n" );
+	///printf( "\n" );
 	
 	// compute fingerprint.  TODO: implement this properly
 	THIS->fingerprint = newFP;
@@ -115,6 +123,7 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
 	delete originalReal;
+	delete A;
 	
 	return 0;
 }	
