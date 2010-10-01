@@ -14,7 +14,8 @@
 	// data members
     UIWindow *window;
 	UILabel  *label;
-	UIButton *button;
+	UIButton *saveButton;
+	UIButton *resetButton;
 	plotView *plot;
 	plotView *plotOld;
 	Fingerprint* oldFingerprint;
@@ -25,7 +26,8 @@
 // accessors
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) UILabel *label;
-@property (nonatomic, retain) UIButton *button;
+@property (nonatomic, retain) UIButton *saveButton;
+@property (nonatomic, retain) UIButton *resetButton;
 @property (retain) plotView *plot;
 @property (retain) plotView *plotOld;
 @property (retain) NSTimer* plotTimer;
@@ -34,8 +36,8 @@
 
 // member functions
 -(void) printFingerprint: (Fingerprint*) fingerprint;
--(void) test;
--(void) buttonHandler:(id)sender;
+-(void) saveButtonHandler:(id)sender;
+-(void) resetButtonHandler:(id)sender;
 
 @end
 

@@ -18,7 +18,8 @@ using namespace std;
 
 @synthesize window;
 @synthesize label;
-@synthesize button;
+@synthesize saveButton;
+@synthesize resetButton;
 @synthesize plot;
 @synthesize plotOld;
 @synthesize plotTimer;
@@ -35,30 +36,27 @@ using namespace std;
 }
 
 
--(void)test{
+-(void) saveButtonHandler:(id)sender{
+	// move current fingerprint to "Old" slot
+	Fingerprint* tmpFP = self.oldFingerprint;
+	self.oldFingerprint = new Fingerprint( self.fp->fingerprint ); // copy constructor	
+	[self.plotOld setVector: oldFingerprint];
+	[self.plotOld setNeedsDisplay];
+	delete tmpFP;
+	
+	// also reset
+	[self resetButtonHandler:sender];
+}
+
+-(void) resetButtonHandler:(id)sender{
 	// record a new fingerprint using the microphone
 	Fingerprint* observed = fp->recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
 	[self printFingerprint:observed];
 	
-	// move current fingerprint to "Old" slot
-	Fingerprint* tmpFP = self.oldFingerprint;
-	self.oldFingerprint = new Fingerprint( Fingerprinter::fpLength );
-	for( int i=0; i<Fingerprinter::fpLength; ++i ){
-		(*self.oldFingerprint)[i] = self.fp->fingerprint[i]; // copy from fingerprinter
-	}
-	[self.plotOld setVector: oldFingerprint];
-	[self.plotOld setNeedsDisplay];
-	delete tmpFP;
-	
 	// reset fingerprint
 	self.fp->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f );
 	[self.plot setVector: &self.fp->fingerprint];
-}
-
--(void) buttonHandler:(id)sender{
-	// run fingerprinter
-	[self test];
 }
 
 #pragma mark -
@@ -71,15 +69,15 @@ using namespace std;
 	self.fp = new Fingerprinter();
 	
 	// screen width / 2 - label width / 2
-    CGFloat x = 320/2 - 120/2;
+    CGFloat x = 320/2 - 240/2;
     // screen height / 2 - label height / 2
     CGFloat y = 480/2 - 45/2;
-    CGRect labelRect = CGRectMake(x , y-120, 120.0f, 45.0f);
+    CGRect labelRect = CGRectMake(x , y-120, 240.0f, 45.0f);
 
     // Create the label.
     self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
     // Set the value of our string
-    [label setText:@"Hello World!"];
+    [label setText:@"push 'reset' to begin"];
     // Center Align the label's text
     [label setTextAlignment:UITextAlignmentCenter];
 
@@ -87,11 +85,19 @@ using namespace std;
 	[window addSubview:label];
 	
 	// Add button to the window
-	button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-	[button addTarget:self action:@selector(buttonHandler:) forControlEvents:UIControlEventTouchUpInside];
-	[button setTitle:@"get fingerprint" forState:UIControlStateNormal];
-	button.frame = CGRectMake(80.0, 40.0, 160.0, 40.0);
-	[window addSubview:button];
+	resetButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+	[resetButton addTarget:self action:@selector(resetButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
+	[resetButton setTitle:@"reset" forState:UIControlStateNormal];
+	resetButton.frame = CGRectMake(50.0, 40.0, 60.0, 40.0);
+	[window addSubview:resetButton];
+
+	// Add button to the window
+	saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+	[saveButton addTarget:self action:@selector(saveButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
+	[saveButton setTitle:@"save" forState:UIControlStateNormal];
+	saveButton.frame = CGRectMake(190.0, 40.0, 60.0, 40.0);
+	[window addSubview:saveButton];
+	
 	
 	// Add plot to window
 	CGRect plotRect = CGRectMake(10, 320, 300.0f, 150.0f);
@@ -169,10 +175,13 @@ using namespace std;
 - (void)dealloc {
     [window release];
 	[label release];
-	[button release];
+	[resetButton release];
+	[saveButton release];
 	[plot release];
+	[plotOld release];
 	[plotTimer release];
 	delete fp;
+	delete oldFingerprint;
     [super dealloc];
 }
 
