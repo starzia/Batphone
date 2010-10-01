@@ -39,6 +39,9 @@ using namespace std;
 	Fingerprint* observed = fp->recordFingerprint();
 	cout << "Newly observed fingerprint:" <<endl;
 	[self printFingerprint:observed];
+
+	// reset fingerprint
+	fp->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f );
 }
 
 -(void) buttonHandler:(id)sender{

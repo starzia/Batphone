@@ -62,7 +62,8 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	//printf( "%d  ", data_ptr[0]>>8 );
 	
 	// setup FFT
-	UInt32 log2FFTLength = log2f( Fingerprinter::fpLength );
+	// Below, we need twice as many FFT points as the fpLength because of FFT "folding"
+	UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
 	FFTSetup fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 );
 	// prepare vectors for FFT
 	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
@@ -86,8 +87,7 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	compl_buf.realp = new float[inNumberFrames/2];
 	compl_buf.imagp = new float[inNumberFrames/2];
 		
-	// take fft and convert complex numbers to abs
-	
+	// take fft 	
 	/* ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
 	 * see vDSP documentation for details. */
     vDSP_ctoz((COMPLEX*) originalReal, 2, &compl_buf, 1, inNumberFrames/2);
@@ -95,30 +95,29 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
     vDSP_ztoc(&compl_buf, 1, (COMPLEX*) originalReal, 2, inNumberFrames/2);
 
 	// use vDSP_zaspec to get power spectrum
-	float* A = new float[inNumberFrames/2];
-	vDSP_zaspec( &compl_buf, A, inNumberFrames/2 );
+	float* A = new float[Fingerprinter::fpLength];
+	vDSP_zaspec( &compl_buf, A, Fingerprinter::fpLength );
 
 	// convert to dB
-	float* db = new float[inNumberFrames/2];
+	float* db = new float[Fingerprinter::fpLength];
 	float reference=1.0f;
-	vDSP_vdbcon( A, 1, &reference, db, 1, inNumberFrames/2, 1 /* power, not amplitude */ );
+	vDSP_vdbcon( A, 1, &reference, db, 1, Fingerprinter::fpLength, 1 /* power, not amplitude */ );
 
 	// save in a fingerprint
 	Fingerprint newFP( Fingerprinter::fpLength );
-	for( int i=0; i<(1<<log2FFTLength); ++i ){
+	for( int i=0; i<Fingerprinter::fpLength; ++i ){
 		newFP[i] = db[i];
+		THIS->fingerprint[i] += db[i];
 		///printf( "%10.0f\t", thisAbsVal );
 	}
-
-	
 	THIS->spectrogram.push( newFP );
 	if( THIS->spectrogram.size() > Fingerprinter::historyLength ){
 		THIS->spectrogram.pop();		
 	}
 	///printf( "\n" );
 	
-	// compute fingerprint.  TODO: implement this properly
-	THIS->fingerprint = newFP;
+	// compute fingerprint.  TODO: implement this properly using the 5th percentile of spectrogram
+	////THIS->fingerprint = newFP;
 	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
