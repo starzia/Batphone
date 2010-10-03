@@ -27,7 +27,7 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 128;
+const unsigned int Fingerprinter::fpLength = 1024;
 const unsigned int Fingerprinter::historyLength = 100;
 #define kOutputBus 0
 #define kInputBus 1
@@ -74,12 +74,9 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	// prepare vectors for FFT
 	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
 	
-	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
-	// TODO: use vector op
-	for( int i=0; i<inNumberFrames; i++ ){
-		data_ptr[i] >>= 8;
-	}
-	
+	// TODO: right bitshift sample integers by 8 bits because they are in weird 8.24 format
+	// actually, this isn't really necessary.  Floats will just be 256 times bigger
+
 	// convert integers to floats
 	vDSP_vflt32( (int*)data_ptr, 1, originalReal, 1, inNumberFrames );
 

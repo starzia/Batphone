@@ -17,8 +17,6 @@
 
 #import "Spectrogram.h"
 
-#define FPLENGTH = 128;
-
 // DATA TYPES
 /* Fingerprint is a summary of room ambient noise; essentially the power spectrum of the ambient noise */
 typedef float* Fingerprint;
