@@ -9,22 +9,22 @@
 #import <UIKit/UIKit.h>
 #import <vector>
 
-typedef std::vector<float> Vec;
-
 @interface plotView : UIView {
-    Vec* data; // the data to plot
+    float* data; // the data to plot
+	unsigned int length; // the length of data array
 	// y axis range for plot:
 	float minY;
 	float maxY;
 }
 
-@property Vec* data;
+@property float* data;
+@property unsigned int length;
 @property float minY;
 @property float maxY;
 
 // set the y axis range of the plot
 -(void)setYRange_min: (float)Ymin  max:(float)Ymax;
 -(id)initWith_Frame:(CGRect)frame;
--(void)setVector: (Vec*)data;
+-(void)setVector: (float*)data length:(unsigned int)len;
 
 @end

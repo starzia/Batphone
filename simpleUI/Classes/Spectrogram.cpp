@@ -46,8 +46,9 @@ void Spectrogram::getSummary(float* outBuf){
     // iterate through frequency bins
 	for( int i=0; i<this->freqBins; i++ ){
 		// make a copy of the data to select from (b/c it does an in-place quickselect)
-		vector<float> selectVec( data+(i*freqBins), data+((i+1)*freqBins) ); 
+		vector<float> selectVec( data+(i*timeBins), data+((i+1)*timeBins) ); 
 	    std::nth_element( selectVec.begin(), selectVec.begin()+p5_idx, selectVec.end() );
 		outBuf[i] = selectVec[ p5_idx ];
 	}
+	
 }

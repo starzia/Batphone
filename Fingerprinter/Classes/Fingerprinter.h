@@ -17,9 +17,11 @@
 
 #import "Spectrogram.h"
 
+#define FPLENGTH = 128;
+
 // DATA TYPES
 /* Fingerprint is a summary of room ambient noise; essentially the power spectrum of the ambient noise */
-typedef std::vector<float> Fingerprint;
+typedef float* Fingerprint;
 
 /* Candidates room matches are returned when querying the DB */
 typedef struct {
@@ -43,46 +45,45 @@ public:
 	/* Contructor.  Initializes the database and the sound system. */
 	Fingerprinter();
 	
-	/* Make a recording and process it to get a Fingerprint */
-	Fingerprint* recordFingerprint();
+	/* start recording */
+	bool startRecording();
+	
+	/* returns a pointer to the current fingerprint value 
+	 * TODO: add a lock for thread-safe access to this. */
+	Fingerprint getFingerprintRef();
 	
 	/* Query the DB for a list of closest-matching rooms 
 	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
-	QueryResult* queryMatches( Fingerprint* observation,  /* observed Fingerprint we want to match */
+	QueryResult* queryMatches( Fingerprint observation,  /* observed Fingerprint we want to match */
 							   unsigned int numMatches ); /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 							   
 	/* Query the DB for a given room's name. */
 	std::string queryName( unsigned int uid );
 
-	/* Query the DB for a given room's Fingerprint. */
-	Fingerprint* queryFingerprint( unsigned int uid );
+	/* Query the DB for a given room's Fingerprint.  
+	 * Returns true if uid matched a fingerprint in the DB. */
+	bool queryFingerprint( unsigned int uid, Fingerprint outputFingerprint );
 	
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
-	unsigned int insertFingerprint( Fingerprint* observation, /* the new Fingerprint */
+	unsigned int insertFingerprint( Fingerprint observation, /* the new Fingerprint */
 								    std::string name );            /* name for the new room */
+	
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
-	
-	/* public accessors */
-	AudioUnit getAUnit();
-	
-	/* recording history is public for callback function access.  These are 
-	 * constantly updated by the callback function
-	 */
-	Spectrogram			spectrogram;
-	std::queue<float>	RMS_history;
-	Fingerprint			fingerprint;
 	
 	static const unsigned int fpLength; /* number of elements in the fingerprint vector */
 	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
 	
 private:
-	Fingerprint* makeRandomFingerprint();
-	bool startRecording();
+	void makeRandomFingerprint( Fingerprint outBuf );
+	int setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat);
 	
 	/* private data members */
+	Spectrogram			spectrogram;
+	Fingerprint			fingerprint;
+	
 	AudioUnit					rioUnit;
 	bool						unitIsRunning;
 	AURenderCallbackStruct		inputProc;

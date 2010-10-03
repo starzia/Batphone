@@ -11,10 +11,10 @@
 
 @implementation plotView
 
-@synthesize data;
+@synthesize data, length;
 @synthesize minY, maxY;
 
-- (id)initWith_Frame:(CGRect)frame {
+- (id)initWith_Frame:(CGRect)frame{
     if ((self = [super initWithFrame:frame])) {
         // Initialization code
 		self.backgroundColor = [UIColor whiteColor];
@@ -30,7 +30,8 @@
     return self;
 }
 
--(void) setVector: (Vec*)dataPtr{
+-(void) setVector: (float*)dataPtr length:(unsigned int)len{
+	self.length = len;
 	self.data = dataPtr;
 }
 
@@ -38,14 +39,14 @@
 // An empty implementation adversely affects performance during animation.
 - (void)drawRect:(CGRect)rect {
 	// do nothing is fingerprinter is not ready
-	if( !self.data || self.data->size() == 0 ) return;
+	if( !self.data || self.length == 0 ) return;
     
 	// Drawing code
     CGContextRef context = UIGraphicsGetCurrentContext();
 		
 	// update view range
-	float min_val = *std::min_element(self.data->begin(), self.data->end() ); 
-	float max_val = *std::max_element(self.data->begin(), self.data->end() ); 
+	float min_val = *std::min_element(self.data, self.data+self.length ); 
+	float max_val = *std::max_element(self.data, self.data+self.length ); 
 	[self setYRange_min:min_val max:max_val];
 	
 	// Get boundary information for this view, so that drawing can be scaled
@@ -56,15 +57,15 @@
 	CGContextSetRGBStrokeColor(context, 1.0, 0.0, 0.0, 1.0);
 
 	float plot_range = self.maxY - self.minY;
-	float xStep = X/(data->size()-1);
+	float xStep = X/(self.length-1);
 	float yStep = Y/plot_range;
 	
-	if( data->size() > 0 ){
+	if( self.length > 0 ){
 		// start off the line at the left side
-		CGContextMoveToPoint(context, 0, Y - ((*data)[0]-self.minY) * yStep);
-		for( int i=1; i<data->size(); ++i ){ // starting w/2nd data point
-			CGContextAddLineToPoint(context, i * xStep, Y - ((*data)[i]-self.minY) * yStep);	
-			//printf("line %f %f %f\n", data[i], i * xStep, Y - ((*data)[i]-self.minY) * yStep);
+		CGContextMoveToPoint(context, 0, Y - (self.data[0]-self.minY) * yStep);
+		for( int i=1; i<self.length; ++i ){ // starting w/2nd data point
+			CGContextAddLineToPoint(context, i * xStep, Y - (self.data[i]-self.minY) * yStep);	
+			//printf("line %f %f %f\n", data[i], i * xStep, Y - (self.data[i]-self.minY) * yStep);
 		}
 		CGContextSetLineWidth(context, 0.5);
 		CGContextStrokePath(context);

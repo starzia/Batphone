@@ -18,7 +18,7 @@
 	UIButton *resetButton;
 	plotView *plot;
 	plotView *plotOld;
-	Fingerprint* oldFingerprint;
+	Fingerprint oldFingerprint;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	Fingerprinter *fp;
 }
@@ -27,17 +27,17 @@
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *saveButton;
-@property (nonatomic, retain) UIButton *resetButton;
+@property (nonatomic, retain) UIButton *startButton;
 @property (retain) plotView *plot;
 @property (retain) plotView *plotOld;
 @property (retain) NSTimer* plotTimer;
 @property Fingerprinter* fp;
-@property Fingerprint* oldFingerprint;
+@property Fingerprint oldFingerprint;
 
 // member functions
 -(void) printFingerprint: (Fingerprint*) fingerprint;
 -(void) saveButtonHandler:(id)sender;
--(void) resetButtonHandler:(id)sender;
+-(void) startButtonHandler:(id)sender;
 
 @end
 

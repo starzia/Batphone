@@ -27,7 +27,7 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 512;
+const unsigned int Fingerprinter::fpLength = 128;
 const unsigned int Fingerprinter::historyLength = 100;
 #define kOutputBus 0
 #define kInputBus 1
@@ -37,20 +37,26 @@ const unsigned int Fingerprinter::historyLength = 100;
 // -----------------------------------------------------------------------------
 // HELPER FUNCTIONS FOR AUDIO
 
+typedef struct{
+	AudioUnit rioUnit;
+	Spectrogram* spectrogram;
+	Fingerprint fingerprint;
+} CallbackData;
+	
 
 /* Callback function for audio input.  This function is what actually processes
  * newly-captured audio buffers.
  */
-static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state data structure */
+static OSStatus callback( 	 void						*inRefCon, /* the user-specified state data structure */
 							 AudioUnitRenderActionFlags *ioActionFlags, 
 							 const AudioTimeStamp 		*inTimeStamp, 
 							 UInt32 					inBusNumber, 
 							 UInt32 					inNumberFrames, 
 							 AudioBufferList 			*ioData ){
 	// cast our data structure
-	Fingerprinter* THIS = (Fingerprinter*)inRefCon;
+	CallbackData* cd = (CallbackData*)inRefCon;
 	try{
-		XThrowIfError( AudioUnitRender(THIS->getAUnit(), ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "Callback: AudioUnitRender" );
+		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "Callback: AudioUnitRender" );
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -68,7 +74,11 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	// prepare vectors for FFT
 	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
 	
-	// TODO: right bitshift sample integers by 8 bits because they are in weird 8.24 format
+	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
+	// TODO: use vector op
+	for( int i=0; i<inNumberFrames; i++ ){
+		data_ptr[i] >>= 8;
+	}
 	
 	// convert integers to floats
 	vDSP_vflt32( (int*)data_ptr, 1, originalReal, 1, inNumberFrames );
@@ -81,11 +91,6 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	float rms;
 	vDSP_rmsqv( originalReal, 1, &rms, inNumberFrames );
 	///printf( "RMS: %10.0f\tFFT: ", rms );
-	// add to history queue
-	THIS->RMS_history.push(rms);
-	if( THIS->RMS_history.size() > Fingerprinter::historyLength ){
-		THIS->RMS_history.pop();		
-	}
 	
 	// we are going to rearrange $originalReal into the two parts of $compl_buf
 	DSPSplitComplex compl_buf;
@@ -108,23 +113,16 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	float reference=1.0f;
 	vDSP_vdbcon( A, 1, &reference, db, 1, Fingerprinter::fpLength, 1 /* power, not amplitude */ );
 
-	// save in a fingerprint
-	float newFP[ Fingerprinter::fpLength ];
-	for( int i=0; i<Fingerprinter::fpLength; ++i ){
-		newFP[i] = db[i];
-		THIS->fingerprint[i] += db[i];
-		///printf( "%10.0f\t", thisAbsVal );
-	}
-	THIS->spectrogram.update( newFP );
-	///printf( "\n" );
-	
-	// compute fingerprint.  TODO: implement this properly using the 5th percentile of spectrogram
-	////THIS->fingerprint = newFP;
+	// save in spectrogram
+	cd->spectrogram->update( db );
+	// update fingerprint from spectrogram summary
+	cd->spectrogram->getSummary( cd->fingerprint );
 	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
 	delete originalReal;
 	delete A;
+	delete db;
 	
 	return 0;
 }	
@@ -133,8 +131,7 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 /* Sets up audio.  This is called by Fingerprinter constructor and also whenever
  * audio needs to be reset, eg. when distrupted by some system event or state change.
  */
-int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit, 
-				  AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat){	
+int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat){	
 	try {		
 		// create an output unit, ie a signal SOURCE (from the mic)
 		AudioComponentDescription desc;
@@ -149,11 +146,11 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 		desc.componentFlagsMask = 0;
 		
 		AudioComponent comp = AudioComponentFindNext(NULL, &desc);
-		XThrowIfError(AudioComponentInstanceNew(comp, &inRemoteIOUnit), "couldn't open the remote I/O unit");
+		XThrowIfError(AudioComponentInstanceNew(comp, &(this->rioUnit)), "couldn't open the remote I/O unit");
 		
 		// enable input on the AU
 		UInt32 flag = 1;
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input,
+		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input,
 										   kInputBus, &flag, sizeof(flag)), "couldn't enable input on the remote I/O unit");
 		/*
 		// disable output on the AU
@@ -172,14 +169,20 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 					  "get default device" );
 		
 		// Set the current device to the default input unit.
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 
+		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 
 										   kInputBus, &inputDeviceID, sizeof(AudioDeviceID) ), "set device" );
 #endif	
 		
+		// first, collect all the data pointers the callback function will need
+		CallbackData* callbackData = new CallbackData;
+		callbackData->rioUnit = this->rioUnit;
+		callbackData->spectrogram = &(this->spectrogram);
+		callbackData->fingerprint = this->fingerprint;
+		
 		// set the callback fcn
-		inRenderProc.inputProc = PerformThru;
-		inRenderProc.inputProcRefCon = THIS;
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
+		inRenderProc.inputProc = callback;
+		inRenderProc.inputProcRefCon = callbackData;
+		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
 										   kOutputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
 		/* TODO: play with this to eliminate feedback.  This looks more correct to me:
 		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 
@@ -193,40 +196,15 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
         // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
         outFormat.SetAUCanonical(1 /*numChannels*/, false /*interleaved*/);
 		
-		/*
-		 // Explicitly describe format
-		 outFormat.mSampleRate			= 44100.00;
-		 outFormat.mFormatID			= kAudioFormatLinearPCM;
-		 outFormat.mFormatFlags		= kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-		 outFormat.mFramesPerPacket	= 1;
-		 outFormat.mChannelsPerFrame	= 1;
-		 outFormat.mBitsPerChannel		= 16;
-		 outFormat.mBytesPerPacket		= 2;
-		 outFormat.mBytesPerFrame		= 2;
-		 */
-		
 		// set input format
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 
+		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 
 										   kOutputBus, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's output client format");
 		// set output format
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 
+		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 
 										   kInputBus, &outFormat, sizeof(outFormat)), "couldn't set the remote I/O unit's input client format");
-		/*
-		// allocate buffers
-		// NOTE that buffers are allocated automatically by default.  see kAudioUnitProperty_ShouldAllocateBuffer
-		flag = 1;
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Output, 
-									       kInputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Input, 
-									       kInputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Output, 
-									       kOutputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Input, 
-									       kOutputBus, &flag, sizeof(flag)), "couldn't set allocation strategy" );
-		*/
 		
 		// initialize AU
-		XThrowIfError(AudioUnitInitialize(inRemoteIOUnit), "couldn't initialize the remote I/O unit");
+		XThrowIfError(AudioUnitInitialize(this->rioUnit), "couldn't initialize the remote I/O unit");
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -248,9 +226,11 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 
 /* Constructor initializes the audio system */
 Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
-	// set up member vars
-	this->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f ); // plotter must always have a FP available to plot, so init one here.
-	
+	// plotter must always have a FP available to plot, so init one here.
+	this->fingerprint = new float[Fingerprinter::fpLength];
+	for( int i=0; i<Fingerprinter::fpLength; ++i ){
+		this->fingerprint[i] = 0;
+	}
 	try {			
 		// Initialize and configure the audio session
 #if TARGET_OS_IPHONE
@@ -275,7 +255,7 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 											  &size, &hwSampleRate), "couldn't get hw sample rate");
 #endif
 		// set up Audio Unit
-		XThrowIfError(setupRemoteIO(this, rioUnit, inputProc, thruFormat), "couldn't setup remote i/o unit");
+		XThrowIfError(this->setupRemoteIO(inputProc, thruFormat), "couldn't setup remote i/o unit");
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -289,18 +269,12 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 }	
 
 
-Fingerprint* Fingerprinter::recordFingerprint(){
-	if( !unitIsRunning ) this->startRecording();
-	
-	float fvec[Fingerprinter::fpLength];
-	this->spectrogram.getSummary( fvec );
-	Fingerprint* ret = new Fingerprint( fvec, fvec + Fingerprinter::fpLength ); // copy it over, not smart
-	(*ret)[0] = this->RMS_history.back(); // TODO HACK: copy rms value into fingerprint[0] for convenient display 
-	return ret;
+Fingerprint Fingerprinter::getFingerprintRef(){
+    return this->fingerprint;
 }
 
 
-QueryResult* Fingerprinter::queryMatches( Fingerprint* observation, unsigned int numMatches ){
+QueryResult* Fingerprinter::queryMatches( Fingerprint observation, unsigned int numMatches ){
 	QueryResult* qr = new QueryResult(numMatches);
 	float confidence = 1.0;
 	for( unsigned int i=0; i<numMatches; i++ ){
@@ -320,12 +294,13 @@ string Fingerprinter::queryName( unsigned int uid ){
 }
 
 
-Fingerprint* Fingerprinter::queryFingerprint( unsigned int uid ){
-	return this->makeRandomFingerprint();
+bool Fingerprinter::queryFingerprint( unsigned int uid, Fingerprint outBuf ){
+	this->makeRandomFingerprint( outBuf );
+	return true;
 }
 
 
-unsigned int Fingerprinter::insertFingerprint( Fingerprint* observation, string name ){
+unsigned int Fingerprinter::insertFingerprint( Fingerprint observation, string name ){
 	return random()%100;
 }
 
@@ -337,36 +312,32 @@ Fingerprinter::~Fingerprinter(){
 }
 
 
-AudioUnit Fingerprinter::getAUnit(){
-	return this->rioUnit;
-}
-
 
 // -----------------------------------------------------------------------------
 // FINGERPRINTER CLASS: PRIVATE MEMBERS
 
 
-Fingerprint* Fingerprinter::makeRandomFingerprint(){
-	Fingerprint* fp = new Fingerprint(Fingerprinter::fpLength);
-	(*fp)[0] = 0.0;
+void Fingerprinter::makeRandomFingerprint( Fingerprint outBuf ){
+	outBuf[0] = 0.0;
 	for( unsigned int i=1; i<Fingerprinter::fpLength; ++i ){
-		(*fp)[i] = (*fp)[i-1] + (random()%9) - 4;
+		outBuf[i] = outBuf[i-1] + (random()%9) - 4;
 	}
-	return fp;
 }
 
 
 bool Fingerprinter::startRecording(){
-	UInt32 maxFPS;
-	UInt32 size = sizeof(maxFPS);
-	XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
+	if( !unitIsRunning ){
+		UInt32 maxFPS;
+		UInt32 size = sizeof(maxFPS);
+		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
 	
-	XThrowIfError(AudioOutputUnitStart(rioUnit), "couldn't start remote i/o unit");
+		XThrowIfError(AudioOutputUnitStart(rioUnit), "couldn't start remote i/o unit");
 	
-	size = sizeof(thruFormat);
-	XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &thruFormat, &size), "couldn't get the remote I/O unit's output client format");
+		size = sizeof(thruFormat);
+		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &thruFormat, &size), "couldn't get the remote I/O unit's output client format");
 	
-	unitIsRunning = TRUE;
+		unitIsRunning = TRUE;
+	}
 	return unitIsRunning;
 }
 
