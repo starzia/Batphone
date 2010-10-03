@@ -67,10 +67,15 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	FFTSetup fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 );
 	// prepare vectors for FFT
 	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
-	for( unsigned int i=0; i<inNumberFrames; ++i ){
-		originalReal[i] = (data_ptr[i]>>8); // read input
-		data_ptr[i] = 0;                    // set output.  NOTE: if we don't set this to zero we'll get feedback.
-	}
+	
+	// TODO: right bitshift sample integers by 8 bits because they are in weird 8.24 format
+	
+	// convert integers to floats
+	vDSP_vflt32( (int*)data_ptr, 1, originalReal, 1, inNumberFrames );
+
+	// set output.  NOTE: if we don't set this to zero we'll get feedback.
+	int zero=0;
+	vDSP_vfilli( &zero, (int*)data_ptr, 1, inNumberFrames );
 	
 	// find RMS value (must do this before the in-place FFT)
 	float rms;
@@ -104,16 +109,13 @@ static OSStatus	PerformThru( void						*inRefCon, /* the user-specified state da
 	vDSP_vdbcon( A, 1, &reference, db, 1, Fingerprinter::fpLength, 1 /* power, not amplitude */ );
 
 	// save in a fingerprint
-	Fingerprint newFP( Fingerprinter::fpLength );
+	float newFP[ Fingerprinter::fpLength ];
 	for( int i=0; i<Fingerprinter::fpLength; ++i ){
 		newFP[i] = db[i];
 		THIS->fingerprint[i] += db[i];
 		///printf( "%10.0f\t", thisAbsVal );
 	}
-	THIS->spectrogram.push( newFP );
-	if( THIS->spectrogram.size() > Fingerprinter::historyLength ){
-		THIS->spectrogram.pop();		
-	}
+	THIS->spectrogram.update( newFP );
 	///printf( "\n" );
 	
 	// compute fingerprint.  TODO: implement this properly using the 5th percentile of spectrogram
@@ -245,7 +247,7 @@ int setupRemoteIO( Fingerprinter* THIS, AudioUnit& inRemoteIOUnit,
 
 
 /* Constructor initializes the audio system */
-Fingerprinter::Fingerprinter(){
+Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 	// set up member vars
 	this->fingerprint = Fingerprint( Fingerprinter::fpLength, 0.0f ); // plotter must always have a FP available to plot, so init one here.
 	
@@ -290,12 +292,10 @@ Fingerprinter::Fingerprinter(){
 Fingerprint* Fingerprinter::recordFingerprint(){
 	if( !unitIsRunning ) this->startRecording();
 	
-	// for now, just return the most recent FFT result.
-	Fingerprint* ret = new Fingerprint( Fingerprinter::fpLength );
-	if( spectrogram.size() > 2 ){ // two to avoid dealing with concurrency
-	    *ret = this->spectrogram.back(); // copy vector for return
-		(*ret)[0] = this->RMS_history.back(); // TODO HACK: copy rms value into fingerprint[0] for convenient display 
-	}
+	float fvec[Fingerprinter::fpLength];
+	this->spectrogram.getSummary( fvec );
+	Fingerprint* ret = new Fingerprint( fvec, fvec + Fingerprinter::fpLength ); // copy it over, not smart
+	(*ret)[0] = this->RMS_history.back(); // TODO HACK: copy rms value into fingerprint[0] for convenient display 
 	return ret;
 }
 

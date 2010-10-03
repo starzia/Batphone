@@ -15,11 +15,11 @@
 #import <CoreAudio/CoreAudioTypes.h>
 #import "CAStreamBasicDescription.h"
 
+#import "Spectrogram.h"
 
 // DATA TYPES
 /* Fingerprint is a summary of room ambient noise; essentially the power spectrum of the ambient noise */
 typedef std::vector<float> Fingerprint;
-typedef std::queue<Fingerprint> Spectrogram;
 
 /* Candidates room matches are returned when querying the DB */
 typedef struct {
@@ -64,7 +64,7 @@ public:
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
-
+	
 	/* public accessors */
 	AudioUnit getAUnit();
 	
