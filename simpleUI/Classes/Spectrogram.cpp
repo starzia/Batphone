@@ -13,42 +13,37 @@
 #include <vector>
 using std::vector;
 
+#define PERCENTILE (0.05)
+
 Spectrogram::Spectrogram(unsigned int freq_bins, unsigned int time_bins): 
-  freqBins(freq_bins), timeBins(time_bins){
-	// allocate data array	
-    this->data = new float[freq_bins*time_bins];
-	// set to zeros
-    vDSP_vclr( this->data, 1, this->freqBins * this->timeBins );
-	// set tail pointer
-	this->tailIndex = 0;
+freqBins(freq_bins), timeBins(time_bins){
+	// allocate data sliding windows	
+	slidingWindows = new SlidingWindow*[freq_bins];
+	for( int i=0; i<freq_bins; i++ ){
+		slidingWindows[i] = new SlidingWindow( time_bins, PERCENTILE, 0.0f );
+	}
 }
 
 Spectrogram::~Spectrogram(){
-	delete this->data;
+	for( int i=0; i<freqBins; i++ ){
+		delete slidingWindows[i];
+	}
+	delete[] slidingWindows;
 }
 
 void Spectrogram::update(float* s){
-	// TODO: use vector op like:
-	//vDSP_zvmov( this->data[this->tailIndex], this->freqBins, s, 1, this->timeBins );
-
-	// copy over data array
+	// copy into sliding windows
 	for( int i=0; i<this->freqBins; i++ ){
-		this->data[this->tailIndex + i * this->timeBins] = s[i];
+		slidingWindows[i]->update( s[i] );
 	}
-	// update tail pointer
-	this->tailIndex = (this->tailIndex+1)%this->timeBins;
 }
 
 void Spectrogram::getSummary(float* outBuf){
-	// find index of 5th percentile value in sorted list of time bins
-	int p5_idx = floor( 0.05 * this->timeBins );
-	
+	// just retrieve the 5th percentile values from the sliding windows
+
     // iterate through frequency bins
 	for( int i=0; i<this->freqBins; i++ ){
-		// make a copy of the data to select from (b/c it does an in-place quickselect)
-		vector<float> selectVec( data+(i*timeBins), data+((i+1)*timeBins) ); 
-	    std::nth_element( selectVec.begin(), selectVec.begin()+p5_idx, selectVec.end() );
-		outBuf[i] = selectVec[ p5_idx ];
+		outBuf[i] = slidingWindows[i]->getVal();
 	}
 	
 }

@@ -7,6 +7,8 @@
  *
  */
 
+#import "SlidingWindow.h"
+
 class Spectrogram{
 public:
 	/* constructor */
@@ -25,9 +27,6 @@ public:
 	unsigned int timeBins;
 	
 private:
-	/* the data is stored in a flattened matrix. Elements in the same row are 
-	 * contiguous but elements of a column are offset by freqBins */
-	float* data __attribute__ ((aligned));
-	/* points to the current tail column of the spectrogram*/
-	unsigned int tailIndex;
+	/* the data is sliding windows, one for each frequency bin */
+	SlidingWindow** slidingWindows;	
 };

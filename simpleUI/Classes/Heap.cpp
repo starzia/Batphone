@@ -9,25 +9,37 @@
 
 #include "Heap.h"
 
-Heap::Heap(unsigned int size, float* initialVals, 
-	       bool isMaxHeap, unsigned int* indexToPosition ) : 
-  size(size), vals(initialVals), isMaxHeap(isMaxHeap), 
-  indexToPosition(indexToPosition) {
-	this->positionToIndex = new unsigned int[size];
-	// record the reverse mapping
-    for( int i=0; i<size; i++ ){		  
-	    this->positionToIndex[ indexToPosition[i] ] = i;  
+Heap::Heap(unsigned int size, float initialVals, bool isMaxHeap ) : 
+size(size), isMaxHeap(isMaxHeap) {
+	vals = new float[size];
+	positionToKey = new unsigned int[size];
+	keyToPosition = new unsigned int[size];
+    // initialize the values and the forward and reverse mappings
+    for( int i=0; i<size; i++ ){	
+		vals[i] = initialVals;
+	    positionToKey[i] = i;  
+	    keyToPosition[i] = i;  
 	}
 }
 
 Heap::~Heap(){
-	delete this->positionToIndex;
+	delete[] vals;
+	delete[] positionToKey;
+	delete[] keyToPosition;
 }
 
 void Heap::replace( unsigned int index, float val ){
-	unsigned int pos = indexToPosition[index];
+	unsigned int pos = keyToPosition[index];
 	vals[pos] = val;
 	correct( pos );
+}
+
+float Heap::rootVal(){
+	return vals[0];
+}
+
+unsigned int Heap::rootKey(){
+	return positionToKey[0];
 }
 
 void Heap::correct( unsigned int position ){
@@ -36,12 +48,13 @@ void Heap::correct( unsigned int position ){
 }
 
 // binary heap index arithmetic
-#define PARENT(x) = ((x-1)/2)
-#define LEFTCHILD(x) = ((2*x)+1)
-#define RIGHTCHILD(x) = ((2*x)+2)
+#define PARENT(x) (((int)x-1)/2)
+#define LEFTCHILD(x) ((2*x)+1)
+#define RIGHTCHILD(x) ((2*x)+2)
 
 void Heap::siftUp( unsigned int position ){
-	unsigned int parent_pos = PARENT(position);
+	int parent_pos = PARENT(position);
+	if( parent_pos < 0 ) return; // already at top
 	bool doSwap = false;
 	if( isMaxHeap ){
 		// parent should be larger
@@ -61,7 +74,8 @@ void Heap::siftUp( unsigned int position ){
 }
 
 void Heap::siftDown( unsigned int position ){
-	for( unsigned int child = (2*position)+1; child<=(2*position+2); child++ ){
+	for( unsigned int child = LEFTCHILD(position); child<=RIGHTCHILD(position); child++ ){
+		if( child >= size ) return;  // already at bottom;
 		bool doSwap = false;
 		if( isMaxHeap ){
 			// child should be smaller
@@ -85,16 +99,16 @@ void Heap::swap( unsigned int pos1, unsigned int pos2 ){
     /* maintain the position <-> index mappings */
 	
 	// record current state
-	unsigned int idx1 = positionToIndex[pos1];
-	unsigned int idx2 = positionToIndex[pos2];
+	unsigned int key1 = positionToKey[pos1];
+	unsigned int key2 = positionToKey[pos2];
     float val1 = vals[pos1];
     float val2 = vals[pos2];
 	
 	// now swap
 	vals[pos2] = val1;
 	vals[pos1] = val2;
-	positionToIndex[pos1] = idx2;
-	positionToIndex[pos2] = idx1;
-	indexToPosition[idx1] = pos2;
-	indexToPosition[idx2] = pos1;
+	positionToKey[pos1] = key2;
+	positionToKey[pos2] = key1;
+	keyToPosition[key1] = pos2;
+	keyToPosition[key2] = pos1;
 }
