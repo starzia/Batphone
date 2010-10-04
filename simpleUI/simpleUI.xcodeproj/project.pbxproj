@@ -14,6 +14,7 @@
 		288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765FC0DF74451002DB57D /* CoreGraphics.framework */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
 		AA0037321258173E00876BBD /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA0037311258173E00876BBD /* Spectrogram.cpp */; };
+		AA0038D712595D4A00876BBD /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA0038D612595D4A00876BBD /* Heap.cpp */; };
 		AA7B05F412523F1200FFA088 /* Fingerprinter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */; };
 		AA7B05FD12523F4000FFA088 /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7B05F612523F4000FFA088 /* CADebugMacros.cpp */; };
 		AA7B05FE12523F4000FFA088 /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7B05F912523F4000FFA088 /* CAStreamBasicDescription.cpp */; };
@@ -37,6 +38,8 @@
 		8D1107310486CEB800E47090 /* simpleUI-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "simpleUI-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		AA0037301258173E00876BBD /* Spectrogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Spectrogram.h; sourceTree = "<group>"; };
 		AA0037311258173E00876BBD /* Spectrogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Spectrogram.cpp; sourceTree = "<group>"; };
+		AA0038D512595D4A00876BBD /* Heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Heap.h; sourceTree = "<group>"; };
+		AA0038D612595D4A00876BBD /* Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Heap.cpp; sourceTree = "<group>"; };
 		AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fingerprinter.cpp; path = ../Fingerprinter/Classes/Fingerprinter.cpp; sourceTree = SOURCE_ROOT; };
 		AA7B05F312523F1200FFA088 /* Fingerprinter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fingerprinter.h; path = ../Fingerprinter/Classes/Fingerprinter.h; sourceTree = SOURCE_ROOT; };
 		AA7B05F612523F4000FFA088 /* CADebugMacros.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CADebugMacros.cpp; sourceTree = "<group>"; };
@@ -81,6 +84,8 @@
 				AAC415D21254EFF0008DA27C /* plotView.mm */,
 				AA0037301258173E00876BBD /* Spectrogram.h */,
 				AA0037311258173E00876BBD /* Spectrogram.cpp */,
+				AA0038D512595D4A00876BBD /* Heap.h */,
+				AA0038D612595D4A00876BBD /* Heap.cpp */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -223,6 +228,7 @@
 				AA7B05FF12523F4000FFA088 /* CAXException.cpp in Sources */,
 				AAC415D31254EFF0008DA27C /* plotView.mm in Sources */,
 				AA0037321258173E00876BBD /* Spectrogram.cpp in Sources */,
+				AA0038D712595D4A00876BBD /* Heap.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
