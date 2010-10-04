@@ -41,6 +41,7 @@ typedef struct{
 	AudioUnit rioUnit;
 	Spectrogram* spectrogram;
 	Fingerprint fingerprint;
+	FFTSetup fftsetup;
 } CallbackData;
 	
 
@@ -70,7 +71,6 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	// setup FFT
 	// Below, we need twice as many FFT points as the fpLength because of FFT "folding"
 	UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
-	FFTSetup fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 );
 	// prepare vectors for FFT
 	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
 	
@@ -98,7 +98,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	/* ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
 	 * see vDSP documentation for details. */
     vDSP_ctoz((COMPLEX*) originalReal, 2, &compl_buf, 1, inNumberFrames/2);
-	vDSP_fft_zip( fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
+	vDSP_fft_zip( cd->fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
     vDSP_ztoc(&compl_buf, 1, (COMPLEX*) originalReal, 2, inNumberFrames/2);
 
 	// use vDSP_zaspec to get power spectrum
@@ -175,6 +175,8 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		callbackData->rioUnit = this->rioUnit;
 		callbackData->spectrogram = &(this->spectrogram);
 		callbackData->fingerprint = this->fingerprint;
+		UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
+		callbackData->fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 ); // this only needs to be created once
 		
 		// set the callback fcn
 		inRenderProc.inputProc = callback;
