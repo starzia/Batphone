@@ -17,8 +17,9 @@
 - (id)initWith_Frame:(CGRect)frame{
     if ((self = [super initWithFrame:frame])) {
         // Initialization code
-		self.backgroundColor = [UIColor whiteColor];
-		self.opaque = YES;
+		//self.backgroundColor = [UIColor whiteColor];
+		//self.opaque = YES;
+		self.opaque = NO;
 		self.clearsContextBeforeDrawing = YES;
 
 		// TODO: automatically set range
@@ -65,9 +66,10 @@
 		CGContextMoveToPoint(context, 0, Y - (self.data[0]-self.minY) * yStep);
 		for( int i=1; i<self.length; ++i ){ // starting w/2nd data point
 			CGContextAddLineToPoint(context, i * xStep, Y - (self.data[i]-self.minY) * yStep);	
+			CGContextMoveToPoint(context, i * xStep, Y - (self.data[i]-self.minY) * yStep);	
 			//printf("line %f %f %f\n", data[i], i * xStep, Y - (self.data[i]-self.minY) * yStep);
 		}
-		CGContextSetLineWidth(context, 0.5);
+		CGContextSetLineWidth(context, 1.0);
 		CGContextStrokePath(context);
 	}
 	[self setNeedsDisplay]; // make it redraw

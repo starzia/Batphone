@@ -17,10 +17,10 @@
 	float maxY;
 }
 
-@property float* data;
-@property unsigned int length;
-@property float minY;
-@property float maxY;
+@property (nonatomic) float* data;
+@property (nonatomic) unsigned int length;
+@property (nonatomic) float minY;
+@property (nonatomic) float maxY;
 
 // set the y axis range of the plot
 -(void)setYRange_min: (float)Ymin  max:(float)Ymax;

@@ -27,8 +27,9 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 1024;
+const unsigned int Fingerprinter::fpLength = 512;
 const unsigned int Fingerprinter::historyLength = 100;
+const float Fingerprinter::bufferSize = 0.1;
 #define kOutputBus 0
 #define kInputBus 1
 
@@ -39,11 +40,14 @@ const unsigned int Fingerprinter::historyLength = 100;
 
 typedef struct{
 	AudioUnit rioUnit;
+	// the following are for RIO listener
 	Spectrogram* spectrogram;
 	Fingerprint fingerprint;
 	FFTSetup fftsetup;
 } CallbackData;
-	
+
+
+#pragma mark -RIO Render Callback
 
 /* Callback function for audio input.  This function is what actually processes
  * newly-captured audio buffers.
@@ -114,6 +118,11 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	cd->spectrogram->update( db );
 	// update fingerprint from spectrogram summary
 	cd->spectrogram->getSummary( cd->fingerprint );
+
+	if( 0 ){
+		for( int i=0; i<Fingerprinter::fpLength; ++i ) printf( "%10.0f ", cd->fingerprint[i] );
+		printf("\n");
+	}
 	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
@@ -124,6 +133,66 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	return 0;
 }	
 
+
+#pragma mark -Audio Session Interruption Listener
+
+void rioInterruptionListener(void *inClientData, UInt32 inInterruption){
+	printf("Session interrupted! --- %s ---", inInterruption == kAudioSessionBeginInterruption ? "Begin Interruption" : "End Interruption");
+	
+	AudioUnit rioUnit = (AudioUnit)inClientData;
+	
+	if (inInterruption == kAudioSessionEndInterruption) {
+		// make sure we are again the active session
+		AudioSessionSetActive(true);
+		AudioOutputUnitStart(rioUnit);
+	}
+	
+	if (inInterruption == kAudioSessionBeginInterruption) {
+		AudioOutputUnitStop(rioUnit);
+    }
+}
+
+
+#pragma mark -Audio Session Property Listener
+/*
+void propListener(void *                  inClientData,
+				  AudioSessionPropertyID  inID,
+				  UInt32                  inDataSize,
+				  const void *            inData){
+	
+	CallbackData* cd = (CallbackData*)inClientData;
+	if (inID == kAudioSessionProperty_AudioRouteChange){
+		try {
+			// if there was a route change, we need to dispose the current rio unit and create a new one
+			XThrowIfError(AudioComponentInstanceDispose(cd->rioUnit), "couldn't dispose remote i/o unit");		
+			
+			SetupRemoteIO(cd->rioUnit, cd->inputProc, cd->thruFormat);
+			
+			UInt32 size = sizeof(cd->hwSampleRate);
+			XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &size, &cd->hwSampleRate), "couldn't get new sample rate");
+			
+			XThrowIfError(AudioOutputUnitStart(cd->rioUnit), "couldn't start unit");
+			
+			if( 0 ){
+				// we can adapt for different input as follows
+				CFStringRef newRoute;
+				size = sizeof(CFStringRef);
+				XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &size, &newRoute), "couldn't get new audio route");
+				if (newRoute){	
+					CFShow(newRoute);
+					if (CFStringCompare(newRoute, CFSTR("Headset"), NULL) == kCFCompareEqualTo){} // headset plugged in
+					else if (CFStringCompare(newRoute, CFSTR("Receiver"), NULL) == kCFCompareEqualTo){} // headset plugged in
+					else{}
+				}
+			}
+		} catch (CAXException e) {
+			char buf[256];
+			fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
+		}
+		
+	}
+}
+*/
 
 /* Sets up audio.  This is called by Fingerprinter constructor and also whenever
  * audio needs to be reset, eg. when distrupted by some system event or state change.
@@ -178,15 +247,12 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
 		callbackData->fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 ); // this only needs to be created once
 		
+		
 		// set the callback fcn
 		inRenderProc.inputProc = callback;
 		inRenderProc.inputProcRefCon = callbackData;
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
 										   kOutputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
-		/* TODO: play with this to eliminate feedback.  This looks more correct to me:
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 
-										   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
-		 */
 		//XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Output, 
 		//								   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
 
@@ -233,19 +299,16 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 	try {			
 		// Initialize and configure the audio session
 #if TARGET_OS_IPHONE
-		// TODO: add interruption listener as follows
-		//XThrowIfError(AudioSessionInitialize(NULL, NULL, rioInterruptionListener, self), "couldn't initialize audio session");
-		XThrowIfError(AudioSessionInitialize(NULL, NULL, NULL, NULL /* data struct passed to interruption listener */), "couldn't initialize audio session");
+		XThrowIfError(AudioSessionInitialize(NULL, NULL, rioInterruptionListener, this->rioUnit), "couldn't initialize audio session");
 		XThrowIfError(AudioSessionSetActive(true), "couldn't set audio session active\n");
 		
 		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, 
 											  sizeof(audioCategory), &audioCategory), "couldn't set audio category");
-
-		// TODO: add property listener as follows
-		//XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set property listener");	
-		
-		Float32 preferredBufferSize = .1;
+/*
+		XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
+*/		
+		Float32 preferredBufferSize = Fingerprinter::bufferSize;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
 											  sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
 		
