@@ -8,6 +8,7 @@
  */
 
 #import "SlidingWindow.h"
+#include <pthread.h> // for mutex
 
 class Spectrogram{
 public:
@@ -29,4 +30,6 @@ public:
 private:
 	/* the data is sliding windows, one for each frequency bin */
 	SlidingWindow** slidingWindows;	
+	/* lock to prevent retrieval of data while updating */
+	pthread_mutex_t lock;
 };

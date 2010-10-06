@@ -61,7 +61,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	// cast our data structure
 	CallbackData* cd = (CallbackData*)inRefCon;
 	try{
-		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, 1, inNumberFrames, ioData), "Callback: AudioUnitRender" );
+		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, kInputBus, inNumberFrames, ioData), "Callback: AudioUnitRender" );
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -308,11 +308,19 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 /*
 		XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
 */		
+		// set audio buffer size
 		Float32 preferredBufferSize = Fingerprinter::bufferSize;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
 											  sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
-		
-		UInt32 size = sizeof(hwSampleRate);
+		// get the audio buffer size to see whether our request was granted
+		UInt32 size = sizeof(preferredBufferSize);
+		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration,
+											  &size, &preferredBufferSize ), "couldn't get i/o buffer duration");
+		if( preferredBufferSize < Fingerprinter::bufferSize ){
+			fprintf(stderr, "Didn't get preferred audio buffer length of %f seconds, instead got %f seconds.\n",
+					Fingerprinter::bufferSize, preferredBufferSize);
+		}
+		size = sizeof(hwSampleRate);
 		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, 
 											  &size, &hwSampleRate), "couldn't get hw sample rate");
 #endif

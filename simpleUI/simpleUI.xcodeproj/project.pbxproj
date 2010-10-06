@@ -13,9 +13,6 @@
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765FC0DF74451002DB57D /* CoreGraphics.framework */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
-		AA0037321258173E00876BBD /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA0037311258173E00876BBD /* Spectrogram.cpp */; };
-		AA0038D712595D4A00876BBD /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA0038D612595D4A00876BBD /* Heap.cpp */; };
-		AA0038E4125A2F8E00876BBD /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA0038E3125A2F8E00876BBD /* SlidingWindow.cpp */; };
 		AA7B05F412523F1200FFA088 /* Fingerprinter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */; };
 		AA7B05FD12523F4000FFA088 /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7B05F612523F4000FFA088 /* CADebugMacros.cpp */; };
 		AA7B05FE12523F4000FFA088 /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA7B05F912523F4000FFA088 /* CAStreamBasicDescription.cpp */; };
@@ -24,6 +21,9 @@
 		AA7B06261252402F00FFA088 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B06251252402F00FFA088 /* CoreAudio.framework */; };
 		AA7B066C1252433200FFA088 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B066B1252433200FFA088 /* Accelerate.framework */; };
 		AAC415D31254EFF0008DA27C /* plotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.mm */; };
+		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
+		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
+		AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,12 +37,6 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* simpleUI_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simpleUI_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* simpleUI-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "simpleUI-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
-		AA0037301258173E00876BBD /* Spectrogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Spectrogram.h; sourceTree = "<group>"; };
-		AA0037311258173E00876BBD /* Spectrogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Spectrogram.cpp; sourceTree = "<group>"; };
-		AA0038D512595D4A00876BBD /* Heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Heap.h; sourceTree = "<group>"; };
-		AA0038D612595D4A00876BBD /* Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Heap.cpp; sourceTree = "<group>"; };
-		AA0038E2125A2F8E00876BBD /* SlidingWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SlidingWindow.h; sourceTree = "<group>"; };
-		AA0038E3125A2F8E00876BBD /* SlidingWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SlidingWindow.cpp; sourceTree = "<group>"; };
 		AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fingerprinter.cpp; path = ../Fingerprinter/Classes/Fingerprinter.cpp; sourceTree = SOURCE_ROOT; };
 		AA7B05F312523F1200FFA088 /* Fingerprinter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fingerprinter.h; path = ../Fingerprinter/Classes/Fingerprinter.h; sourceTree = SOURCE_ROOT; };
 		AA7B05F612523F4000FFA088 /* CADebugMacros.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CADebugMacros.cpp; sourceTree = "<group>"; };
@@ -57,6 +51,12 @@
 		AA7B066B1252433200FFA088 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
 		AAC415D21254EFF0008DA27C /* plotView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = plotView.mm; sourceTree = "<group>"; };
+		AAD14E85125C097A0066A446 /* Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Heap.cpp; path = ../Fingerprinter/Classes/Heap.cpp; sourceTree = SOURCE_ROOT; };
+		AAD14E86125C097A0066A446 /* Heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Heap.h; path = ../Fingerprinter/Classes/Heap.h; sourceTree = SOURCE_ROOT; };
+		AAD14E87125C097A0066A446 /* SlidingWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SlidingWindow.h; path = ../Fingerprinter/Classes/SlidingWindow.h; sourceTree = SOURCE_ROOT; };
+		AAD14E8A125C097A0066A446 /* Spectrogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Spectrogram.h; path = ../Fingerprinter/Classes/Spectrogram.h; sourceTree = SOURCE_ROOT; };
+		AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SlidingWindow.cpp; path = ../Fingerprinter/Classes/SlidingWindow.cpp; sourceTree = SOURCE_ROOT; };
+		AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Spectrogram.cpp; path = ../Fingerprinter/Classes/Spectrogram.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,18 +79,10 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */,
-				AA7B05F312523F1200FFA088 /* Fingerprinter.h */,
 				1D3623240D0F684500981E51 /* simpleUIAppDelegate.h */,
 				1D3623250D0F684500981E51 /* simpleUIAppDelegate.mm */,
 				AAC415D11254EFF0008DA27C /* plotView.h */,
 				AAC415D21254EFF0008DA27C /* plotView.mm */,
-				AA0037301258173E00876BBD /* Spectrogram.h */,
-				AA0037311258173E00876BBD /* Spectrogram.cpp */,
-				AA0038D512595D4A00876BBD /* Heap.h */,
-				AA0038D612595D4A00876BBD /* Heap.cpp */,
-				AA0038E2125A2F8E00876BBD /* SlidingWindow.h */,
-				AA0038E3125A2F8E00876BBD /* SlidingWindow.cpp */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -107,6 +99,7 @@
 			isa = PBXGroup;
 			children = (
 				AA7B05F512523F4000FFA088 /* iPublicUtility */,
+				AAD14E84125C09540066A446 /* Fingerprinter Classes */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
@@ -161,6 +154,21 @@
 			name = iPublicUtility;
 			path = ../Fingerprinter/iPublicUtility;
 			sourceTree = SOURCE_ROOT;
+		};
+		AAD14E84125C09540066A446 /* Fingerprinter Classes */ = {
+			isa = PBXGroup;
+			children = (
+				AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */,
+				AAD14E87125C097A0066A446 /* SlidingWindow.h */,
+				AAD14E85125C097A0066A446 /* Heap.cpp */,
+				AAD14E86125C097A0066A446 /* Heap.h */,
+				AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */,
+				AAD14E8A125C097A0066A446 /* Spectrogram.h */,
+				AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */,
+				AA7B05F312523F1200FFA088 /* Fingerprinter.h */,
+			);
+			name = "Fingerprinter Classes";
+			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
@@ -232,9 +240,9 @@
 				AA7B05FE12523F4000FFA088 /* CAStreamBasicDescription.cpp in Sources */,
 				AA7B05FF12523F4000FFA088 /* CAXException.cpp in Sources */,
 				AAC415D31254EFF0008DA27C /* plotView.mm in Sources */,
-				AA0037321258173E00876BBD /* Spectrogram.cpp in Sources */,
-				AA0038D712595D4A00876BBD /* Heap.cpp in Sources */,
-				AA0038E4125A2F8E00876BBD /* SlidingWindow.cpp in Sources */,
+				AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */,
+				AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */,
+				AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

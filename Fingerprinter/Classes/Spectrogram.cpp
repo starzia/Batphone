@@ -32,18 +32,20 @@ Spectrogram::~Spectrogram(){
 }
 
 void Spectrogram::update(float* s){
+	pthread_mutex_lock( &lock );
 	// copy into sliding windows
 	for( int i=0; i<this->freqBins; i++ ){
 		slidingWindows[i]->update( s[i] );
 	}
+	pthread_mutex_unlock( &lock );
 }
 
 void Spectrogram::getSummary(float* outBuf){
 	// just retrieve the 5th percentile values from the sliding windows
-
+	pthread_mutex_lock( &lock );
     // iterate through frequency bins
 	for( int i=0; i<this->freqBins; i++ ){
 		outBuf[i] = slidingWindows[i]->getVal();
 	}
-	
+	pthread_mutex_unlock( &lock );
 }
