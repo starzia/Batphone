@@ -79,8 +79,14 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	// prepare vectors for FFT
 	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
 	
-	// TODO: right bitshift sample integers by 8 bits because they are in weird 8.24 format
+	/*
+	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
 	// actually, this isn't really necessary.  Floats will just be 256 times bigger
+	// TODO: do this with a vector op
+	for( int i=0; i<inNumberFrames; i++ ){
+		data_ptr[i] >>= 8;
+	}
+	 */
 
 	// convert integers to floats
 	vDSP_vflt32( (int*)data_ptr, 1, originalReal, 1, inNumberFrames );
@@ -100,8 +106,8 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	compl_buf.imagp = new float[inNumberFrames/2];
 		
 	// take fft 	
-	/* ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
-	 * see vDSP documentation for details. */
+	// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
+	// see vDSP documentation for details.
     vDSP_ctoz((COMPLEX*) originalReal, 2, &compl_buf, 1, inNumberFrames/2);
 	vDSP_fft_zip( cd->fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
     vDSP_ztoc(&compl_buf, 1, (COMPLEX*) originalReal, 2, inNumberFrames/2);
@@ -110,28 +116,29 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	float* A = new float[Fingerprinter::fpLength];
 	vDSP_zaspec( &compl_buf, A, Fingerprinter::fpLength );
 
+	/*
+	for( int i=0; i<Fingerprinter::fpLength; i++ ){
+		if( !( A[i] >= 0 ) || ( A[i] <= 0 ) ){
+			printf( "NaN at index %d\n", i );
+		}
+	}
+	*/
+	
 	// convert to dB
-	float* db = new float[Fingerprinter::fpLength];
 	float reference=1.0f;
-	vDSP_vdbcon( A, 1, &reference, db, 1, Fingerprinter::fpLength, 1 /* power, not amplitude */ );
+	vDSP_vdbcon( A, 1, &reference, A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
 
+	if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
 	// save in spectrogram
-	cd->spectrogram->update( db );
+	cd->spectrogram->update( A );
 	// update fingerprint from spectrogram summary
-	pthread_mutex_lock( cd->lock );
 	cd->spectrogram->getSummary( cd->fingerprint );
 	pthread_mutex_unlock( cd->lock );
 	
-	if( 0 ){
-		for( int i=0; i<Fingerprinter::fpLength; ++i ) printf( "%10.0f ", cd->fingerprint[i] );
-		printf("\n");
-	}
-	
 	delete compl_buf.realp;
 	delete compl_buf.imagp;
-	delete originalReal;
 	delete A;
-	delete db;
+	delete originalReal;
 	
 	return 0;
 }	
@@ -299,6 +306,10 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 	for( int i=0; i<Fingerprinter::fpLength; ++i ){
 		this->fingerprint[i] = 0;
 	}
+	// initialize fingerprint lock
+	if( pthread_mutex_init( &lock, NULL ) ) printf( "mutex init failed!\n" );
+	
+	// initialize audio
 	try {			
 		// Initialize and configure the audio session
 #if TARGET_OS_IPHONE
@@ -343,7 +354,7 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 
 
 void Fingerprinter::getFingerprint( Fingerprint outBuf ){
-	pthread_mutex_lock( &lock );
+	if( pthread_mutex_lock( &lock ) ) printf( "lock failed!\n" );
 	memcpy( outBuf, this->fingerprint, sizeof(float)*Fingerprinter::fpLength );
 	pthread_mutex_unlock( &lock );
 }
@@ -384,6 +395,7 @@ unsigned int Fingerprinter::insertFingerprint( Fingerprint observation, string n
 Fingerprinter::~Fingerprinter(){
 	AudioUnitUninitialize(rioUnit);
 	AudioComponentInstanceDispose(rioUnit);
+	pthread_mutex_destroy(&lock);
 }
 
 
