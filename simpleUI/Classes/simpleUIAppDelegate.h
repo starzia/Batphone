@@ -18,9 +18,10 @@
 	UIButton *resetButton;
 	plotView *plot;
 	plotView *plotOld;
+	Fingerprint newFingerprint;
 	Fingerprint oldFingerprint;
 	NSTimer  *plotTimer; // periodic timer to update the plot
-	Fingerprinter *fp;
+	Fingerprinter* fp;
 }
 
 // accessors
@@ -31,13 +32,15 @@
 @property (retain) plotView *plot;
 @property (retain) plotView *plotOld;
 @property (retain) NSTimer* plotTimer;
-@property Fingerprinter* fp;
+@property Fingerprint newFingerprint;
 @property Fingerprint oldFingerprint;
+@property (nonatomic) Fingerprinter* fp; 
 
 // member functions
 -(void) printFingerprint: (Fingerprint*) fingerprint;
 -(void) saveButtonHandler:(id)sender;
 -(void) startButtonHandler:(id)sender;
+-(void) updatePlot;
 
 @end
 

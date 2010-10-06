@@ -14,6 +14,7 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreAudio/CoreAudioTypes.h>
 #import "CAStreamBasicDescription.h"
+#include <pthread.h> // for mutex
 
 #import "Spectrogram.h"
 
@@ -46,9 +47,8 @@ public:
 	/* start recording */
 	bool startRecording();
 	
-	/* returns a pointer to the current fingerprint value 
-	 * TODO: add a lock for thread-safe access to this. */
-	Fingerprint getFingerprintRef();
+	/* makes a copy of the current fingerprint value at the specified pointer */
+	void getFingerprint( Fingerprint outputFingerprint );
 	
 	/* Query the DB for a list of closest-matching rooms 
 	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
@@ -82,6 +82,7 @@ private:
 	/* private data members */
 	Spectrogram			spectrogram;
 	Fingerprint			fingerprint;
+	pthread_mutex_t		lock; // for mutually exclusive access to fingerprint
 	
 	AudioUnit					rioUnit;
 	bool						unitIsRunning;

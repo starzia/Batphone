@@ -23,8 +23,10 @@ using namespace std;
 @synthesize plot;
 @synthesize plotOld;
 @synthesize plotTimer;
-@synthesize fp;
+@synthesize newFingerprint;
 @synthesize oldFingerprint;
+@synthesize fp;
+
 
 - (void) printFingerprint: (Fingerprint*) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -36,15 +38,23 @@ using namespace std;
 }
 
 
+/* called by button */
 -(void) saveButtonHandler:(id)sender{
-	// move current fingerprint to "Old" slot
-	memcpy( self.oldFingerprint, self.fp->getFingerprintRef(), sizeof(float)*Fingerprinter::fpLength );
+	// get the current fingerprint and save to "Old" slot
+	self.fp->getFingerprint( self.oldFingerprint );
 	[self.plotOld setNeedsDisplay];
 }
 
 -(void) startButtonHandler:(id)sender{
 	// record a new fingerprint using the microphone
 	self.fp->startRecording();
+}
+
+/* called by timer */
+-(void) updatePlot{
+	// get the current fingerprint and save to "New" slot
+	self.fp->getFingerprint( self.newFingerprint );
+	[self.plot setNeedsDisplay];	
 }
 
 #pragma mark -
@@ -86,25 +96,30 @@ using namespace std;
 	saveButton.frame = CGRectMake(190.0, 40.0, 60.0, 40.0);
 	[window addSubview:saveButton];
 	
+	// initialize fingerprints
+	self.newFingerprint = new float[Fingerprinter::fpLength];
+	self.oldFingerprint = new float[Fingerprinter::fpLength];
+	for (int i=0; i<Fingerprinter::fpLength; ++i){
+		self.newFingerprint[i] = 0 ; // blank filler
+		self.oldFingerprint[i] = 0 ; // blank filler
+	}
 	
 	// Add plot to window
 	CGRect plotRect = CGRectMake(10, 320, 300.0f, 150.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
-	[self.plot setVector: self.fp->getFingerprintRef() length: Fingerprinter::fpLength];
+	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plot];
 
 	// Add another plot to window
 	plotRect = CGRectMake(10, 160, 300.0f, 150.0f);
 	self.plotOld = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
-	self.oldFingerprint = new float[Fingerprinter::fpLength];
-	for (int i=0; i<Fingerprinter::fpLength; ++i) self.oldFingerprint[i] = 0 ; // blank filler
 	[self.plotOld setVector: oldFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plotOld];
 	
 	// create timer to update the plot
 	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
-													  target:plot
-													selector:@selector(setNeedsDisplay)
+													  target:self
+													selector:@selector(updatePlot)
 													userInfo:nil
 													 repeats:YES];	
 	// update view

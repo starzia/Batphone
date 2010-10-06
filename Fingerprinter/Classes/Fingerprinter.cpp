@@ -44,6 +44,7 @@ typedef struct{
 	Spectrogram* spectrogram;
 	Fingerprint fingerprint;
 	FFTSetup fftsetup;
+	pthread_mutex_t* lock; // fingerprint lock
 } CallbackData;
 
 
@@ -117,8 +118,10 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	// save in spectrogram
 	cd->spectrogram->update( db );
 	// update fingerprint from spectrogram summary
+	pthread_mutex_lock( cd->lock );
 	cd->spectrogram->getSummary( cd->fingerprint );
-
+	pthread_mutex_unlock( cd->lock );
+	
 	if( 0 ){
 		for( int i=0; i<Fingerprinter::fpLength; ++i ) printf( "%10.0f ", cd->fingerprint[i] );
 		printf("\n");
@@ -246,7 +249,7 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		callbackData->fingerprint = this->fingerprint;
 		UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
 		callbackData->fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 ); // this only needs to be created once
-		
+		callbackData->lock = &(this->lock);
 		
 		// set the callback fcn
 		inRenderProc.inputProc = callback;
@@ -339,8 +342,10 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 }	
 
 
-Fingerprint Fingerprinter::getFingerprintRef(){
-    return this->fingerprint;
+void Fingerprinter::getFingerprint( Fingerprint outBuf ){
+	pthread_mutex_lock( &lock );
+	memcpy( outBuf, this->fingerprint, sizeof(float)*Fingerprinter::fpLength );
+	pthread_mutex_unlock( &lock );
 }
 
 
