@@ -45,7 +45,11 @@ typedef struct{
 	Fingerprint fingerprint;
 	FFTSetup fftsetup;
 	pthread_mutex_t* lock; // fingerprint lock
+	// signal processing buffers
+	float* A;
+	DSPSplitComplex compl_buf;	
 } CallbackData;
+
 
 
 #pragma mark -RIO Render Callback
@@ -76,8 +80,6 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	// setup FFT
 	// Below, we need twice as many FFT points as the fpLength because of FFT "folding"
 	UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
-	// prepare vectors for FFT
-	float* originalReal = new float[inNumberFrames]; // read data input to fft (just the audio samples)
 	
 	/*
 	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
@@ -89,7 +91,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	 */
 
 	// convert integers to floats
-	vDSP_vflt32( (int*)data_ptr, 1, originalReal, 1, inNumberFrames );
+	vDSP_vflt32( (int*)data_ptr, 1, cd->A, 1, inNumberFrames );
 
 	// set output.  NOTE: if we don't set this to zero we'll get feedback.
 	int zero=0;
@@ -97,24 +99,19 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	
 	// find RMS value (must do this before the in-place FFT)
 	float rms;
-	vDSP_rmsqv( originalReal, 1, &rms, inNumberFrames );
+	vDSP_rmsqv( cd->A, 1, &rms, inNumberFrames );
 	///printf( "RMS: %10.0f\tFFT: ", rms );
 	
-	// we are going to rearrange $originalReal into the two parts of $compl_buf
-	DSPSplitComplex compl_buf;
-	compl_buf.realp = new float[inNumberFrames/2];
-	compl_buf.imagp = new float[inNumberFrames/2];
 		
 	// take fft 	
 	// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
 	// see vDSP documentation for details.
-    vDSP_ctoz((COMPLEX*) originalReal, 2, &compl_buf, 1, inNumberFrames/2);
-	vDSP_fft_zip( cd->fftsetup, &compl_buf, 1, log2FFTLength, kFFTDirection_Forward );
-    vDSP_ztoc(&compl_buf, 1, (COMPLEX*) originalReal, 2, inNumberFrames/2);
+    vDSP_ctoz((COMPLEX*) cd->A, 2, &(cd->compl_buf), 1, inNumberFrames/2);
+	vDSP_fft_zip( cd->fftsetup, &(cd->compl_buf), 1, log2FFTLength, kFFTDirection_Forward );
+    ///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2);
 
 	// use vDSP_zaspec to get power spectrum
-	float* A = new float[Fingerprinter::fpLength];
-	vDSP_zaspec( &compl_buf, A, Fingerprinter::fpLength );
+	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::fpLength );
 
 	/*
 	for( int i=0; i<Fingerprinter::fpLength; i++ ){
@@ -126,19 +123,14 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	
 	// convert to dB
 	float reference=1.0f;
-	vDSP_vdbcon( A, 1, &reference, A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
+	vDSP_vdbcon( cd->A, 1, &reference, cd->A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
 
 	if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
 	// save in spectrogram
-	cd->spectrogram->update( A );
+	cd->spectrogram->update( cd->A );
 	// update fingerprint from spectrogram summary
 	cd->spectrogram->getSummary( cd->fingerprint );
 	pthread_mutex_unlock( cd->lock );
-	
-	delete compl_buf.realp;
-	delete compl_buf.imagp;
-	delete A;
-	delete originalReal;
 	
 	return 0;
 }	
@@ -257,6 +249,12 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
 		callbackData->fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 ); // this only needs to be created once
 		callbackData->lock = &(this->lock);
+		// allocate buffers for signal processing
+		unsigned int buf_size = 1<<13; // TODO: assign this more safely
+		callbackData->A = new float[buf_size];
+		callbackData->compl_buf.realp = new float[buf_size/2];
+		callbackData->compl_buf.imagp = new float[buf_size/2];
+		
 		
 		// set the callback fcn
 		inRenderProc.inputProc = callback;
@@ -396,6 +394,12 @@ Fingerprinter::~Fingerprinter(){
 	AudioUnitUninitialize(rioUnit);
 	AudioComponentInstanceDispose(rioUnit);
 	pthread_mutex_destroy(&lock);
+	/*
+	//TODO: clean up callback buffers
+	delete[] callbackData->A;
+	delete[] callbackData->compl_buf.realp;
+	delete[] callbackData->compl_buf.imagp;
+	 */
 }
 
 
