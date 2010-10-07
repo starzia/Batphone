@@ -27,7 +27,7 @@ int main(){
 	// start recording fingerprints
 	fp.startRecording();
 	cout << "Wait ten seconds to gather enough data for a fingerprint" << endl;
-	sleep(10);
+	sleep(11);
 	
 	// get the latest fingerprint 
 	Fingerprint observed = new float[Fingerprinter::fpLength];

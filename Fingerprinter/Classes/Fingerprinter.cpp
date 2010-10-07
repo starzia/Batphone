@@ -27,7 +27,7 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::fpLength = 512;
+const unsigned int Fingerprinter::fpLength = 128;
 const unsigned int Fingerprinter::historyLength = 100;
 const float Fingerprinter::bufferSize = 0.1;
 #define kOutputBus 0
@@ -56,6 +56,9 @@ typedef struct{
 
 /* Callback function for audio input.  This function is what actually processes
  * newly-captured audio buffers.
+ * TODO: add buffering so that:
+ *  A) callback returns immediately after copying data, thus not stalling pipeline
+ *  B) if inNumberFrames is small (ie <= fpLength) then we don't produce NaNs
  */
 static OSStatus callback( 	 void						*inRefCon, /* the user-specified state data structure */
 							 AudioUnitRenderActionFlags *ioActionFlags, 
@@ -89,7 +92,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		data_ptr[i] >>= 8;
 	}
 	 */
-
+	
 	// convert integers to floats
 	vDSP_vflt32( (int*)data_ptr, 1, cd->A, 1, inNumberFrames );
 
@@ -101,14 +104,13 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	float rms;
 	vDSP_rmsqv( cd->A, 1, &rms, inNumberFrames );
 	///printf( "RMS: %10.0f\tFFT: ", rms );
-	
 		
 	// take fft 	
 	// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
 	// see vDSP documentation for details.
     vDSP_ctoz((COMPLEX*) cd->A, 2, &(cd->compl_buf), 1, inNumberFrames/2);
 	vDSP_fft_zip( cd->fftsetup, &(cd->compl_buf), 1, log2FFTLength, kFFTDirection_Forward );
-    ///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2);
+    ///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2); // convert back
 
 	// use vDSP_zaspec to get power spectrum
 	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::fpLength );
@@ -214,19 +216,21 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		desc.componentFlags = 0;
 		desc.componentFlagsMask = 0;
 		
+		// find a component matching the description above
 		AudioComponent comp = AudioComponentFindNext(NULL, &desc);
+		//if( comp == NULL ) Throw("no matching audio component");
 		XThrowIfError(AudioComponentInstanceNew(comp, &(this->rioUnit)), "couldn't open the remote I/O unit");
 		
 		// enable input on the AU
 		UInt32 flag = 1;
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input,
 										   kInputBus, &flag, sizeof(flag)), "couldn't enable input on the remote I/O unit");
-		/*
+		/* for some reason the following breaks audio (callback is never called)
 		// disable output on the AU
 		flag = 0;
-		XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output,
-										   kOutputBus, &flag, sizeof(flag)), "couldn't disable output on the remote I/O unit");
-		*/
+		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output,
+										   kOutputBus, &flag, sizeof(flag)), "couldn't disable output on the HAL unit");
+		 */
 #if !TARGET_OS_IPHONE
 		// Select the default input device
 		AudioDeviceID inputDeviceID = 0;
@@ -236,10 +240,9 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 												  kAudioObjectPropertyElementMaster };
 		XThrowIfError(AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &theSize, &inputDeviceID ), 
 					  "get default device" );
-		printf("hw address: %d\n", inputDeviceID);
 		// Set the current device to the default input unit.
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 
-										   kInputBus, &inputDeviceID, sizeof(AudioDeviceID) ), "set device" );
+										   kOutputBus, &inputDeviceID, sizeof(AudioDeviceID) ), "set device" );
 #endif	
 		
 		// first, collect all the data pointers the callback function will need
@@ -262,9 +265,6 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		inRenderProc.inputProcRefCon = callbackData;
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
 										   kOutputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
-		//XThrowIfError(AudioUnitSetProperty(inRemoteIOUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Output, 
-		//								   kInputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
-
 		
 		// Implicitly describe format
         // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
@@ -307,8 +307,8 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 	}
 	// initialize fingerprint lock
 	if( pthread_mutex_init( &lock, NULL ) ) printf( "mutex init failed!\n" );
-	
-	// initialize audio
+
+	// INITIALIZE AUDIO
 	try {			
 		// Initialize and configure the audio session
 #if TARGET_OS_IPHONE
@@ -318,9 +318,9 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, 
 											  sizeof(audioCategory), &audioCategory), "couldn't set audio category");
-/*
-		XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
-*/		
+		/*
+		 XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
+		 */		
 		// set audio buffer size
 		Float32 preferredBufferSize = Fingerprinter::bufferSize;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
@@ -396,7 +396,7 @@ Fingerprinter::~Fingerprinter(){
 	AudioComponentInstanceDispose(rioUnit);
 	pthread_mutex_destroy(&lock);
 	/*
-	//TODO: clean up callback buffers
+	//TODO: stop audio and clean up callback buffers
 	delete[] callbackData->A;
 	delete[] callbackData->compl_buf.realp;
 	delete[] callbackData->compl_buf.imagp;

@@ -47,7 +47,9 @@ public:
 	/* start recording */
 	bool startRecording();
 	
-	/* makes a copy of the current fingerprint value at the specified pointer */
+	/* makes a copy of the current fingerprint value at the specified pointer.
+	 * outputFingerprint should be a float[] of length Fingerprinter::fpLength, to be filled by this function 
+	 */
 	void getFingerprint( Fingerprint outputFingerprint );
 	
 	/* Query the DB for a list of closest-matching rooms 
@@ -58,7 +60,8 @@ public:
 	/* Query the DB for a given room's name. */
 	std::string queryName( unsigned int uid );
 
-	/* Query the DB for a given room's Fingerprint.  
+	/* Query the DB for a given room's Fingerprint.
+	 * outputFingerprint should be a float[] of length fingerPrinter::fpLength, to be filled by this function
 	 * Returns true if uid matched a fingerprint in the DB. */
 	bool queryFingerprint( unsigned int uid, Fingerprint outputFingerprint );
 	
@@ -66,7 +69,6 @@ public:
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( Fingerprint observation, /* the new Fingerprint */
 								    std::string name );            /* name for the new room */
-	
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();

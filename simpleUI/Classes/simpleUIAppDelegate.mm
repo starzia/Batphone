@@ -48,6 +48,7 @@ using namespace std;
 -(void) startButtonHandler:(id)sender{
 	// record a new fingerprint using the microphone
 	self.fp->startRecording();
+	[self.startButton setEnabled:NO];
 }
 
 /* called by timer */
@@ -67,15 +68,15 @@ using namespace std;
 	self.fp = new Fingerprinter();
 	
 	// screen width / 2 - label width / 2
-    CGFloat x = 320/2 - 240/2;
+    CGFloat x = 320/2 - 300/2;
     // screen height / 2 - label height / 2
     CGFloat y = 480/2 - 45/2;
-    CGRect labelRect = CGRectMake(x , y-120, 240.0f, 45.0f);
+    CGRect labelRect = CGRectMake(x , y-120, 300.0f, 45.0f);
 
     // Create the label.
     self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
     // Set the value of our string
-    [label setText:@"push 'start' to begin"];
+    [label setText:@"push 'start' then wait 10 seconds"];
     // Center Align the label's text
     [label setTextAlignment:UITextAlignmentCenter];
 
