@@ -137,7 +137,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 
 
 #pragma mark -Audio Session Interruption Listener
-
+#if TARGET_OS_IPHONE
 void rioInterruptionListener(void *inClientData, UInt32 inInterruption){
 	printf("Session interrupted! --- %s ---", inInterruption == kAudioSessionBeginInterruption ? "Begin Interruption" : "End Interruption");
 	
@@ -153,6 +153,7 @@ void rioInterruptionListener(void *inClientData, UInt32 inInterruption){
 		AudioOutputUnitStop(rioUnit);
     }
 }
+#endif
 
 
 #pragma mark -Audio Session Property Listener
@@ -235,7 +236,7 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 												  kAudioObjectPropertyElementMaster };
 		XThrowIfError(AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &theSize, &inputDeviceID ), 
 					  "get default device" );
-		
+		printf("hw address: %d\n", inputDeviceID);
 		// Set the current device to the default input unit.
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 
 										   kInputBus, &inputDeviceID, sizeof(AudioDeviceID) ), "set device" );
@@ -301,7 +302,7 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 	// plotter must always have a FP available to plot, so init one here.
 	this->fingerprint = new float[Fingerprinter::fpLength];
-	for( int i=0; i<Fingerprinter::fpLength; ++i ){
+	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
 		this->fingerprint[i] = 0;
 	}
 	// initialize fingerprint lock

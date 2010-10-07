@@ -20,13 +20,13 @@ Spectrogram::Spectrogram(unsigned int freq_bins, unsigned int time_bins):
 freqBins(freq_bins), timeBins(time_bins){
 	// allocate data sliding windows	
 	slidingWindows = new SlidingWindow*[freq_bins];
-	for( int i=0; i<freq_bins; i++ ){
+	for( unsigned int i=0; i<freq_bins; i++ ){
 		slidingWindows[i] = new SlidingWindow( time_bins, PERCENTILE, 0.0f );
 	}
 }
 
 Spectrogram::~Spectrogram(){
-	for( int i=0; i<freqBins; i++ ){
+	for( unsigned int i=0; i<freqBins; i++ ){
 		delete slidingWindows[i];
 	}
 	delete[] slidingWindows;
@@ -35,7 +35,7 @@ Spectrogram::~Spectrogram(){
 void Spectrogram::update(float* s){
 	if(THREAD_SAFE) pthread_mutex_lock( &lock );
 	// copy into sliding windows
-	for( int i=0; i<this->freqBins; i++ ){
+	for( unsigned int i=0; i<this->freqBins; i++ ){
 		slidingWindows[i]->update( s[i] );
 	}
 	if(THREAD_SAFE) pthread_mutex_unlock( &lock );
@@ -45,7 +45,7 @@ void Spectrogram::getSummary(float* outBuf){
 	// just retrieve the 5th percentile values from the sliding windows
 	if(THREAD_SAFE) pthread_mutex_lock( &lock );
     // iterate through frequency bins
-	for( int i=0; i<this->freqBins; i++ ){
+	for( unsigned int i=0; i<this->freqBins; i++ ){
 		outBuf[i] = slidingWindows[i]->getVal();
 	}
 	if(THREAD_SAFE) pthread_mutex_unlock( &lock );

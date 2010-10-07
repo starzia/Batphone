@@ -15,7 +15,7 @@ size(size), isMaxHeap(isMaxHeap) {
 	positionToKey = new unsigned int[size];
 	keyToPosition = new unsigned int[size];
     // initialize the values and the forward and reverse mappings
-    for( int i=0; i<size; i++ ){	
+    for( unsigned int i=0; i<size; i++ ){	
 		vals[i] = initialVals;
 	    positionToKey[i] = i;  
 	    keyToPosition[i] = i;  

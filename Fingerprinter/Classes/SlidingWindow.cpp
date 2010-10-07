@@ -21,12 +21,12 @@ size(size), percentile(percentile){
     isInMaxHeap = new bool[size];
 	maxKeySpaceToGlobal = new unsigned int[maxHeapSize];
 	minKeySpaceToGlobal = new unsigned int[minHeapSize];
-    for(int i=0; i<maxHeapSize; i++ ){
+    for(unsigned int i=0; i<maxHeapSize; i++ ){
 		isInMaxHeap[i] = true;
 		index[i] = i;
 		maxKeySpaceToGlobal[i] = i;
     }
-    for(int i=0; i<minHeapSize; i++ ){
+    for(unsigned int i=0; i<minHeapSize; i++ ){
 		isInMaxHeap[maxHeapSize+i] = false;
 		index[maxHeapSize+i] = i;
 		minKeySpaceToGlobal[i] = maxHeapSize+i;

@@ -71,9 +71,9 @@ public:
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
 	
-	static const unsigned int fpLength; /* number of elements in the fingerprint vector */
+	static const unsigned int fpLength; /* number of elements in the fingerprint array */
 	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
-	static const float bufferSize; /* audio buffer size, also the size of time frames above */
+	static const float bufferSize; /* audio buffer size in seconds, also the size of time frames above */
 	
 private:
 	void makeRandomFingerprint( Fingerprint outBuf );
