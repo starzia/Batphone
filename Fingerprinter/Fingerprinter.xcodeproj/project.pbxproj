@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA16C1E9125131B6009DDBDA /* CADebugMacros.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA16C1E2125131B6009DDBDA /* CADebugMacros.cpp */; };
+		AA16C1EA125131B6009DDBDA /* CADebugMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = AA16C1E3125131B6009DDBDA /* CADebugMacros.h */; };
+		AA16C1EB125131B6009DDBDA /* CAMath.h in Headers */ = {isa = PBXBuildFile; fileRef = AA16C1E4125131B6009DDBDA /* CAMath.h */; };
+		AA16C1EC125131B6009DDBDA /* CAStreamBasicDescription.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA16C1E5125131B6009DDBDA /* CAStreamBasicDescription.cpp */; };
+		AA16C1ED125131B6009DDBDA /* CAStreamBasicDescription.h in Headers */ = {isa = PBXBuildFile; fileRef = AA16C1E6125131B6009DDBDA /* CAStreamBasicDescription.h */; };
+		AA16C1EE125131B6009DDBDA /* CAXException.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA16C1E7125131B6009DDBDA /* CAXException.cpp */; };
+		AA16C1EF125131B6009DDBDA /* CAXException.h in Headers */ = {isa = PBXBuildFile; fileRef = AA16C1E8125131B6009DDBDA /* CAXException.h */; };
 		AA747D9F0F9514B9006C5449 /* Fingerprinter_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* Fingerprinter_Prefix.pch */; };
 		AAA9E4D7124C333D00AFA339 /* Fingerprinter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAA9E4D5124C333D00AFA339 /* Fingerprinter.cpp */; };
 		AAA9E4D8124C333D00AFA339 /* Fingerprinter.h in Headers */ = {isa = PBXBuildFile; fileRef = AAA9E4D6124C333D00AFA339 /* Fingerprinter.h */; };
@@ -14,10 +21,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		AA16C1E2125131B6009DDBDA /* CADebugMacros.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CADebugMacros.cpp; sourceTree = "<group>"; };
+		AA16C1E3125131B6009DDBDA /* CADebugMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CADebugMacros.h; sourceTree = "<group>"; };
+		AA16C1E4125131B6009DDBDA /* CAMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAMath.h; sourceTree = "<group>"; };
+		AA16C1E5125131B6009DDBDA /* CAStreamBasicDescription.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CAStreamBasicDescription.cpp; sourceTree = "<group>"; };
+		AA16C1E6125131B6009DDBDA /* CAStreamBasicDescription.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAStreamBasicDescription.h; sourceTree = "<group>"; };
+		AA16C1E7125131B6009DDBDA /* CAXException.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CAXException.cpp; sourceTree = "<group>"; };
+		AA16C1E8125131B6009DDBDA /* CAXException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAXException.h; sourceTree = "<group>"; };
 		AA747D9E0F9514B9006C5449 /* Fingerprinter_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fingerprinter_Prefix.pch; sourceTree = SOURCE_ROOT; };
 		AAA9E4D5124C333D00AFA339 /* Fingerprinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fingerprinter.cpp; path = Classes/Fingerprinter.cpp; sourceTree = "<group>"; };
 		AAA9E4D6124C333D00AFA339 /* Fingerprinter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fingerprinter.h; path = Classes/Fingerprinter.h; sourceTree = "<group>"; };
 		AAA9E53B124C4C1300AFA339 /* tester.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = tester.cpp; sourceTree = "<group>"; };
+		AAAD656B125E4AB200503C53 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = /System/Library/Frameworks/Accelerate.framework; sourceTree = "<absolute>"; };
+		AAAD6571125E4ADA00503C53 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
+		AAAD6575125E4AE100503C53 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		D2AAC07E0554694100DB518D /* libFingerprinter.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libFingerprinter.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -45,10 +62,14 @@
 		0867D691FE84028FC02AAC07 /* Fingerprinter */ = {
 			isa = PBXGroup;
 			children = (
+				AA16C1E1125131B6009DDBDA /* iPublicUtility */,
 				08FB77AEFE84172EC02AAC07 /* Classes */,
 				32C88DFF0371C24200C91783 /* Other Sources */,
 				0867D69AFE84028FC02AAC07 /* Frameworks */,
 				034768DFFF38A50411DB9C8B /* Products */,
+				AAAD656B125E4AB200503C53 /* Accelerate.framework */,
+				AAAD6571125E4ADA00503C53 /* AudioUnit.framework */,
+				AAAD6575125E4AE100503C53 /* CoreAudio.framework */,
 			);
 			name = Fingerprinter;
 			sourceTree = "<group>";
@@ -79,6 +100,20 @@
 			name = "Other Sources";
 			sourceTree = "<group>";
 		};
+		AA16C1E1125131B6009DDBDA /* iPublicUtility */ = {
+			isa = PBXGroup;
+			children = (
+				AA16C1E2125131B6009DDBDA /* CADebugMacros.cpp */,
+				AA16C1E3125131B6009DDBDA /* CADebugMacros.h */,
+				AA16C1E4125131B6009DDBDA /* CAMath.h */,
+				AA16C1E5125131B6009DDBDA /* CAStreamBasicDescription.cpp */,
+				AA16C1E6125131B6009DDBDA /* CAStreamBasicDescription.h */,
+				AA16C1E7125131B6009DDBDA /* CAXException.cpp */,
+				AA16C1E8125131B6009DDBDA /* CAXException.h */,
+			);
+			path = iPublicUtility;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -88,6 +123,10 @@
 			files = (
 				AA747D9F0F9514B9006C5449 /* Fingerprinter_Prefix.pch in Headers */,
 				AAA9E4D8124C333D00AFA339 /* Fingerprinter.h in Headers */,
+				AA16C1EA125131B6009DDBDA /* CADebugMacros.h in Headers */,
+				AA16C1EB125131B6009DDBDA /* CAMath.h in Headers */,
+				AA16C1ED125131B6009DDBDA /* CAStreamBasicDescription.h in Headers */,
+				AA16C1EF125131B6009DDBDA /* CAXException.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,6 +184,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				AAA9E4D7124C333D00AFA339 /* Fingerprinter.cpp in Sources */,
+				AA16C1E9125131B6009DDBDA /* CADebugMacros.cpp in Sources */,
+				AA16C1EC125131B6009DDBDA /* CAStreamBasicDescription.cpp in Sources */,
+				AA16C1EE125131B6009DDBDA /* CAXException.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

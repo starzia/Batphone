@@ -11,23 +11,32 @@
 
 #import "Fingerprinter.h"
 #import <iostream>
+#include <unistd.h>
 
 using namespace std;
 
-void printFingerprint( Fingerprint* fingerprint ){
-	for( int i=0; i<Fingerprinter::fpLength; ++i ){
-		cout << (*fingerprint)[i] << ' ';
+void printFingerprint( Fingerprint fingerprint ){
+	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
+		cout << fingerprint[i] << ' ';
 	}
 	cout << endl;
 }
 
 int main(){
 	Fingerprinter fp;
+	// start recording fingerprints
+	fp.startRecording();
+	cout << "Wait ten seconds to gather enough data for a fingerprint" << endl;
+	sleep(11);
 	
-	// record a new fingerprint using the microphone
-	Fingerprint* observed = fp.recordFingerprint();
+	// get the latest fingerprint 
+	Fingerprint observed = new float[Fingerprinter::fpLength];
+	// getFingerprint fills in the passed array
+	fp.getFingerprint(observed);
+
 	cout << "Newly observed fingerprint:" <<endl;
 	printFingerprint(observed);
+	
 	
 	// query for a list of matches
 	cout << endl << "DB Matches:" <<endl;
@@ -39,11 +48,14 @@ int main(){
 		     << "name=" << fp.queryName( (*qr)[i].uid ) << '\t' 
 		     << "confidence=" << (*qr)[i].confidence << '\t'
 		     << "fingerprint= ";
-		printFingerprint( fp.queryFingerprint( (*qr)[i].uid ) );
+		// query fingerprint saves the query result in observed
+		fp.queryFingerprint( (*qr)[i].uid, observed );
+		printFingerprint( observed );
 	}
 	
 	// assuming that we were not satisfied with any of the results, add this as a new room
 	fp.insertFingerprint( observed, string( "newRoom" ) );
 						 
-	delete observed, qr;
+	delete[] observed;
+	delete qr;
 }
