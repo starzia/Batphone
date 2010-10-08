@@ -10,7 +10,7 @@
 #import "Fingerprinter.h"
 #import "plotView.h"
 
-@interface simpleUIAppDelegate : NSObject <UIApplicationDelegate> {
+@interface simpleUIAppDelegate : NSObject <UIApplicationDelegate, UITextFieldDelegate> {
 	// data members
     UIWindow *window;
 	UILabel  *label;
@@ -29,7 +29,7 @@
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *saveButton;
-@property (nonatomic, retain) UIButton *startButton;
+@property (nonatomic, retain) UIButton *queryButton;
 @property (nonatomic, retain) UITextField *nameLabel;;
 @property (retain) plotView *plot;
 @property (retain) plotView *plotOld;
@@ -41,7 +41,7 @@
 // member functions
 -(void) printFingerprint: (Fingerprint*) fingerprint;
 -(void) saveButtonHandler:(id)sender;
--(void) startButtonHandler:(id)sender;
+-(void) queryButtonHandler:(id)sender;
 -(void) updatePlot;
 
 @end

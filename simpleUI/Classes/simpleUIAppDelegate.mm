@@ -19,7 +19,7 @@ using namespace std;
 @synthesize window;
 @synthesize label;
 @synthesize saveButton;
-@synthesize startButton;
+@synthesize queryButton;
 @synthesize nameLabel;
 @synthesize plot;
 @synthesize plotOld;
@@ -46,9 +46,18 @@ using namespace std;
 	[self.plotOld setNeedsDisplay];
 }
 
--(void) startButtonHandler:(id)sender{
+-(void) queryButtonHandler:(id)sender{
 
-	//[self.startButton setEnabled:NO];
+	//[self.queryButton setEnabled:NO];
+}
+
+// make the keyboard dissapear after hit return. 
+// We are overriding a method inherited from the UITextFieldDelegate protocol
+- (BOOL)textFieldShouldReturn:(UITextField *)theTextField {
+    if (theTextField == self.nameLabel) {
+        [self.nameLabel resignFirstResponder]; // make keyboard dissapear
+    }
+    return YES;	
 }
 
 /* called by timer */
@@ -67,45 +76,44 @@ using namespace std;
 	
 	self.fp = new Fingerprinter();
 	
-	// screen width / 2 - label width / 2
-    CGFloat x = 320/2 - 300/2;
-    // screen height / 2 - label height / 2
-    CGFloat y = 480/2 - 45/2;
-    CGRect labelRect = CGRectMake(x , y-120, 300.0f, 45.0f);
-
-    // Create the label.
+    // Create text label.
+    CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
+    CGFloat y = 480/2 - 45/2; // screen height / 2 - label height / 2
+    CGRect labelRect = CGRectMake(x , 110, 300.0f, 45.0f);
     self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
     // Set the value of our string
-    [label setText:@"push 'start' then wait 10 seconds"];
+    [label setText:@"Fingerprinter is running..."];
     // Center Align the label's text
     [label setTextAlignment:UITextAlignmentCenter];
-
+	label.textColor = [UIColor darkTextColor];
+	label.backgroundColor = [UIColor clearColor];
 	// Add the label to the window.
 	[window addSubview:label];
 
-	x = 320/2 - 300/2;
-    // screen height / 2 - label height / 2
-    y = 480/2 - 45/2;
-    labelRect = CGRectMake(x , y-50, 300.0f, 45.0f);
-	
 	// create textField
+	x = 320/2 - 300/2; // screen width / 2 - label width / 2
+    y = 480/2 - 30/2;  // screen height / 2 - label height / 2
+    labelRect = CGRectMake(x , 30, 300.0f, 30.0f);
 	self.nameLabel = [[[UITextField alloc] initWithFrame:labelRect] autorelease];
 	[nameLabel setPlaceholder:@"new room's name"];
 	[nameLabel setBorderStyle:UITextBorderStyleRoundedRect];
+	nameLabel.autocorrectionType = UITextAutocorrectionTypeNo;
+	nameLabel.clearButtonMode = UITextFieldViewModeWhileEditing;	// has a clear 'x'
+	nameLabel.delegate = self; // sends events to this class, so this class must implement UITextFieldDelegate protocol
     [window addSubview:nameLabel];
 	
 	// Add button to the window
-	startButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-	[startButton addTarget:self action:@selector(startButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
-	[startButton setTitle:@"start" forState:UIControlStateNormal];
-	startButton.frame = CGRectMake(50.0, 40.0, 60.0, 40.0);
-	[window addSubview:startButton];
+	queryButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+	[queryButton addTarget:self action:@selector(queryButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
+	[queryButton setTitle:@"query for match" forState:UIControlStateNormal];
+	queryButton.frame = CGRectMake(10.0, 70.0, 145.0, 40.0);
+	[window addSubview:queryButton];
 
 	// Add button to the window
 	saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	[saveButton addTarget:self action:@selector(saveButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
-	[saveButton setTitle:@"save" forState:UIControlStateNormal];
-	saveButton.frame = CGRectMake(190.0, 40.0, 60.0, 40.0);
+	[saveButton setTitle:@"save as new" forState:UIControlStateNormal];
+	saveButton.frame = CGRectMake(165.0, 70.0, 145.0, 40.0);
 	[window addSubview:saveButton];
 	
 	// initialize fingerprints
@@ -135,6 +143,7 @@ using namespace std;
 													userInfo:nil
 													 repeats:YES];	
 	// update view
+	window.backgroundColor = [UIColor groupTableViewBackgroundColor]; // set striped BG
     [window makeKeyAndVisible];
 	
 	// auto start recording
@@ -199,7 +208,7 @@ using namespace std;
     [window release];
 	[label release];
 	[nameLabel release];
-	[startButton release];
+	[queryButton release];
 	[saveButton release];
 	[plot release];
 	[plotOld release];
