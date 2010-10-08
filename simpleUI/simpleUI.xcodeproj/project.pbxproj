@@ -24,6 +24,7 @@
 		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
 		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
 		AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */; };
+		AAFD8967125E9D150081B913 /* FingerprintDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAFD8966125E9D150081B913 /* FingerprintDB.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,7 +38,7 @@
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* simpleUI_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simpleUI_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* simpleUI-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "simpleUI-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
-		AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Fingerprinter.cpp; path = ../Fingerprinter/Classes/Fingerprinter.cpp; sourceTree = SOURCE_ROOT; };
+		AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = Fingerprinter.cpp; path = ../Fingerprinter/Classes/Fingerprinter.cpp; sourceTree = SOURCE_ROOT; };
 		AA7B05F312523F1200FFA088 /* Fingerprinter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Fingerprinter.h; path = ../Fingerprinter/Classes/Fingerprinter.h; sourceTree = SOURCE_ROOT; };
 		AA7B05F612523F4000FFA088 /* CADebugMacros.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CADebugMacros.cpp; sourceTree = "<group>"; };
 		AA7B05F712523F4000FFA088 /* CADebugMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CADebugMacros.h; sourceTree = "<group>"; };
@@ -57,6 +58,8 @@
 		AAD14E8A125C097A0066A446 /* Spectrogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Spectrogram.h; path = ../Fingerprinter/Classes/Spectrogram.h; sourceTree = SOURCE_ROOT; };
 		AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SlidingWindow.cpp; path = ../Fingerprinter/Classes/SlidingWindow.cpp; sourceTree = SOURCE_ROOT; };
 		AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Spectrogram.cpp; path = ../Fingerprinter/Classes/Spectrogram.cpp; sourceTree = SOURCE_ROOT; };
+		AAFD8965125E9D150081B913 /* FingerprintDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FingerprintDB.h; path = ../Fingerprinter/Classes/FingerprintDB.h; sourceTree = SOURCE_ROOT; };
+		AAFD8966125E9D150081B913 /* FingerprintDB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FingerprintDB.cpp; path = ../Fingerprinter/Classes/FingerprintDB.cpp; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,14 +161,16 @@
 		AAD14E84125C09540066A446 /* Fingerprinter Classes */ = {
 			isa = PBXGroup;
 			children = (
-				AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */,
 				AAD14E87125C097A0066A446 /* SlidingWindow.h */,
-				AAD14E85125C097A0066A446 /* Heap.cpp */,
+				AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */,
 				AAD14E86125C097A0066A446 /* Heap.h */,
-				AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */,
+				AAD14E85125C097A0066A446 /* Heap.cpp */,
 				AAD14E8A125C097A0066A446 /* Spectrogram.h */,
-				AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */,
+				AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */,
 				AA7B05F312523F1200FFA088 /* Fingerprinter.h */,
+				AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */,
+				AAFD8965125E9D150081B913 /* FingerprintDB.h */,
+				AAFD8966125E9D150081B913 /* FingerprintDB.cpp */,
 			);
 			name = "Fingerprinter Classes";
 			sourceTree = "<group>";
@@ -243,6 +248,7 @@
 				AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */,
 				AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */,
 				AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */,
+				AAFD8967125E9D150081B913 /* FingerprintDB.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -16,6 +16,7 @@
 	UILabel  *label;
 	UIButton *saveButton;
 	UIButton *resetButton;
+	UITextField *nameLabel;
 	plotView *plot;
 	plotView *plotOld;
 	Fingerprint newFingerprint;
@@ -29,6 +30,7 @@
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *saveButton;
 @property (nonatomic, retain) UIButton *startButton;
+@property (nonatomic, retain) UITextField *nameLabel;;
 @property (retain) plotView *plot;
 @property (retain) plotView *plotOld;
 @property (retain) NSTimer* plotTimer;

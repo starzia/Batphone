@@ -20,6 +20,7 @@ using namespace std;
 @synthesize label;
 @synthesize saveButton;
 @synthesize startButton;
+@synthesize nameLabel;
 @synthesize plot;
 @synthesize plotOld;
 @synthesize plotTimer;
@@ -46,9 +47,8 @@ using namespace std;
 }
 
 -(void) startButtonHandler:(id)sender{
-	// record a new fingerprint using the microphone
-	self.fp->startRecording();
-	[self.startButton setEnabled:NO];
+
+	//[self.startButton setEnabled:NO];
 }
 
 /* called by timer */
@@ -82,6 +82,17 @@ using namespace std;
 
 	// Add the label to the window.
 	[window addSubview:label];
+
+	x = 320/2 - 300/2;
+    // screen height / 2 - label height / 2
+    y = 480/2 - 45/2;
+    labelRect = CGRectMake(x , y-50, 300.0f, 45.0f);
+	
+	// create textField
+	self.nameLabel = [[[UITextField alloc] initWithFrame:labelRect] autorelease];
+	[nameLabel setPlaceholder:@"new room's name"];
+	[nameLabel setBorderStyle:UITextBorderStyleRoundedRect];
+    [window addSubview:nameLabel];
 	
 	// Add button to the window
 	startButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
@@ -106,13 +117,13 @@ using namespace std;
 	}
 	
 	// Add plot to window
-	CGRect plotRect = CGRectMake(10, 320, 300.0f, 150.0f);
+	CGRect plotRect = CGRectMake(10, 370, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plot];
 
 	// Add another plot to window
-	plotRect = CGRectMake(10, 160, 300.0f, 150.0f);
+	plotRect = CGRectMake(10, 270, 300.0f, 100.0f);
 	self.plotOld = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
 	[self.plotOld setVector: oldFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plotOld];
@@ -125,6 +136,9 @@ using namespace std;
 													 repeats:YES];	
 	// update view
     [window makeKeyAndVisible];
+	
+	// auto start recording
+	self.fp->startRecording();
 	
     return YES;
 }
@@ -143,6 +157,7 @@ using namespace std;
      Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later. 
      If your application supports background execution, called instead of applicationWillTerminate: when the user quits.
      */
+	self.fp->stopRecording();
 }
 
 
@@ -150,6 +165,7 @@ using namespace std;
     /*
      Called as part of  transition from the background to the inactive state: here you can undo many of the changes made on entering the background.
      */
+	self.fp->startRecording();
 }
 
 
@@ -165,6 +181,7 @@ using namespace std;
      Called when the application is about to terminate.
      See also applicationDidEnterBackground:.
      */
+	self.fp->stopRecording();
 }
 
 
@@ -181,6 +198,7 @@ using namespace std;
 - (void)dealloc {
     [window release];
 	[label release];
+	[nameLabel release];
 	[startButton release];
 	[saveButton release];
 	[plot release];
