@@ -9,6 +9,9 @@
 #import <UIKit/UIKit.h>
 #import "Fingerprinter.h"
 #import "plotView.h"
+#import "FingerprintDB.h"
+#import <vector>
+using std::vector;
 
 @interface simpleUIAppDelegate : NSObject <UIApplicationDelegate, UITextFieldDelegate> {
 	// data members
@@ -17,12 +20,13 @@
 	UIButton *saveButton;
 	UIButton *resetButton;
 	UITextField *nameLabel;
-	plotView *plot;
-	plotView *plotOld;
+	plotView *plot;            // live fingerprint plot
+	vector<plotView*>* candidatePlots; 
 	Fingerprint newFingerprint;
-	Fingerprint oldFingerprint;
+	Fingerprint* candidates;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	Fingerprinter* fp;
+	FingerprintDB* database;
 }
 
 // accessors
@@ -32,14 +36,15 @@
 @property (nonatomic, retain) UIButton *queryButton;
 @property (nonatomic, retain) UITextField *nameLabel;;
 @property (retain) plotView *plot;
-@property (retain) plotView *plotOld;
+@property vector<plotView*>* candidatePlots;
 @property (retain) NSTimer* plotTimer;
 @property Fingerprint newFingerprint;
-@property Fingerprint oldFingerprint;
+@property Fingerprint* candidates;
 @property (nonatomic) Fingerprinter* fp; 
+@property (nonatomic) FingerprintDB* database;
 
 // member functions
--(void) printFingerprint: (Fingerprint*) fingerprint;
+-(void) printFingerprint: (Fingerprint) fingerprint;
 -(void) saveButtonHandler:(id)sender;
 -(void) queryButtonHandler:(id)sender;
 -(void) updatePlot;

@@ -22,33 +22,51 @@ using namespace std;
 @synthesize queryButton;
 @synthesize nameLabel;
 @synthesize plot;
-@synthesize plotOld;
 @synthesize plotTimer;
+@synthesize candidatePlots;
 @synthesize newFingerprint;
-@synthesize oldFingerprint;
+@synthesize candidates;
 @synthesize fp;
+@synthesize database;
+
+#import <sstream>
+
+static const int numCandidates = 3;
 
 
-- (void) printFingerprint: (Fingerprint*) fingerprint{
+- (void) printFingerprint: (Fingerprint) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
-		cout << (*fingerprint)[i] << ' ';
+		cout << fingerprint[i] << ' ';
 	}
-	// just print first number in fingerprint vector
-    [label setText:[[NSString alloc] initWithFormat:@"%10.0f",(*fingerprint)[0]]];
 	cout << endl;
 }
 
 
 /* called by button */
 -(void) saveButtonHandler:(id)sender{
-	// get the current fingerprint and save to "Old" slot
-	self.fp->getFingerprint( self.oldFingerprint );
-	[self.plotOld setNeedsDisplay];
+	string newName = [self.nameLabel.text UTF8String]; 
+	self.database->insertFingerprint(self.newFingerprint, newName);
 }
 
 -(void) queryButtonHandler:(id)sender{
+	// query for matches
+	QueryResult result;
+	unsigned int numMatches = self.database->queryMatches( result, self.newFingerprint, numCandidates );
 
-	//[self.queryButton setEnabled:NO];
+	// update candidate line plots
+	std::ostringstream ss;
+	ss << numMatches << " matches: "
+			<< result[0].entry.name << " / "
+			<< result[1].entry.name << " / "
+			<< result[2].entry.name;
+    [label setText:[[NSString alloc] initWithCString:ss.str().c_str()] ];
+	for( unsigned int i=0; i<numMatches; ++i ){
+		[self printFingerprint:result[i].entry.fingerprint];
+		// plot this candidate
+		plotView* candidatePlot = (*self.candidatePlots)[i];
+		[candidatePlot setVector:result[i].entry.fingerprint length:Fingerprinter::fpLength];
+		[candidatePlot setNeedsDisplay];
+	}
 }
 
 // make the keyboard dissapear after hit return. 
@@ -63,8 +81,10 @@ using namespace std;
 /* called by timer */
 -(void) updatePlot{
 	// get the current fingerprint and save to "New" slot
-	self.fp->getFingerprint( self.newFingerprint );
-	[self.plot setNeedsDisplay];	
+	if( self.fp->getFingerprint( self.newFingerprint ) ){
+		// if successful, then redraw
+		[self.plot setNeedsDisplay];
+	}
 }
 
 #pragma mark -
@@ -73,8 +93,8 @@ using namespace std;
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
     
     // Override point for customization after application launch.
-	
 	self.fp = new Fingerprinter();
+	self.database = new FingerprintDB(Fingerprinter::fpLength);
 	
     // Create text label.
     CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
@@ -118,10 +138,16 @@ using namespace std;
 	
 	// initialize fingerprints
 	self.newFingerprint = new float[Fingerprinter::fpLength];
-	self.oldFingerprint = new float[Fingerprinter::fpLength];
+	self.candidates = new float*[numCandidates];
+	for( int i=0; i<numCandidates; i++ ){
+		self.candidates[i] = new float[Fingerprinter::fpLength];
+		for (int j=0; j<Fingerprinter::fpLength; ++j){
+			self.candidates[i][j] = 0;
+		}
+	}
 	for (int i=0; i<Fingerprinter::fpLength; ++i){
-		self.newFingerprint[i] = 0 ; // blank filler
-		self.oldFingerprint[i] = 0 ; // blank filler
+		// blank all fingerprints
+		self.newFingerprint[i] = 0;
 	}
 	
 	// Add plot to window
@@ -130,11 +156,18 @@ using namespace std;
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plot];
 
-	// Add another plot to window
+	// Add candidate plots to window
 	plotRect = CGRectMake(10, 270, 300.0f, 100.0f);
-	self.plotOld = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
-	[self.plotOld setVector: oldFingerprint length: Fingerprinter::fpLength];
-	[window addSubview:plotOld];
+	self.candidatePlots = new vector<plotView*>();
+	for( int i=0; i<numCandidates; i++ ){
+		plotView* thisCandidatePlot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
+		self.candidatePlots->push_back( thisCandidatePlot );
+		// assign the appropriate data vector to each plot
+		[thisCandidatePlot setVector:candidates[i] length: Fingerprinter::fpLength];
+		// change color of candidates line (from default of black = {0,0,0}
+		thisCandidatePlot.lineColor[i%numCandidates] = 1; // set either R, G, or B to 1.0
+		[window addSubview:thisCandidatePlot];
+	}
 	
 	// create timer to update the plot
 	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
@@ -211,10 +244,15 @@ using namespace std;
 	[queryButton release];
 	[saveButton release];
 	[plot release];
-	[plotOld release];
 	[plotTimer release];
-	delete fp;
-	delete oldFingerprint;
+	for( int i=0; i<numCandidates; i++ ){
+		delete[] candidates[i];
+		delete (*candidatePlots)[i];
+	}
+	delete[] candidates;
+	delete candidatePlots;	
+	delete[] fp;
+	delete database;
     [super dealloc];
 }
 

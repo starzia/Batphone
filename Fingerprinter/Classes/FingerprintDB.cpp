@@ -49,7 +49,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	unsigned int resultSize = min(numMatches, (unsigned int)entries.size() );
 	
 	// calculate distances to all entries in DB
-	pair<float,int> distances[entries.size()]; // first element of pair is distance, second is index
+	pair<float,int>* distances = new pair<float,int>[entries.size()]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		distances[i] = make_pair( distance( observation, entries[i].fingerprint ), i );
 	}
@@ -58,9 +58,10 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	for( unsigned int i=0; i<numMatches; ++i ){
 		Match m;
 		m.entry = entries[distances[i].second];
-		m.confidence = -distances[i].first; //TODO: scale between 0 and 1
+		m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
 		result.push_back( m );
 	}
+	delete distances;
 	return resultSize;
 }
 

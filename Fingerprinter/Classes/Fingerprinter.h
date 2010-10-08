@@ -41,8 +41,10 @@ public:
 	
 	/* makes a copy of the current fingerprint value at the specified pointer.
 	 * outputFingerprint should be a float[] of length Fingerprinter::fpLength, to be filled by this function 
+	 * return value is true if successful.  Will fail if startRecording() has 
+	 * not been called or there is not yet enough data.
 	 */
-	void getFingerprint( Fingerprint outputFingerprint );
+	bool getFingerprint( Fingerprint outputFingerprint );
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();

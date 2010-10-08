@@ -15,12 +15,14 @@
 	// y axis range for plot:
 	float minY;
 	float maxY;
+	float* lineColor; // RGB array
 }
 
 @property (nonatomic) float* data;
 @property (nonatomic) unsigned int length;
 @property (nonatomic) float minY;
 @property (nonatomic) float maxY;
+@property (nonatomic) float* lineColor;
 
 // set the y axis range of the plot
 -(void)setYRange_min: (float)Ymin  max:(float)Ymax;

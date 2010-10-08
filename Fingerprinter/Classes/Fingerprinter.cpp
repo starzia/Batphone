@@ -353,10 +353,14 @@ spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 }	
 
 
-void Fingerprinter::getFingerprint( Fingerprint outBuf ){
-	if( pthread_mutex_lock( &lock ) ) printf( "lock failed!\n" );
-	memcpy( outBuf, this->fingerprint, sizeof(float)*Fingerprinter::fpLength );
-	pthread_mutex_unlock( &lock );
+bool Fingerprinter::getFingerprint( Fingerprint outBuf ){
+	if( this->unitIsRunning ){ // TODO: return false if less then a full window has been recorded.
+		if( pthread_mutex_lock( &lock ) ) printf( "lock failed!\n" );
+		memcpy( outBuf, this->fingerprint, sizeof(float)*Fingerprinter::fpLength );
+		pthread_mutex_unlock( &lock );
+		return true;
+	}
+	else return false;
 }
 
 
