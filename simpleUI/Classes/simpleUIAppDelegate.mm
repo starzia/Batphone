@@ -44,7 +44,12 @@ static const int numCandidates = 3;
 
 /* called by button */
 -(void) saveButtonHandler:(id)sender{
-	string newName = [self.nameLabel.text UTF8String]; 
+	string newName;
+	if( self.nameLabel.text.length > 0 ){
+		newName = [self.nameLabel.text UTF8String]; 
+	}else{
+		newName = string("<unnamed>");
+	}
 	self.database->insertFingerprint(self.newFingerprint, newName);
 }
 
@@ -55,10 +60,13 @@ static const int numCandidates = 3;
 
 	// update candidate line plots
 	std::ostringstream ss;
-	ss << numMatches << " matches: "
-			<< result[0].entry.name << " / "
-			<< result[1].entry.name << " / "
-			<< result[2].entry.name;
+	ss << numMatches << " matches: ";
+	if( numMatches >= 1 )
+		ss << result[0].entry.name;
+	if( numMatches >= 2 )
+		ss << " / " << result[1].entry.name;
+	if( numMatches >= 3 )
+		ss << " / " << result[2].entry.name;
     [label setText:[[NSString alloc] initWithCString:ss.str().c_str()] ];
 	for( unsigned int i=0; i<numMatches; ++i ){
 		[self printFingerprint:result[i].entry.fingerprint];
@@ -107,6 +115,8 @@ static const int numCandidates = 3;
     [label setTextAlignment:UITextAlignmentCenter];
 	label.textColor = [UIColor darkTextColor];
 	label.backgroundColor = [UIColor clearColor];
+	// set font
+	[label setFont:[UIFont fontWithName:@"Arial" size:12]];
 	// Add the label to the window.
 	[window addSubview:label];
 

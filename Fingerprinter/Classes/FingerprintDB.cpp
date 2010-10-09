@@ -55,7 +55,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	}
 	// sort distances (partial sort b/c we are interested only in first numMatches)
 	partial_sort(distances+0, distances+resultSize, distances+entries.size(), smaller_by_first );
-	for( unsigned int i=0; i<numMatches; ++i ){
+	for( unsigned int i=0; i<resultSize; ++i ){
 		Match m;
 		m.entry = entries[distances[i].second];
 		m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
