@@ -156,6 +156,12 @@ bool FingerprintDB::load( NSString* filename ){
 	
 	// build the full filename
 	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
+
+	// test that DB file exists
+	if( ![[NSFileManager defaultManager] fileExistsAtPath:fullFilename] ){
+		return false;
+	}
+	
 	// read contents of file
 	NSString *content = [[NSString alloc] initWithContentsOfFile:fullFilename
 													usedEncoding:nil

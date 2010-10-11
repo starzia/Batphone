@@ -58,7 +58,7 @@ public:
 	/* Save database to a file */
 	bool save( NSString* filename );
 	
-	/* load database from a file */
+	/* load database from a file.  Returns false if file doesn't exist. */
 	bool load( NSString* filename );
 	
 private:

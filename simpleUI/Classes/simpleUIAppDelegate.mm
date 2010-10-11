@@ -51,6 +51,7 @@ static const int numCandidates = 3;
 	self.database->insertFingerprint(self.newFingerprint, newName);
 	[newName release];
 	
+	// save the entire database, since it's changed
 	self.database->save(@"db.txt");
 }
 
@@ -107,6 +108,7 @@ static const int numCandidates = 3;
     // Override point for customization after application launch.
 	self.fp = new Fingerprinter();
 	self.database = new FingerprintDB(Fingerprinter::fpLength);
+	self.database->load( @"db.txt" ); // load the database.
 	
     // Create text label.
     CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
