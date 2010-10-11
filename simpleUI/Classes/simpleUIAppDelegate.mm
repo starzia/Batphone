@@ -74,7 +74,8 @@ static const int numCandidates = 3;
     [label setText:ss];
 	[ss release];
 	for( unsigned int i=0; i<numMatches; ++i ){
-		[self printFingerprint:result[i].entry.fingerprint];
+		///[self printFingerprint:result[i].entry.fingerprint]; // print to console
+		
 		// plot this candidate
 		plotView* candidatePlot = (*self.candidatePlots)[i];
 		[candidatePlot setVector:result[i].entry.fingerprint length:Fingerprinter::fpLength];
@@ -167,16 +168,16 @@ static const int numCandidates = 3;
 	}
 	
 	// Add plot to window
-	CGRect plotRect = CGRectMake(10, 370, 300.0f, 100.0f);
+	CGRect plotRect = CGRectMake(10, 150, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plot];
 
 	// Add candidate plots to window
-	plotRect = CGRectMake(10, 270, 300.0f, 100.0f);
+	plotRect = CGRectMake(10, 250, 300.0f, 100.0f);
 	self.candidatePlots = new vector<plotView*>();
 	for( int i=0; i<numCandidates; i++ ){
-		plotView* thisCandidatePlot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
+		plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:plotRect];
 		self.candidatePlots->push_back( thisCandidatePlot );
 		// assign the appropriate data vector to each plot
 		[thisCandidatePlot setVector:candidates[i] length: Fingerprinter::fpLength];

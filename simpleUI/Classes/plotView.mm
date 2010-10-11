@@ -50,7 +50,7 @@
     
 	// Drawing code
     CGContextRef context = UIGraphicsGetCurrentContext();
-		
+	
 	// update view range
 	float min_val = *std::min_element(self.data, self.data+self.length ); 
 	float max_val = *std::max_element(self.data, self.data+self.length ); 

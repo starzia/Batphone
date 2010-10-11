@@ -20,6 +20,8 @@
 		AA7B060912523FFA00FFA088 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B060812523FFA00FFA088 /* AudioToolbox.framework */; };
 		AA7B06261252402F00FFA088 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B06251252402F00FFA088 /* CoreAudio.framework */; };
 		AA7B066C1252433200FFA088 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B066B1252433200FFA088 /* Accelerate.framework */; };
+		AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D6312639F36003C20EB /* Icon-72.png */; };
+		AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D691263A03E003C20EB /* Icon@2x.png */; };
 		AAC415D31254EFF0008DA27C /* plotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.mm */; };
 		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
 		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
@@ -50,6 +52,8 @@
 		AA7B060812523FFA00FFA088 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		AA7B06251252402F00FFA088 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		AA7B066B1252433200FFA088 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		AAAF2D6312639F36003C20EB /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
+		AAAF2D691263A03E003C20EB /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
 		AAC415D21254EFF0008DA27C /* plotView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = plotView.mm; sourceTree = "<group>"; };
 		AAD14E85125C097A0066A446 /* Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Heap.cpp; path = ../Fingerprinter/Classes/Heap.cpp; sourceTree = SOURCE_ROOT; };
@@ -124,6 +128,8 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AAAF2D691263A03E003C20EB /* Icon@2x.png */,
+				AAAF2D6312639F36003C20EB /* Icon-72.png */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
 				8D1107310486CEB800E47090 /* simpleUI-Info.plist */,
 			);
@@ -228,6 +234,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
+				AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */,
+				AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

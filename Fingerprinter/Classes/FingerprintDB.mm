@@ -66,7 +66,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 
 
 NSString* FingerprintDB::queryName( unsigned int uid ){
-	return [[NSString stringWithFormat:@"room%d", (int)(random()%100)] autorelease];
+	return [[[NSString alloc] stringWithFormat:@"room%d", (int)(random()%100)] autorelease];
 }
 
 
@@ -79,8 +79,9 @@ bool FingerprintDB::queryFingerprint( unsigned int uid, float outputFingerprint[
 unsigned int FingerprintDB::insertFingerprint( const float observation[], NSString* newName ){
 	// create new DB entry
 	DBEntry newEntry;
-	// TODO set timestamp
-	newEntry.name = [NSString stringWithString:newName];
+	NSDate *now = [NSDate date];
+	newEntry.timestamp = [now timeIntervalSince1970];
+	newEntry.name = newName;
 	[newEntry.name retain];
 	newEntry.uid = entries.size();
 	newEntry.fingerprint = new float[len];
@@ -124,7 +125,7 @@ bool FingerprintDB::save( NSString* filename ){
 	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
 	
 	// create content - four lines of text
-	NSMutableString *content = [[[NSMutableString alloc] init] autorelease];
+	NSMutableString *content = [[NSMutableString alloc] init];
 
 	// loop through DB entries, appending to string
 	for( int i=0; i<entries.size(); i++ ){
@@ -144,6 +145,7 @@ bool FingerprintDB::save( NSString* filename ){
 			  atomically:YES 
 				encoding:NSStringEncodingConversionAllowLossy 
 				   error:nil];
+	[content release];
 	return true;
 	// TODO file access error handling
 }

@@ -28,7 +28,7 @@ using namespace std;
 // -----------------------------------------------------------------------------
 // CONSTANTS
 const unsigned int Fingerprinter::fpLength = 128;
-const unsigned int Fingerprinter::historyLength = 1000;
+const unsigned int Fingerprinter::historyLength = 500;
 const float Fingerprinter::bufferSize = 0.01;
 #define kOutputBus 0
 #define kInputBus 1
