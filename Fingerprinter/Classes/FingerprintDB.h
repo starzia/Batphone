@@ -9,11 +9,13 @@
 
 #import <vector>
 #import <string>
+#import <Foundation/Foundation.h>
 
 // Database entry
 typedef struct{
 	unsigned int uid;
-	std::string name;
+	long long timestamp;
+	NSString* name;
 	float* fingerprint;
 } DBEntry;
 
@@ -41,7 +43,7 @@ public:
 							   unsigned int numMatches ); /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 	
 	/* Query the DB for a given room's name. */
-	std::string queryName( unsigned int uid );
+	NSString* queryName( unsigned int uid );
 	
 	/* Query the DB for a given room's Fingerprint.
 	 * outputFingerprint should be a float[] of length fingerPrinter::fpLength, to be filled by this function
@@ -51,7 +53,13 @@ public:
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
-								    std::string name );      /* name for the new room */
+								    NSString* name );      /* name for the new room */
+	
+	/* Save database to a file */
+	bool save( NSString* filename );
+	
+	/* load database from a file */
+	bool load( NSString* filename );
 	
 private:
 	/* calculates the distance between two Fingerprints */

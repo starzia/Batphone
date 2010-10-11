@@ -29,8 +29,6 @@ using namespace std;
 @synthesize fp;
 @synthesize database;
 
-#import <sstream>
-
 static const int numCandidates = 3;
 
 
@@ -44,13 +42,14 @@ static const int numCandidates = 3;
 
 /* called by button */
 -(void) saveButtonHandler:(id)sender{
-	string newName;
+	NSString* newName;
 	if( self.nameLabel.text.length > 0 ){
-		newName = [self.nameLabel.text UTF8String]; 
+		newName = [[NSString alloc] initWithString:self.nameLabel.text]; 
 	}else{
-		newName = string("<unnamed>");
+		newName = [[NSString alloc] initWithFormat:@"<unnamed>"];
 	}
 	self.database->insertFingerprint(self.newFingerprint, newName);
+	[newName release];
 }
 
 -(void) queryButtonHandler:(id)sender{
@@ -59,15 +58,18 @@ static const int numCandidates = 3;
 	unsigned int numMatches = self.database->queryMatches( result, self.newFingerprint, numCandidates );
 
 	// update candidate line plots
-	std::ostringstream ss;
-	ss << numMatches << " matches: ";
-	if( numMatches >= 1 )
-		ss << result[0].entry.name;
-	if( numMatches >= 2 )
-		ss << " / " << result[1].entry.name;
-	if( numMatches >= 3 )
-		ss << " / " << result[2].entry.name;
-    [label setText:[[NSString alloc] initWithCString:ss.str().c_str()] ];
+	NSMutableString* ss = [[NSMutableString alloc] initWithFormat:@"%d matches: ",numMatches];
+	if( numMatches >= 1 ){
+		[ss appendString:result[0].entry.name];
+	}
+	if( numMatches >= 2 ){
+		[ss appendFormat:@" / %@",result[1].entry.name];
+	}
+	if( numMatches >= 3 ){
+		[ss appendFormat:@" / %@",result[2].entry.name];
+	}
+    [label setText:ss];
+	[ss release];
 	for( unsigned int i=0; i<numMatches; ++i ){
 		[self printFingerprint:result[i].entry.fingerprint];
 		// plot this candidate

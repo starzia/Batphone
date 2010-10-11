@@ -24,7 +24,7 @@
 		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
 		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
 		AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */; };
-		AAFD8967125E9D150081B913 /* FingerprintDB.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAFD8966125E9D150081B913 /* FingerprintDB.cpp */; };
+		AAFD8C3E1262B53A0081B913 /* FingerprintDB.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAFD8C3D1262B53A0081B913 /* FingerprintDB.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -59,7 +59,7 @@
 		AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SlidingWindow.cpp; path = ../Fingerprinter/Classes/SlidingWindow.cpp; sourceTree = SOURCE_ROOT; };
 		AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Spectrogram.cpp; path = ../Fingerprinter/Classes/Spectrogram.cpp; sourceTree = SOURCE_ROOT; };
 		AAFD8965125E9D150081B913 /* FingerprintDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FingerprintDB.h; path = ../Fingerprinter/Classes/FingerprintDB.h; sourceTree = SOURCE_ROOT; };
-		AAFD8966125E9D150081B913 /* FingerprintDB.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FingerprintDB.cpp; path = ../Fingerprinter/Classes/FingerprintDB.cpp; sourceTree = SOURCE_ROOT; };
+		AAFD8C3D1262B53A0081B913 /* FingerprintDB.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = FingerprintDB.mm; path = ../Fingerprinter/Classes/FingerprintDB.mm; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,7 +170,7 @@
 				AA7B05F312523F1200FFA088 /* Fingerprinter.h */,
 				AA7B05F212523F1200FFA088 /* Fingerprinter.cpp */,
 				AAFD8965125E9D150081B913 /* FingerprintDB.h */,
-				AAFD8966125E9D150081B913 /* FingerprintDB.cpp */,
+				AAFD8C3D1262B53A0081B913 /* FingerprintDB.mm */,
 			);
 			name = "Fingerprinter Classes";
 			sourceTree = "<group>";
@@ -248,7 +248,7 @@
 				AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */,
 				AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */,
 				AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */,
-				AAFD8967125E9D150081B913 /* FingerprintDB.cpp in Sources */,
+				AAFD8C3E1262B53A0081B913 /* FingerprintDB.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

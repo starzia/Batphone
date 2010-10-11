@@ -13,7 +13,6 @@
 #import <algorithm> // for partial_sort
 #import <utility> // for pair
 
-using std::string;
 using std::vector;
 using std::pair;
 using std::make_pair;
@@ -66,10 +65,8 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 }
 
 
-string FingerprintDB::queryName( unsigned int uid ){
-	char name[7];
-	sprintf( name, "room%d", (int)(random()%100) );
-	return string(name);
+NSString* FingerprintDB::queryName( unsigned int uid ){
+	return [[NSString stringWithFormat:@"room%d", (int)(random()%100)] autorelease];
 }
 
 
@@ -79,17 +76,18 @@ bool FingerprintDB::queryFingerprint( unsigned int uid, float outputFingerprint[
 }
 
 
-unsigned int FingerprintDB::insertFingerprint( const float observation[], string name ){
+unsigned int FingerprintDB::insertFingerprint( const float observation[], NSString* newName ){
 	// create new DB entry
 	DBEntry newEntry;
-	newEntry.name = name;
+	// TODO set timestamp
+	newEntry.name = [NSString stringWithString:newName];
+	[newEntry.name retain];
 	newEntry.uid = entries.size();
 	newEntry.fingerprint = new float[len];
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
 	
 	// add it to the DB
 	entries.push_back( newEntry );
-	
 	return newEntry.uid;
 }
 
@@ -108,9 +106,85 @@ float FingerprintDB::distance( const float A[], const float B[] ){
 	return sqrt(result);
 }
 
+
 void FingerprintDB::makeRandomFingerprint( float outBuf[] ){
 	outBuf[0] = 0.0;
 	for( unsigned int i=1; i<len; ++i ){
 		outBuf[i] = outBuf[i-1] + (random()%9) - 4;
 	}
+}
+
+
+bool FingerprintDB::save( NSString* filename ){
+	// get the documents directory:
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	
+	// make a file name to write the data to using the documents directory:
+	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
+	
+	// create content - four lines of text
+	NSMutableString *content = [NSMutableString init];
+
+	// loop through DB entries, appending to string
+	for( int i=0; i<entries.size(); i++ ){
+		[content appendFormat:@"%d\t%d\t%@", 
+		 entries[i].uid,
+		 entries[i].timestamp,
+		 entries[i].name];
+		// add each element of fingerprint
+		for( int j=0; j<len; j++ ){
+			[content appendFormat:@"\t%f", entries[i].fingerprint[j] ];
+		}
+		// newline at end
+		[content appendString:@"\n"];
+	}
+	// save content to the file
+	[content writeToFile:fullFilename 
+			  atomically:YES 
+				encoding:NSStringEncodingConversionAllowLossy 
+				   error:nil];
+	
+	[content release];
+	return true;
+	// TODO file access error handling
+}
+
+
+bool FingerprintDB::load( NSString* filename ){
+	// get the documents directory:
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	
+	// build the full filename
+	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
+	// read contents of file
+	NSString *content = [[NSString alloc] initWithContentsOfFile:fullFilename
+													usedEncoding:nil
+														   error:nil];
+	// fill DB with content
+	NSScanner *scanner = [NSScanner scannerWithString:content];
+	while( ![scanner isAtEnd] ){
+		DBEntry newEntry;
+		NSString* nameString;
+		int theUid;
+		[scanner scanInt:&theUid];
+		newEntry.uid = theUid;
+		[scanner scanLongLong:&newEntry.timestamp];
+		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
+								intoString:&nameString];
+		newEntry.name = [NSString stringWithString:nameString];
+
+		// load fingerprint
+		newEntry.fingerprint = new float[len];
+		for( int j=0; j<len; j++ ){
+			[scanner scanFloat:&(newEntry.fingerprint[j]) ];
+		}		
+		// add it to the DB
+		entries.push_back( newEntry );
+		[nameString release];
+	}		
+	[content release];
+	return true;
+	// TODO file access error handling
 }
