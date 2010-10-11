@@ -20,6 +20,7 @@ using namespace std;
 @synthesize label;
 @synthesize saveButton;
 @synthesize queryButton;
+@synthesize clearButton;
 @synthesize nameLabel;
 @synthesize plot;
 @synthesize plotTimer;
@@ -51,8 +52,10 @@ static const int numCandidates = 3;
 	self.database->insertFingerprint(self.newFingerprint, newName);
 	[newName release];
 	
+	[label setText:[NSString stringWithFormat:@"room: %@ saved",newName]];
+	
 	// save the entire database, since it's changed
-	self.database->save(@"db.txt");
+	self.database->save();
 }
 
 -(void) queryButtonHandler:(id)sender{
@@ -60,7 +63,7 @@ static const int numCandidates = 3;
 	QueryResult result;
 	unsigned int numMatches = self.database->queryMatches( result, self.newFingerprint, numCandidates );
 
-	// update candidate line plots
+	// update status display
 	NSMutableString* ss = [[NSMutableString alloc] initWithFormat:@"%d matches: ",numMatches];
 	if( numMatches >= 1 ){
 		[ss appendString:result[0].entry.name];
@@ -73,15 +76,30 @@ static const int numCandidates = 3;
 	}
     [label setText:ss];
 	[ss release];
-	for( unsigned int i=0; i<numMatches; ++i ){
-		///[self printFingerprint:result[i].entry.fingerprint]; // print to console
-		
-		// plot this candidate
+
+	// update candidate line plots
+	for( int i=0; i<numCandidates; ++i ){
 		plotView* candidatePlot = (*self.candidatePlots)[i];
-		[candidatePlot setVector:result[i].entry.fingerprint length:Fingerprinter::fpLength];
+		if( i<numMatches ){
+			// plot this candidate
+			memcpy( self.candidates[i], result[i].entry.fingerprint, sizeof(float)*Fingerprinter::fpLength);
+		}else{
+			// blank out this plot slot
+			for (int j=0; j<Fingerprinter::fpLength; ++j){
+				self.candidates[i][j] = 0;
+			}
+		}
 		[candidatePlot setNeedsDisplay];
 	}
 }
+
+
+-(void)clearButtonHandler:(id)sender{
+	self.database->clear();
+	[self queryButtonHandler:sender]; // this is a hack to clear the candidate plots
+	[label setText:@"Database cleared"];
+}
+
 
 // make the keyboard dissapear after hit return. 
 // We are overriding a method inherited from the UITextFieldDelegate protocol
@@ -109,7 +127,7 @@ static const int numCandidates = 3;
     // Override point for customization after application launch.
 	self.fp = new Fingerprinter();
 	self.database = new FingerprintDB(Fingerprinter::fpLength);
-	self.database->load( @"db.txt" ); // load the database.
+	self.database->load(); // load the database.
 	
     // Create text label.
     CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
@@ -139,19 +157,26 @@ static const int numCandidates = 3;
 	nameLabel.delegate = self; // sends events to this class, so this class must implement UITextFieldDelegate protocol
     [window addSubview:nameLabel];
 	
-	// Add button to the window
+	// Add query button to the window
 	queryButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	[queryButton addTarget:self action:@selector(queryButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
 	[queryButton setTitle:@"query for match" forState:UIControlStateNormal];
 	queryButton.frame = CGRectMake(10.0, 70.0, 145.0, 40.0);
 	[window addSubview:queryButton];
 
-	// Add button to the window
+	// Add save button to the window
 	saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 	[saveButton addTarget:self action:@selector(saveButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
 	[saveButton setTitle:@"save as new" forState:UIControlStateNormal];
 	saveButton.frame = CGRectMake(165.0, 70.0, 145.0, 40.0);
 	[window addSubview:saveButton];
+	
+	// Add clear button to the window
+	clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+	[clearButton addTarget:self action:@selector(clearButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
+	[clearButton setTitle:@"clear database" forState:UIControlStateNormal];
+	clearButton.frame = CGRectMake(10.0, 430.0, 145.0, 40.0);
+	[window addSubview:clearButton];
 	
 	// initialize fingerprints
 	self.newFingerprint = new float[Fingerprinter::fpLength];

@@ -18,7 +18,8 @@ using std::vector;
     UIWindow *window;
 	UILabel  *label;
 	UIButton *saveButton;
-	UIButton *resetButton;
+	UIButton *queryButton;
+	UIButton *clearButton;
 	UITextField *nameLabel;
 	plotView *plot;            // live fingerprint plot
 	vector<plotView*>* candidatePlots; 
@@ -34,6 +35,7 @@ using std::vector;
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *saveButton;
 @property (nonatomic, retain) UIButton *queryButton;
+@property (nonatomic, retain) UIButton *clearButton;
 @property (nonatomic, retain) UITextField *nameLabel;;
 @property (retain) plotView *plot;
 @property (retain) NSTimer* plotTimer;
@@ -47,6 +49,7 @@ using std::vector;
 -(void) printFingerprint: (Fingerprint) fingerprint;
 -(void) saveButtonHandler:(id)sender;
 -(void) queryButtonHandler:(id)sender;
+-(void) clearButtonHandler:(id)sender;
 -(void) updatePlot;
 
 @end

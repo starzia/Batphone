@@ -19,11 +19,16 @@ using std::make_pair;
 using std::min;
 using std::partial_sort;
 
+
+const NSString* DBFilename = @"db.txt";
+
+
 FingerprintDB::FingerprintDB( unsigned int fpLength ): len(fpLength) {
 	buf1 = new float[fpLength];
 	buf2 = new float[fpLength];
 	buf3 = new float[fpLength];
 }
+
 
 FingerprintDB::~FingerprintDB(){
 	delete[] buf1;
@@ -33,6 +38,7 @@ FingerprintDB::~FingerprintDB(){
 	// clear database
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		delete[] entries[i].fingerprint;
+		[entries[i].name release];
 	}
 }
 
@@ -116,14 +122,17 @@ void FingerprintDB::makeRandomFingerprint( float outBuf[] ){
 }
 
 
-bool FingerprintDB::save( NSString* filename ){
+NSString* FingerprintDB::getDBFilename(){
 	// get the documents directory:
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentsDirectory = [paths objectAtIndex:0];
-
-	// make a file name to write the data to using the documents directory:
-	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
 	
+	// build the full filename
+	return [NSString stringWithFormat:@"%@/%@", documentsDirectory, DBFilename];
+}
+
+
+bool FingerprintDB::save(){
 	// create content - four lines of text
 	NSMutableString *content = [[NSMutableString alloc] init];
 
@@ -141,7 +150,7 @@ bool FingerprintDB::save( NSString* filename ){
 		[content appendString:@"\n"];
 	}
 	// save content to the file
-	[content writeToFile:fullFilename 
+	[content writeToFile:this->getDBFilename() 
 			  atomically:YES 
 				encoding:NSStringEncodingConversionAllowLossy 
 				   error:nil];
@@ -151,21 +160,14 @@ bool FingerprintDB::save( NSString* filename ){
 }
 
 
-bool FingerprintDB::load( NSString* filename ){
-	// get the documents directory:
-	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	NSString *documentsDirectory = [paths objectAtIndex:0];
-	
-	// build the full filename
-	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
-
+bool FingerprintDB::load(){
 	// test that DB file exists
-	if( ![[NSFileManager defaultManager] fileExistsAtPath:fullFilename] ){
+	if( ![[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
 		return false;
 	}
 	
 	// read contents of file
-	NSString *content = [[NSString alloc] initWithContentsOfFile:fullFilename
+	NSString *content = [[NSString alloc] initWithContentsOfFile:this->getDBFilename()
 													usedEncoding:nil
 														   error:nil];
 	// fill DB with content
@@ -192,3 +194,18 @@ bool FingerprintDB::load( NSString* filename ){
 	return true;
 	// TODO file access error handling
 }
+
+
+void FingerprintDB::clear(){
+	// clear database
+	for( int i=entries.size()-1; i>=0; --i ){
+		delete[] entries[i].fingerprint;
+		[entries[i].name release];
+		entries.pop_back();
+	}
+
+	// erase the persistent store
+	[[NSFileManager defaultManager] removeItemAtPath:this->getDBFilename()
+											   error:nil];
+}
+

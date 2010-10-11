@@ -56,15 +56,20 @@ public:
 								    NSString* name );      /* name for the new room */
 	
 	/* Save database to a file */
-	bool save( NSString* filename );
+	bool save();
 	
 	/* load database from a file.  Returns false if file doesn't exist. */
-	bool load( NSString* filename );
+	bool load();
+	
+	/* clear database, including persistent store */
+	void clear();
 	
 private:
 	/* calculates the distance between two Fingerprints */
 	float distance( const float A[], const float B[] );
 	void makeRandomFingerprint( float outBuf[] );
+	/* get filename for persistent storage */
+	NSString* getDBFilename();
 	
 	unsigned int len; // length of the Fingerprint vectors
 	std::vector<DBEntry> entries;
