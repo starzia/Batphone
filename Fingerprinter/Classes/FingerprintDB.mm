@@ -119,19 +119,19 @@ bool FingerprintDB::save( NSString* filename ){
 	// get the documents directory:
 	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 	NSString *documentsDirectory = [paths objectAtIndex:0];
-	
+
 	// make a file name to write the data to using the documents directory:
 	NSString *fullFilename = [NSString stringWithFormat:@"%@/%@", documentsDirectory, filename];
 	
 	// create content - four lines of text
-	NSMutableString *content = [NSMutableString init];
+	NSMutableString *content = [[[NSMutableString alloc] init] autorelease];
 
 	// loop through DB entries, appending to string
 	for( int i=0; i<entries.size(); i++ ){
-		[content appendFormat:@"%d\t%d\t%@", 
+		[content appendFormat:@"%d\t%lld\t", 
 		 entries[i].uid,
-		 entries[i].timestamp,
-		 entries[i].name];
+		 entries[i].timestamp];
+		[content appendFormat:@"\t%@", entries[i].name ];
 		// add each element of fingerprint
 		for( int j=0; j<len; j++ ){
 			[content appendFormat:@"\t%f", entries[i].fingerprint[j] ];
@@ -144,8 +144,6 @@ bool FingerprintDB::save( NSString* filename ){
 			  atomically:YES 
 				encoding:NSStringEncodingConversionAllowLossy 
 				   error:nil];
-	
-	[content release];
 	return true;
 	// TODO file access error handling
 }
@@ -166,14 +164,13 @@ bool FingerprintDB::load( NSString* filename ){
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){
 		DBEntry newEntry;
-		NSString* nameString;
 		int theUid;
 		[scanner scanInt:&theUid];
 		newEntry.uid = theUid;
 		[scanner scanLongLong:&newEntry.timestamp];
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
-								intoString:&nameString];
-		newEntry.name = [NSString stringWithString:nameString];
+								intoString:&(newEntry.name)];
+		[newEntry.name retain];
 
 		// load fingerprint
 		newEntry.fingerprint = new float[len];
@@ -182,7 +179,6 @@ bool FingerprintDB::load( NSString* filename ){
 		}		
 		// add it to the DB
 		entries.push_back( newEntry );
-		[nameString release];
 	}		
 	[content release];
 	return true;

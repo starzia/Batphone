@@ -50,6 +50,8 @@ static const int numCandidates = 3;
 	}
 	self.database->insertFingerprint(self.newFingerprint, newName);
 	[newName release];
+	
+	self.database->save(@"db.txt");
 }
 
 -(void) queryButtonHandler:(id)sender{
