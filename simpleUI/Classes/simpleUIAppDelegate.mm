@@ -29,6 +29,7 @@ using namespace std;
 @synthesize candidates;
 @synthesize fp;
 @synthesize database;
+@synthesize locationManager;
 
 static const int numCandidates = 3;
 
@@ -40,16 +41,27 @@ static const int numCandidates = 3;
 	cout << endl;
 }
 
+-(GPSLocation)getLocation{
+	// get location
+	GPSLocation currentLocation;
+	CLLocation *loc = locationManager.location;
+	currentLocation.latitude = loc.coordinate.latitude;
+	currentLocation.longitude = loc.coordinate.longitude;
+	currentLocation.altitude = loc.altitude;
+	return currentLocation;
+}
 
 /* called by button */
 -(void) saveButtonHandler:(id)sender{
+	// build name
 	NSString* newName;
 	if( self.nameLabel.text.length > 0 ){
 		newName = [[NSString alloc] initWithString:self.nameLabel.text]; 
 	}else{
 		newName = [[NSString alloc] initWithFormat:@"<unnamed>"];
 	}
-	self.database->insertFingerprint(self.newFingerprint, newName);
+	
+	self.database->insertFingerprint(self.newFingerprint, newName, [self getLocation] );
 	[newName release];
 	
 	[label setText:[NSString stringWithFormat:@"room: %@ saved",newName]];
@@ -61,7 +73,8 @@ static const int numCandidates = 3;
 -(void) queryButtonHandler:(id)sender{
 	// query for matches
 	QueryResult result;
-	unsigned int numMatches = self.database->queryMatches( result, self.newFingerprint, numCandidates );
+	unsigned int numMatches = self.database->queryMatches( result, self.newFingerprint, 
+														   numCandidates, [self getLocation] );
 
 	// update status display
 	NSMutableString* ss = [[NSMutableString alloc] initWithFormat:@"%d matches: ",numMatches];
@@ -123,11 +136,20 @@ static const int numCandidates = 3;
 #pragma mark Application lifecycle
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
-    
-    // Override point for customization after application launch.
+
+	// set up fingerprinter
 	self.fp = new Fingerprinter();
 	self.database = new FingerprintDB(Fingerprinter::fpLength);
 	self.database->load(); // load the database.
+	
+	// set up Core Location
+	self.locationManager = [[[CLLocationManager alloc] init] autorelease];
+	self.locationManager.delegate = self; // send loc updates to myself
+	// Note that desiredAccuracy affects power consumption
+	locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
+	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
+	locationManager.headingFilter = kCLHeadingFilterNone; // as above
+	[self.locationManager startUpdatingLocation]; // start location service
 	
     // Create text label.
     CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
@@ -193,13 +215,13 @@ static const int numCandidates = 3;
 	}
 	
 	// Add plot to window
-	CGRect plotRect = CGRectMake(10, 150, 300.0f, 100.0f);
+	CGRect plotRect = CGRectMake(0, 150, 320.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[window addSubview:plot];
 
 	// Add candidate plots to window
-	plotRect = CGRectMake(10, 250, 300.0f, 100.0f);
+	plotRect = CGRectMake(0, 250, 320.0f, 100.0f);
 	self.candidatePlots = new vector<plotView*>();
 	for( int i=0; i<numCandidates; i++ ){
 		plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:plotRect];
@@ -226,6 +248,23 @@ static const int numCandidates = 3;
 	
     return YES;
 }
+
+
+// Core Location code adapted from http://mobileorchard.com/hello-there-a-corelocation-tutorial/
+- (void)locationManager:(CLLocationManager *)manager
+    didUpdateToLocation:(CLLocation *)newLocation
+           fromLocation:(CLLocation *)oldLocation 
+{
+    NSLog(@"Location: %@", [newLocation description]);
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+	   didFailWithError:(NSError *)error
+{
+	NSLog(@"Error: %@", [error description]);
+}
+
+
 
 
 - (void)applicationWillResignActive:(UIApplication *)application {
@@ -295,6 +334,7 @@ static const int numCandidates = 3;
 	delete candidatePlots;	
 	delete[] fp;
 	delete database;
+    [self.locationManager release];
     [super dealloc];
 }
 

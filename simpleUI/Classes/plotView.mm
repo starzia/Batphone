@@ -75,7 +75,7 @@
 			CGContextMoveToPoint(context, i * xStep, Y - (self.data[i]-self.minY) * yStep);	
 			//printf("line %f %f %f\n", data[i], i * xStep, Y - (self.data[i]-self.minY) * yStep);
 		}
-		CGContextSetLineWidth(context, 1.0);
+		CGContextSetLineWidth(context, 0.5);
 		CGContextStrokePath(context);
 	}
 	[self setNeedsDisplay]; // make it redraw

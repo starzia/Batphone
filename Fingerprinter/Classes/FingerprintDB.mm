@@ -23,7 +23,7 @@ using std::partial_sort;
 const NSString* DBFilename = @"db.txt";
 
 
-FingerprintDB::FingerprintDB( unsigned int fpLength ): len(fpLength) {
+FingerprintDB::FingerprintDB( unsigned int fpLength ): len(fpLength), maxUid(-1) {
 	buf1 = new float[fpLength];
 	buf2 = new float[fpLength];
 	buf3 = new float[fpLength];
@@ -50,7 +50,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 
 unsigned int FingerprintDB::queryMatches( QueryResult & result, 
-										  const float observation[],  unsigned int numMatches ){
+										  const float observation[],  
+										  unsigned int numMatches,
+										  GPSLocation location ){
+	// TODO: range query using GPSLocation
 	unsigned int resultSize = min(numMatches, (unsigned int)entries.size() );
 	
 	// calculate distances to all entries in DB
@@ -82,15 +85,18 @@ bool FingerprintDB::queryFingerprint( unsigned int uid, float outputFingerprint[
 }
 
 
-unsigned int FingerprintDB::insertFingerprint( const float observation[], NSString* newName ){
+unsigned int FingerprintDB::insertFingerprint( const float observation[], 
+											   NSString* newName,
+											   GPSLocation location){
 	// create new DB entry
 	DBEntry newEntry;
 	NSDate *now = [NSDate date];
 	newEntry.timestamp = [now timeIntervalSince1970];
 	newEntry.name = newName;
 	[newEntry.name retain];
-	newEntry.uid = entries.size();
+	newEntry.uid = ++(this->maxUid); // increment and assign uid
 	newEntry.fingerprint = new float[len];
+	newEntry.location = location;
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
 	
 	// add it to the DB
@@ -141,6 +147,10 @@ bool FingerprintDB::save(){
 		[content appendFormat:@"%d\t%lld\t", 
 		 entries[i].uid,
 		 entries[i].timestamp];
+		[content appendFormat:@"%.7f\t%.7f\t%.7f\t", /* 7 digit decimals should give ~1cm precision */
+		 entries[i].location.latitude,
+		 entries[i].location.longitude,
+		 entries[i].location.altitude ];
 		[content appendFormat:@"\t%@", entries[i].name ];
 		// add each element of fingerprint
 		for( int j=0; j<len; j++ ){
@@ -154,6 +164,7 @@ bool FingerprintDB::save(){
 			  atomically:YES 
 				encoding:NSStringEncodingConversionAllowLossy 
 				   error:nil];
+//  NSLog(@"SAVED:\n%@\n", content);
 	[content release];
 	return true;
 	// TODO file access error handling
@@ -170,6 +181,7 @@ bool FingerprintDB::load(){
 	NSString *content = [[NSString alloc] initWithContentsOfFile:this->getDBFilename()
 													usedEncoding:nil
 														   error:nil];
+//  NSLog(@"LOADED:\n%@\n", content);
 	// fill DB with content
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){
@@ -178,6 +190,9 @@ bool FingerprintDB::load(){
 		[scanner scanInt:&theUid];
 		newEntry.uid = theUid;
 		[scanner scanLongLong:&newEntry.timestamp];
+		[scanner scanDouble:&newEntry.location.latitude];
+		[scanner scanDouble:&newEntry.location.longitude];
+		[scanner scanDouble:&newEntry.location.altitude];
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
 								intoString:&(newEntry.name)];
 		[newEntry.name retain];
@@ -189,6 +204,8 @@ bool FingerprintDB::load(){
 		}		
 		// add it to the DB
 		entries.push_back( newEntry );
+		// update maxUID
+		if( newEntry.uid > this->maxUid ) this->maxUid = newEntry.uid;
 	}		
 	[content release];
 	return true;

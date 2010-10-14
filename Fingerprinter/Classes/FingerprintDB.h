@@ -11,12 +11,22 @@
 #import <string>
 #import <Foundation/Foundation.h>
 
+// GPS location
+typedef struct{
+	double latitude;
+	double longitude;
+	double altitude;
+} GPSLocation;
+// NULL GPSLocation for cases when GPS location is unavailable
+static const GPSLocation NULL_GPS = {NAN, NAN, NAN};
+
 // Database entry
 typedef struct{
 	unsigned int uid;
 	long long timestamp;
 	NSString* name;
 	float* fingerprint;
+	GPSLocation location; // estimated GPS location of this observed fingerprint
 } DBEntry;
 
 /* Candidates room matches are returned when querying the DB */
@@ -40,8 +50,9 @@ public:
 	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
 	unsigned int queryMatches( QueryResult & result, /* the output */
 							   const float observation[],  /* observed Fingerprint we want to match */
-							   unsigned int numMatches ); /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-	
+							   unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+							   GPSLocation location=NULL_GPS ); /* optional estimate of the current GPS location */
+							  
 	/* Query the DB for a given room's name. */
 	NSString* queryName( unsigned int uid );
 	
@@ -53,7 +64,8 @@ public:
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
-								    NSString* name );      /* name for the new room */
+								    NSString* name,      /* name for the new room */
+								    GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
 	
 	/* Save database to a file */
 	bool save();
@@ -73,6 +85,7 @@ private:
 	
 	unsigned int len; // length of the Fingerprint vectors
 	std::vector<DBEntry> entries;
+	int maxUid; // the highest uid in the database.  This is used to assign new uids
 	// buffers for intermediate values, so that we don't have to allocate in functions.
 	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
 	float* buf2 __attribute__ ((aligned (16)));
