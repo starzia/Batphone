@@ -16,9 +16,10 @@
 using std::vector;
 
 @interface simpleUIAppDelegate : NSObject 
-<UIApplicationDelegate, UITextFieldDelegate, CLLocationManagerDelegate> {
+<UIApplicationDelegate, UITextFieldDelegate, CLLocationManagerDelegate, UIAlertViewDelegate> {
 	// data members
     UIWindow *window;
+	UINavigationBar *navBar;
 	UILabel  *label;
 	UIButton *saveButton;
 	UIButton *queryButton;
@@ -36,6 +37,7 @@ using std::vector;
 
 // accessors
 @property (nonatomic, retain) IBOutlet UIWindow *window;
+@property (nonatomic, retain) UINavigationBar* navBar;
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *saveButton;
 @property (nonatomic, retain) UIButton *queryButton;
@@ -66,6 +68,8 @@ using std::vector;
 - (void)locationManager:(CLLocationManager *)manager
        didFailWithError:(NSError *)error;
 
+// the following callback functions are for the UIAlertViewDelegate protocol
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex;
 
 @end
 

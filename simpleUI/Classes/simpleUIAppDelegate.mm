@@ -17,6 +17,7 @@ using namespace std;
 @implementation simpleUIAppDelegate
 
 @synthesize window;
+@synthesize navBar;
 @synthesize label;
 @synthesize saveButton;
 @synthesize queryButton;
@@ -61,10 +62,10 @@ static const int numCandidates = 3;
 		newName = [[NSString alloc] initWithFormat:@"<unnamed>"];
 	}
 	
-	self.database->insertFingerprint(self.newFingerprint, newName, [self getLocation] );
+	UInt32 uid = self.database->insertFingerprint(self.newFingerprint, newName, [self getLocation] );
 	[newName release];
 	
-	[label setText:[NSString stringWithFormat:@"room: %@ saved",newName]];
+	[label setText:[NSString stringWithFormat:@"room #%d: %@ saved",uid,newName]];
 	
 	// save the entire database, since it's changed
 	self.database->save();
@@ -108,9 +109,23 @@ static const int numCandidates = 3;
 
 
 -(void)clearButtonHandler:(id)sender{
-	self.database->clear();
-	[self queryButtonHandler:sender]; // this is a hack to clear the candidate plots
-	[label setText:@"Database cleared"];
+	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
+													message:@"You are about to erase the entire room fingerprint database." 
+												   delegate:self 
+										  cancelButtonTitle:@"Cancel" 
+										  otherButtonTitles:nil];
+	[alert addButtonWithTitle:@"OK"];
+	[alert show];
+	[alert release];
+}
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+	// if "ok" button was clicked then clear the database
+	if( buttonIndex == 1 ){
+		self.database->clear();
+		[self queryButtonHandler:nil]; // this is a hack to clear the candidate plots
+		[label setText:@"Database cleared"];
+	}
 }
 
 
@@ -150,6 +165,13 @@ static const int numCandidates = 3;
 	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
 	locationManager.headingFilter = kCLHeadingFilterNone; // as above
 	[self.locationManager startUpdatingLocation]; // start location service
+	
+	/*
+	// Create navigation bar
+	CGRect navRect = CGRectMake(0, 20, 320, 44);
+	self.navBar = [[[UINavigationBar alloc] initWithFrame:navRect] autorelease];
+	[window addSubview:navBar];
+	 */
 	
     // Create text label.
     CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
@@ -320,6 +342,7 @@ static const int numCandidates = 3;
 
 - (void)dealloc {
     [window release];
+	[navBar release];
 	[label release];
 	[nameLabel release];
 	[queryButton release];
