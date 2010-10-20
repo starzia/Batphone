@@ -27,9 +27,17 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
+#if TARGET_IPHONE_SIMULATOR
+// for some reasone, simulator doesn't like long buffers
 const unsigned int Fingerprinter::fpLength = 128;
 const unsigned int Fingerprinter::historyLength = 500;
 const float Fingerprinter::bufferSize = 0.01;
+#else
+const unsigned int Fingerprinter::fpLength = 1024;
+const unsigned int Fingerprinter::historyLength = 100;
+const float Fingerprinter::bufferSize = 0.1;
+#endif
+
 #define kOutputBus 0
 #define kInputBus 1
 

@@ -256,7 +256,7 @@ static const int numCandidates = 3;
 	}
 	
 	// create timer to update the plot
-	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
+	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
 													  target:self
 													selector:@selector(updatePlot)
 													userInfo:nil

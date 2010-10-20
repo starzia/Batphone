@@ -151,7 +151,7 @@ bool FingerprintDB::save(){
 		 entries[i].location.latitude,
 		 entries[i].location.longitude,
 		 entries[i].location.altitude ];
-		[content appendFormat:@"\t%@", entries[i].name ];
+		[content appendFormat:@"%@", entries[i].name ];
 		// add each element of fingerprint
 		for( int j=0; j<len; j++ ){
 			[content appendFormat:@"\t%f", entries[i].fingerprint[j] ];
@@ -181,7 +181,7 @@ bool FingerprintDB::load(){
 	NSString *content = [[NSString alloc] initWithContentsOfFile:this->getDBFilename()
 													usedEncoding:nil
 														   error:nil];
-//  NSLog(@"LOADED:\n%@\n", content);
+    NSLog(@"LOADED:\n%@\n", content);
 	// fill DB with content
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){
@@ -205,7 +205,7 @@ bool FingerprintDB::load(){
 		// add it to the DB
 		entries.push_back( newEntry );
 		// update maxUID
-		if( newEntry.uid > this->maxUid ) this->maxUid = newEntry.uid;
+		if( theUid > this->maxUid ) this->maxUid = newEntry.uid;
 	}		
 	[content release];
 	return true;
