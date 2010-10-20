@@ -22,15 +22,6 @@
 /* Fingerprint is a summary of room ambient noise; essentially the power spectrum of the ambient noise */
 typedef float* Fingerprint;
 
-/* Candidates room matches are returned when querying the DB */
-typedef struct {
-	unsigned int uid;          /* numeric identifier for the candidate room */
-	float confidence;          /* confidence level between 0-1 indicating how good of a match it is, 1 is closest */
-} Match;
-
-/* Query result is a list of matches.  These are sorted by descending confidence level */
-typedef std::vector<Match> QueryResult;
-
 
 
 /*
@@ -46,29 +37,14 @@ public:
 	
 	/* start recording */
 	bool startRecording();
+	bool stopRecording();
 	
 	/* makes a copy of the current fingerprint value at the specified pointer.
 	 * outputFingerprint should be a float[] of length Fingerprinter::fpLength, to be filled by this function 
+	 * return value is true if successful.  Will fail if startRecording() has 
+	 * not been called or there is not yet enough data.
 	 */
-	void getFingerprint( Fingerprint outputFingerprint );
-	
-	/* Query the DB for a list of closest-matching rooms 
-	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
-	QueryResult* queryMatches( Fingerprint observation,  /* observed Fingerprint we want to match */
-							   unsigned int numMatches ); /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-							   
-	/* Query the DB for a given room's name. */
-	std::string queryName( unsigned int uid );
-
-	/* Query the DB for a given room's Fingerprint.
-	 * outputFingerprint should be a float[] of length fingerPrinter::fpLength, to be filled by this function
-	 * Returns true if uid matched a fingerprint in the DB. */
-	bool queryFingerprint( unsigned int uid, Fingerprint outputFingerprint );
-	
-	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
-	 * @return the uid for the new room. */
-	unsigned int insertFingerprint( Fingerprint observation, /* the new Fingerprint */
-								    std::string name );            /* name for the new room */
+	bool getFingerprint( Fingerprint outputFingerprint );
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
@@ -78,7 +54,6 @@ public:
 	static const float bufferSize; /* audio buffer size in seconds, also the size of time frames above */
 	
 private:
-	void makeRandomFingerprint( Fingerprint outBuf );
 	int setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat);
 	
 	/* private data members */

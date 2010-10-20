@@ -27,9 +27,17 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
+#if TARGET_IPHONE_SIMULATOR
+// for some reasone, simulator doesn't like long buffers
 const unsigned int Fingerprinter::fpLength = 128;
-const unsigned int Fingerprinter::historyLength = 800;
+const unsigned int Fingerprinter::historyLength = 500;
 const float Fingerprinter::bufferSize = 0.01;
+#else
+const unsigned int Fingerprinter::fpLength = 1024;
+const unsigned int Fingerprinter::historyLength = 100;
+const float Fingerprinter::bufferSize = 0.1;
+#endif
+
 #define kOutputBus 0
 #define kInputBus 1
 
@@ -46,7 +54,7 @@ typedef struct{
 	FFTSetup fftsetup;
 	pthread_mutex_t* lock; // fingerprint lock
 	// signal processing buffers
-	float* A;
+	float* A __attribute__ ((aligned (16))); // aligned for SIMD
 	DSPSplitComplex compl_buf;	
 } CallbackData;
 
@@ -299,7 +307,8 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 
 
 /* Constructor initializes the audio system */
-Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
+Fingerprinter::Fingerprinter() :
+spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 	// plotter must always have a FP available to plot, so init one here.
 	this->fingerprint = new float[Fingerprinter::fpLength];
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -352,42 +361,16 @@ Fingerprinter::Fingerprinter() : spectrogram( Fingerprinter::fpLength, Fingerpri
 }	
 
 
-void Fingerprinter::getFingerprint( Fingerprint outBuf ){
-	if( pthread_mutex_lock( &lock ) ) printf( "lock failed!\n" );
-	memcpy( outBuf, this->fingerprint, sizeof(float)*Fingerprinter::fpLength );
-	pthread_mutex_unlock( &lock );
-}
-
-
-QueryResult* Fingerprinter::queryMatches( Fingerprint observation, unsigned int numMatches ){
-	QueryResult* qr = new QueryResult(numMatches);
-	float confidence = 1.0;
-	for( unsigned int i=0; i<numMatches; i++ ){
-		(*qr)[i].uid = (random()%100);
-		confidence -= (random()%100)/1000.0;
-		if( confidence < 0 ) confidence = 0;
-		(*qr)[i].confidence = confidence;
+bool Fingerprinter::getFingerprint( Fingerprint outBuf ){
+	if( this->unitIsRunning ){ // TODO: return false if less then a full window has been recorded.
+		if( pthread_mutex_lock( &lock ) ) printf( "lock failed!\n" );
+		memcpy( outBuf, this->fingerprint, sizeof(float)*Fingerprinter::fpLength );
+		pthread_mutex_unlock( &lock );
+		return true;
 	}
-	return qr;
+	else return false;
 }
 
-
-string Fingerprinter::queryName( unsigned int uid ){
-	char name[7];
-	sprintf( name, "room%d", (int)(random()%100) );
-	return string(name);
-}
-
-
-bool Fingerprinter::queryFingerprint( unsigned int uid, Fingerprint outBuf ){
-	this->makeRandomFingerprint( outBuf );
-	return true;
-}
-
-
-unsigned int Fingerprinter::insertFingerprint( Fingerprint observation, string name ){
-	return random()%100;
-}
 
 
 /* Destructor.  Cleans up. */
@@ -403,18 +386,6 @@ Fingerprinter::~Fingerprinter(){
 	 */
 }
 
-
-
-// -----------------------------------------------------------------------------
-// FINGERPRINTER CLASS: PRIVATE MEMBERS
-
-
-void Fingerprinter::makeRandomFingerprint( Fingerprint outBuf ){
-	outBuf[0] = 0.0;
-	for( unsigned int i=1; i<Fingerprinter::fpLength; ++i ){
-		outBuf[i] = outBuf[i-1] + (random()%9) - 4;
-	}
-}
 
 
 bool Fingerprinter::startRecording(){
@@ -433,3 +404,11 @@ bool Fingerprinter::startRecording(){
 	return unitIsRunning;
 }
 
+
+bool Fingerprinter::stopRecording(){
+	if( unitIsRunning ){
+		XThrowIfError(AudioOutputUnitStop(rioUnit), "couldn't stop remote i/o unit");
+		unitIsRunning = FALSE;
+	}
+	return unitIsRunning;
+}

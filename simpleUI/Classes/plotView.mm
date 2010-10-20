@@ -13,6 +13,7 @@
 
 @synthesize data, length;
 @synthesize minY, maxY;
+@synthesize lineColor;
 
 - (id)initWith_Frame:(CGRect)frame{
     if ((self = [super initWithFrame:frame])) {
@@ -28,6 +29,11 @@
 		
 		[self setNeedsDisplay]; // make it redraw
 	}
+	self.lineColor = new float[4];
+	self.lineColor[0] = 0.0; //R
+	self.lineColor[1] = 0.0; //G
+	self.lineColor[2] = 0.0; //B
+	self.lineColor[3] = 1.0; //alpha
     return self;
 }
 
@@ -44,7 +50,7 @@
     
 	// Drawing code
     CGContextRef context = UIGraphicsGetCurrentContext();
-		
+	
 	// update view range
 	float min_val = *std::min_element(self.data, self.data+self.length ); 
 	float max_val = *std::max_element(self.data, self.data+self.length ); 
@@ -54,8 +60,8 @@
 	float X = self.bounds.size.width;
 	float Y = self.bounds.size.height;
 
-	// Drawing lines with a red stroke color
-	CGContextSetRGBStrokeColor(context, 1.0, 0.0, 0.0, 1.0);
+	// Drawing lines with the appropriate color
+	CGContextSetStrokeColor(context, self.lineColor);
 
 	float plot_range = self.maxY - self.minY;
 	float xStep = X/(self.length-1);
@@ -69,7 +75,7 @@
 			CGContextMoveToPoint(context, i * xStep, Y - (self.data[i]-self.minY) * yStep);	
 			//printf("line %f %f %f\n", data[i], i * xStep, Y - (self.data[i]-self.minY) * yStep);
 		}
-		CGContextSetLineWidth(context, 1.0);
+		CGContextSetLineWidth(context, 0.5);
 		CGContextStrokePath(context);
 	}
 	[self setNeedsDisplay]; // make it redraw

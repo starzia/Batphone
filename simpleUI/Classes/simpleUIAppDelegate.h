@@ -9,38 +9,67 @@
 #import <UIKit/UIKit.h>
 #import "Fingerprinter.h"
 #import "plotView.h"
+#import "FingerprintDB.h"
+#import <vector>
+#import <CoreLocation/CoreLocation.h>
 
-@interface simpleUIAppDelegate : NSObject <UIApplicationDelegate> {
+using std::vector;
+
+@interface simpleUIAppDelegate : NSObject 
+<UIApplicationDelegate, UITextFieldDelegate, CLLocationManagerDelegate, UIAlertViewDelegate> {
 	// data members
     UIWindow *window;
+	UINavigationBar *navBar;
 	UILabel  *label;
 	UIButton *saveButton;
-	UIButton *resetButton;
-	plotView *plot;
-	plotView *plotOld;
+	UIButton *queryButton;
+	UIButton *clearButton;
+	UITextField *nameLabel;
+	plotView *plot;            // live fingerprint plot
+	vector<plotView*>* candidatePlots; 
 	Fingerprint newFingerprint;
-	Fingerprint oldFingerprint;
+	Fingerprint* candidates;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	Fingerprinter* fp;
+	FingerprintDB* database;
+	CLLocationManager *locationManager; 	// data for SkyHook/GPS localization
 }
 
 // accessors
 @property (nonatomic, retain) IBOutlet UIWindow *window;
+@property (nonatomic, retain) UINavigationBar* navBar;
 @property (nonatomic, retain) UILabel *label;
 @property (nonatomic, retain) UIButton *saveButton;
-@property (nonatomic, retain) UIButton *startButton;
+@property (nonatomic, retain) UIButton *queryButton;
+@property (nonatomic, retain) UIButton *clearButton;
+@property (nonatomic, retain) UITextField *nameLabel;;
 @property (retain) plotView *plot;
-@property (retain) plotView *plotOld;
 @property (retain) NSTimer* plotTimer;
+@property vector<plotView*>* candidatePlots;
 @property Fingerprint newFingerprint;
-@property Fingerprint oldFingerprint;
+@property Fingerprint* candidates;
 @property (nonatomic) Fingerprinter* fp; 
+@property (nonatomic) FingerprintDB* database;
+@property (nonatomic, retain) CLLocationManager *locationManager;  
 
 // member functions
--(void) printFingerprint: (Fingerprint*) fingerprint;
+-(void) printFingerprint: (Fingerprint) fingerprint;
 -(void) saveButtonHandler:(id)sender;
--(void) startButtonHandler:(id)sender;
+-(void) queryButtonHandler:(id)sender;
+-(void) clearButtonHandler:(id)sender;
 -(void) updatePlot;
+-(GPSLocation)getLocation; // return the current GPSLocation from locationManager
+
+// the following callback functions are for the CLLocationManagerDelegate protocol
+- (void)locationManager:(CLLocationManager *)manager
+    didUpdateToLocation:(CLLocation *)newLocation
+           fromLocation:(CLLocation *)oldLocation;
+
+- (void)locationManager:(CLLocationManager *)manager
+       didFailWithError:(NSError *)error;
+
+// the following callback functions are for the UIAlertViewDelegate protocol
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex;
 
 @end
 
