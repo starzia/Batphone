@@ -83,8 +83,10 @@
 	
 	fingerprints.clear();
 	// load room's fingerprints from database
-	app.database->getEntriesFrom( fingerprints, self.building, self.room );
-
+	[app.database getEntries:fingerprints
+					fromRoom:self.room
+				  inBuilding:self.building];
+	
 	if( fingerprints.size() <= 0 ){
 		NSLog(@"ERROR: somehow viewing empty room");
 	}

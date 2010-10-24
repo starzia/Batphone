@@ -45,7 +45,7 @@ using std::vector;
 @property (nonatomic, retain) OptionsViewController *optionsViewController;
 
 @property (nonatomic) Fingerprinter* fp; 
-@property (nonatomic) FingerprintDB* database;
+@property (nonatomic, retain) FingerprintDB* database;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
 
 // member functions

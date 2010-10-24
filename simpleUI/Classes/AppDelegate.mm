@@ -160,8 +160,8 @@ using namespace std;
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
 	// if "delete" button was clicked then clear this room from the database
 	if( buttonIndex == 1 ){
-		database->deleteRoom( locationViewController.building, 
-							  locationViewController.room );
+		[database deleteRoom:locationViewController.room 
+				  inBuilding:locationViewController.room ];
 		// pop view off stack
 		[navController popViewControllerAnimated:YES];
 	}
@@ -178,8 +178,8 @@ using namespace std;
 	
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
-	self.database = new FingerprintDB(Fingerprinter::fpLength);
-	self.database->load(); // load the database.
+	self.database = [[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength];
+	[self.database loadCache]; // load the database.
 	
 	// set up Core Location
 	self.locationManager = [[[CLLocationManager alloc] init] autorelease];
