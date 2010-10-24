@@ -200,7 +200,7 @@
 				[mailer setSubject:@"[Batphone DB]"];
 				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[1023]\n" 
 								isHTML:NO];
-				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app.database getDBFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
 			}else{
@@ -258,7 +258,7 @@
 	if( [alertView.title isEqualToString:@"Really clear database?"] ){
 		// if "delete" button was clicked then clear the database
 		if( buttonIndex == 1 ){
-			app.database->clear();
+			[app.database clearCache];
 			// TODO: somehow clear the match table
 		}
 	}
@@ -281,11 +281,11 @@
 				[myAlert release];
 			}else{
 				// if download succeeded
-				if( app.database->loadFromString( urlContents ) ){
+				if( [app.database loadCacheFromString:urlContents] ){
 					// successfully loaded database
-					app.database->save();
+					[app.database saveCache];
 				}else{
-					app.database->clear();
+					[app.database clearCache];
 					UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Error loading database" 
 																	  message:@"The file you specified is not a valid database file." 
 																	 delegate:self 

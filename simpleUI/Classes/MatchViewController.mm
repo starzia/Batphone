@@ -192,8 +192,11 @@ static const int numCandidates = 10;
 -(void) query{
 	// query for matches
 	matches.clear(); // clear previous results
-	app.database->queryMatches( matches, self.newFingerprint, numCandidates, 
-							    [app getLocation], distanceMetric );
+	[app.database queryMatches:matches
+				   observation:self.newFingerprint
+					numMatches:numCandidates
+					  location:[app getLocation]
+				distanceMetric:distanceMetric ];
 	// update table
 	[matchTable reloadData];
 	
@@ -252,8 +255,7 @@ static const int numCandidates = 10;
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
 	if( distanceMetric == DistanceMetricCombined ){
-		return [NSString stringWithFormat:@"Closest tags",
-											FingerprintDB::neighborhoodRadius];
+		return [NSString stringWithFormat:@"Closest tags"];
 	}else if( distanceMetric == DistanceMetricPhysical ){
 		return [NSString stringWithFormat:@"Closest tags (%.0f meter accuracy)",
 				app.getLocation.horizontalAccuracy];

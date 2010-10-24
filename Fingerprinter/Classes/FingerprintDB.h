@@ -43,74 +43,84 @@ typedef enum{
 
 
 // Database class
-class FingerprintDB{
-public:
-	FingerprintDB( unsigned int fpLength );
-	~FingerprintDB();
+@interface FingerprintDB : NSObject {
+	unsigned int len; // length of the Fingerprint vectors
+	std::vector<DBEntry> cache; // a list of recently seen fingerprints from the remote database
 	
-	/* Query the DB for a list of closest-matching rooms 
-	 * returns the number of matches.
-	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
-	unsigned int queryMatches( QueryResult & result, /* the output */
-							   const float observation[],  /* observed Fingerprint we want to match */
-							   const unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-							   const CLLocation* location=NULL, /* optional estimate of the current GPS location */
-							   const DistanceMetric distance=DistanceMetricAcoustic ); /* use acoustic or physical distance		
+	// buffers for intermediate values, so that we don't have to allocate in functions.
+	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
+	// for HTTP
+	NSMutableData* receivedData;
+	unsigned int maxUid;
+
+};
+
+@property (nonatomic) unsigned int len;
+@property std::vector<DBEntry> cache;
+@property (nonatomic) float* buf1;
+@property (retain) NSMutableData* receivedData;
+@property unsigned int maxUid;
+
+-(id) initWithFPLength:(unsigned int) fpLength;
+	
+/* Query the DB for a list of closest-matching rooms 
+ * returns the number of matches.
+ * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
+-(unsigned int) queryMatches:(QueryResult&)result /* the output */
+				 observation:(const float[])observation  /* observed Fingerprint we want to match */
+				  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+					location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+			  distanceMetric:(DistanceMetric)distance;
 
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
-	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
-								    const NSString* building,  /* name of building */
-								    const NSString* room,      /* name for the new room */
-								    const CLLocation* location=NULL ); /* optional estimate of the observation's GPS location */
-	
-	/* Query the DB for a list of names of all buildings.  Names are pushed onto result */
-	bool getAllBuildings( vector<NSString*> & result );
+-(unsigned int) insertFingerprint:(const float[])observation /* the new Fingerprint */
+						 building:(NSString*)building      
+							 room:(NSString*)room /* name for the new room */
+						 location:(CLLocation*)location; /* optional estimate of the observation's GPS location; if unneeded, set to NULL_GPS */
 
-	/* Query the DB for a list of names of all rooms in a certain building.  Names are pushed onto result. */
-	bool getRoomsInBuilding( vector<NSString*> & result, /* output */
-							 const NSString* building);        /* input */
+/* Query the DB for a list of names of all buildings.  Names are pushed onto result */
+-(bool) getAllBuildings:(vector<NSString*>&)result;
 
-	/* Query the DB for all fingerprints from a certain room. */
-	bool getEntriesFrom( vector<DBEntry> & result, /* the output */
-						 const NSString* building,
-						 const NSString* room );
-	
-	/* Save database to a file */
-	bool save();
-	
-	/* load database from a file.  Returns false if file doesn't exist. */
-	bool load();
-	bool loadFromString( NSString* content );
-	
-	/* clear database, including persistent store */
-	void clear();
-	
-	/* delete all database entries for the given room */
-	void deleteRoom( const NSString* building, const NSString* room );
-	
-	/* get filename for persistent storage */
-	NSString* getDBFilename();	
+/* Query the DB for a list of names of all rooms in a certain building.  Names are pushed onto result. */
+-(bool) getRooms:(vector<NSString*>&)result /* output */
+	  inBuilding:(const NSString*)building;        /* input */
 
-	static const float neighborhoodRadius; // the maximum distance of a fingerprint returned from a query when DistanceMetricCombined is used.
-private:
-	/* calculates the distance between two Fingerprints */
-	float signal_distance( const float A[], const float B[] );
-	// distance using linear combination of signal and physical (GPS) distance
-	// note that this metric is not symmetrical, ie dist(a,b)!=dist(b,a)
-	float combined_distance(float A[], const CLLocation* locA,
-							const float B[], const CLLocation* locB );
+/* Query the DB for all fingerprints from a certain room. */
+-(bool) getEntries:(vector<DBEntry>&) result /* the output */
+		  fromRoom:(const NSString*)room
+		inBuilding:(const NSString*)building;
+				  
 	
-	void makeRandomFingerprint( float outBuf[] );
+	/* load cache from file.  Returns false if there is some error. */
+-(bool) loadCache;
+-(bool) loadCacheFromString:( const NSString* )content;
+-(bool) saveCache;
+-(void) clearCache;
+	
+/* delete all database entries for the given room */
+-(void) deleteRoom:(const NSString*)room
+		inBuilding:(const NSString*)building;
+	
+/* get filename for persistent storage */
+-(NSString*) getDBFilename;	
 
-	/* appends a string description of the database entry, used for persistent storage */
-	void appendEntryString( NSMutableString* outputBuffer, const DBEntry & entry );
-	
-	unsigned int len; // length of the Fingerprint vectors
-	std::vector<DBEntry> entries;
-	int maxUid; // the highest uid in the database.  This is used to assign new uids
-	// buffers for intermediate values, so that we don't have to allocate in functions.
-	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
-	float* buf2 __attribute__ ((aligned (16)));
-	float* buf3 __attribute__ ((aligned (16)));
-};
+/* calculates the distance between two Fingerprints */
+-(float) signalDistanceFrom:(const float[])A to:(const float[])B;
+// distance using linear combination of signal and physical (GPS) distance
+// note that this metric is not symmetrical, ie dist(a,b)!=dist(b,a)
+-(float) combinedDistanceFrom:(float[])A
+					  withLoc:(const CLLocation*)locA
+						   to:(const float[])B
+					  withLoc:(const CLLocation*)locB;
+
+-(void) makeRandomFingerprint:(float[])outBuf;
+
+/* get filename for persistent storage */
+-(NSString*) getDBFilename;
+
+/* appends a string description of the database entry, used for persistent storage */
+-(void) appendEntry:(const DBEntry&)entry
+		   toString:(NSMutableString*)outputBuffer;
+
+@end;
