@@ -22,24 +22,29 @@ using std::partial_sort;
 
 const NSString* DBFilename = @"db.txt";
 
+@implementation FingerprintDB;
 
-FingerprintDB::FingerprintDB( unsigned int fpLength ): len(fpLength), maxUid(-1) {
+@synthesize len;
+@synthesize cache;
+@synthesize buf1;
+@synthesize receivedData;
+
+-(void)	initWithFPLength:(unsigned int) fpLength{
+	len = fpLength;
 	buf1 = new float[fpLength];
-	buf2 = new float[fpLength];
-	buf3 = new float[fpLength];
+	[self loadCache];
 }
 
 
-FingerprintDB::~FingerprintDB(){
+-(void)dealloc{
 	delete[] buf1;
-	delete[] buf2;
-	delete[] buf3;
 	
 	// clear database
-	for( unsigned int i=0; i<entries.size(); ++i ){
-		delete[] entries[i].fingerprint;
-		[entries[i].name release];
+	for( unsigned int i=0; i<cache.size(); ++i ){
+		delete[] cache[i].fingerprint;
+		[cache[i].name release];
 	}
+	[super dealloc];
 }
 
 
@@ -49,23 +54,23 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
-unsigned int FingerprintDB::queryMatches( QueryResult & result, 
-										  const float observation[],  
-										  unsigned int numMatches,
-										  GPSLocation location ){
+-(unsigned int) queryMatches:(QueryResult&)result 
+				 observation:(const float[])observation 
+				  numMatches:(unsigned int)numMatches 
+					location:(GPSLocation)location{
 	// TODO: range query using GPSLocation
-	unsigned int resultSize = min(numMatches, (unsigned int)entries.size() );
+	unsigned int resultSize = min(numMatches, (unsigned int)cache.size() );
 	
 	// calculate distances to all entries in DB
-	pair<float,int>* distances = new pair<float,int>[entries.size()]; // first element of pair is distance, second is index
-	for( unsigned int i=0; i<entries.size(); ++i ){
-		distances[i] = make_pair( distance( observation, entries[i].fingerprint ), i );
+	pair<float,int>* distances = new pair<float,int>[cache.size()]; // first element of pair is distance, second is index
+	for( unsigned int i=0; i<cache.size(); ++i ){
+		distances[i] = make_pair( [self distanceFrom:observation to:cache[i].fingerprint], i );
 	}
 	// sort distances (partial sort b/c we are interested only in first numMatches)
-	partial_sort(distances+0, distances+resultSize, distances+entries.size(), smaller_by_first );
+	partial_sort(distances+0, distances+resultSize, distances+cache.size(), smaller_by_first );
 	for( unsigned int i=0; i<resultSize; ++i ){
 		Match m;
-		m.entry = entries[distances[i].second];
+		m.entry = cache[distances[i].second];
 		m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
 		result.push_back( m );
 	}
@@ -74,38 +79,51 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 }
 
 
-NSString* FingerprintDB::queryName( unsigned int uid ){
-	return [[[NSString alloc] stringWithFormat:@"room%d", (int)(random()%100)] autorelease];
-}
-
-
-bool FingerprintDB::queryFingerprint( unsigned int uid, float outputFingerprint[] ){
-	this->makeRandomFingerprint( outputFingerprint );
-	return true;
-}
-
-
-unsigned int FingerprintDB::insertFingerprint( const float observation[], 
-											   NSString* newName,
-											   GPSLocation location){
+-(unsigned int) insertFingerprint:(const float[])observation
+							 name:(NSString*)newName      
+						 location:(GPSLocation)location{
 	// create new DB entry
 	DBEntry newEntry;
 	NSDate *now = [NSDate date];
 	newEntry.timestamp = [now timeIntervalSince1970];
 	newEntry.name = newName;
 	[newEntry.name retain];
-	newEntry.uid = ++(this->maxUid); // increment and assign uid
 	newEntry.fingerprint = new float[len];
 	newEntry.location = location;
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
 	
-	// add it to the DB
-	entries.push_back( newEntry );
+	// send the request to the remote database
+	NSString *post = @"key1=val1&key2=val2";
+	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+	
+	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
+	
+	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+	[request setURL:[NSURL URLWithString:@"http://192.168.0.17/cgi-bin/cgi.php"]];
+	[request setHTTPMethod:@"POST"];
+	[request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+	[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+	[request setHTTPBody:postData];
+    
+	NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:request delegate:self];
+	if (theConnection) {
+		// Create the NSMutableData to hold the received data.
+		// receivedData is an instance variable declared elsewhere.
+		receivedData = [[NSMutableData data] retain];
+	} else {
+		// Inform the user that the connection failed.
+	}
+
+	newEntry.uid = -1;
+	
+	// add it to the cache DB
+	cache.push_back( newEntry );
+	
 	return newEntry.uid;
 }
 
 
-float FingerprintDB::distance( const float A[], const float B[] ){
+-(float)distanceFrom:(const float [])A to:(const float [])B{
 	// vector subtraction
 	vDSP_vsub( A, 1, B, 1, buf1, 1, len );
 	
@@ -120,7 +138,7 @@ float FingerprintDB::distance( const float A[], const float B[] ){
 }
 
 
-void FingerprintDB::makeRandomFingerprint( float outBuf[] ){
+-(void) makeRandomFingerprint:(float[])outBuf{
 	outBuf[0] = 0.0;
 	for( unsigned int i=1; i<len; ++i ){
 		outBuf[i] = outBuf[i-1] + (random()%9) - 4;
@@ -128,57 +146,57 @@ void FingerprintDB::makeRandomFingerprint( float outBuf[] ){
 }
 
 
-NSString* FingerprintDB::getDBFilename(){
-	// get the documents directory:
-	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-	NSString *documentsDirectory = [paths objectAtIndex:0];
-	
-	// build the full filename
-	return [NSString stringWithFormat:@"%@/%@", documentsDirectory, DBFilename];
+-(NSString*)getDBFilename{
+       // get the documents directory:
+       NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+       NSString *documentsDirectory = [paths objectAtIndex:0];
+       
+       // build the full filename
+       return [NSString stringWithFormat:@"%@/%@", documentsDirectory, DBFilename];
 }
 
 
-bool FingerprintDB::save(){
-	// create content - four lines of text
-	NSMutableString *content = [[NSMutableString alloc] init];
+-(bool) saveCache{
+       // create content - four lines of text
+       NSMutableString *content = [[NSMutableString alloc] init];
 
-	// loop through DB entries, appending to string
-	for( int i=0; i<entries.size(); i++ ){
-		[content appendFormat:@"%d\t%lld\t", 
-		 entries[i].uid,
-		 entries[i].timestamp];
-		[content appendFormat:@"%.7f\t%.7f\t%.7f\t", /* 7 digit decimals should give ~1cm precision */
-		 entries[i].location.latitude,
-		 entries[i].location.longitude,
-		 entries[i].location.altitude ];
-		[content appendFormat:@"%@", entries[i].name ];
-		// add each element of fingerprint
-		for( int j=0; j<len; j++ ){
-			[content appendFormat:@"\t%f", entries[i].fingerprint[j] ];
-		}
-		// newline at end
-		[content appendString:@"\n"];
-	}
-	// save content to the file
-	[content writeToFile:this->getDBFilename() 
-			  atomically:YES 
-				encoding:NSStringEncodingConversionAllowLossy 
-				   error:nil];
+       // loop through DB cache, appending to string
+       for( int i=0; i<cache.size(); i++ ){
+               [content appendFormat:@"%d\t%lld\t", 
+                cache[i].uid,
+                cache[i].timestamp];
+               [content appendFormat:@"%.7f\t%.7f\t%.7f\t", /* 7 digit decimals should give ~1cm precision */
+                cache[i].location.latitude,
+                cache[i].location.longitude,
+                cache[i].location.altitude ];
+               [content appendFormat:@"%@", cache[i].name ];
+               // add each element of fingerprint
+               for( int j=0; j<len; j++ ){
+                       [content appendFormat:@"\t%f", cache[i].fingerprint[j] ];
+               }
+               // newline at end
+               [content appendString:@"\n"];
+       }
+       // save content to the file
+       [content writeToFile:[self getDBFilename] 
+                         atomically:YES 
+                               encoding:NSStringEncodingConversionAllowLossy 
+                                  error:nil];
 //  NSLog(@"SAVED:\n%@\n", content);
-	[content release];
-	return true;
-	// TODO file access error handling
+       [content release];
+       return true;
+       // TODO file access error handling
 }
 
-
-bool FingerprintDB::load(){
-	// test that DB file exists
-	if( ![[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
-		return false;
+																  
+-(bool) loadCache{
+    // test that DB file exists
+    if( ![[NSFileManager defaultManager] fileExistsAtPath:[self getDBFilename]] ){
+        return false;
 	}
 	
-	// read contents of file
-	NSString *content = [[NSString alloc] initWithContentsOfFile:this->getDBFilename()
+    // read contents of file
+    NSString *content = [[NSString alloc] initWithContentsOfFile:[self getDBFilename]
 													usedEncoding:nil
 														   error:nil];
     NSLog(@"LOADED:\n%@\n", content);
@@ -195,34 +213,59 @@ bool FingerprintDB::load(){
 		[scanner scanDouble:&newEntry.location.altitude];
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
 								intoString:&(newEntry.name)];
-		[newEntry.name retain];
-
-		// load fingerprint
-		newEntry.fingerprint = new float[len];
+		 [newEntry.name retain];
+		 
+		 // load fingerprint
+		 newEntry.fingerprint = new float[len];
 		for( int j=0; j<len; j++ ){
 			[scanner scanFloat:&(newEntry.fingerprint[j]) ];
-		}		
+		}               
 		// add it to the DB
-		entries.push_back( newEntry );
-		// update maxUID
-		if( theUid > this->maxUid ) this->maxUid = newEntry.uid;
-	}		
+		cache.push_back( newEntry );
+	}               
 	[content release];
 	return true;
 	// TODO file access error handling
 }
+		
 
-
-void FingerprintDB::clear(){
+-(void) clearCache{
 	// clear database
-	for( int i=entries.size()-1; i>=0; --i ){
-		delete[] entries[i].fingerprint;
-		[entries[i].name release];
-		entries.pop_back();
+	for( int i=cache.size()-1; i>=0; --i ){
+		delete[] cache[i].fingerprint;
+		[cache[i].name release];
+		cache.pop_back();
 	}
 
 	// erase the persistent store
-	[[NSFileManager defaultManager] removeItemAtPath:this->getDBFilename()
+	[[NSFileManager defaultManager] removeItemAtPath:[self getDBFilename]
 											   error:nil];
 }
 
+#pragma mark URLRequestDelegate methods
+
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response{
+    // This method is called when the server has determined that it
+    // has enough information to create the NSURLResponse.
+	
+    // It can be called multiple times, for example in the case of a
+    // redirect, so each time we reset the data.
+	
+    // receivedData is an instance variable declared elsewhere.
+    [receivedData setLength:0];
+	NSLog(@"Got HTTP response");
+}
+
+
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data{
+    // Append the new data to receivedData.
+    // receivedData is an instance variable declared elsewhere.
+    [receivedData appendData:data];
+	
+	NSLog(@"Received %d bytes of data",[receivedData length]);  
+    NSString *aStr = [[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding];  
+    NSLog(@"%@",aStr); 
+	[aStr release];
+}
+
+@end

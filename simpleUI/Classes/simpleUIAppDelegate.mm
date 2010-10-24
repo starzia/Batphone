@@ -62,20 +62,24 @@ static const int numCandidates = 3;
 		newName = [[NSString alloc] initWithFormat:@"<unnamed>"];
 	}
 	
-	UInt32 uid = self.database->insertFingerprint(self.newFingerprint, newName, [self getLocation] );
+	UInt32 uid = [self.database insertFingerprint:self.newFingerprint
+											 name:newName
+										 location:[self getLocation]];
 	[newName release];
 	
 	[label setText:[NSString stringWithFormat:@"room #%d: %@ saved",uid,newName]];
 	
-	// save the entire database, since it's changed
-	self.database->save();
+	// save the database, since it's changed
+	[self.database saveCache];
 }
 
 -(void) queryButtonHandler:(id)sender{
 	// query for matches
 	QueryResult result;
-	unsigned int numMatches = self.database->queryMatches( result, self.newFingerprint, 
-														   numCandidates, [self getLocation] );
+	unsigned int numMatches = [self.database queryMatches:result
+											  observation:self.newFingerprint
+											   numMatches:numCandidates
+												 location:[self getLocation]];
 
 	// update status display
 	NSMutableString* ss = [[NSMutableString alloc] initWithFormat:@"%d matches: ",numMatches];
@@ -122,7 +126,7 @@ static const int numCandidates = 3;
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
 	// if "ok" button was clicked then clear the database
 	if( buttonIndex == 1 ){
-		self.database->clear();
+		[self.database clearCache];
 		[self queryButtonHandler:nil]; // this is a hack to clear the candidate plots
 		[label setText:@"Database cleared"];
 	}
@@ -154,8 +158,8 @@ static const int numCandidates = 3;
 
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
-	self.database = new FingerprintDB(Fingerprinter::fpLength);
-	self.database->load(); // load the database.
+	self.database = [FingerprintDB alloc];
+	[self.database initWithFPLength:Fingerprinter::fpLength];
 	
 	// set up Core Location
 	self.locationManager = [[[CLLocationManager alloc] init] autorelease];

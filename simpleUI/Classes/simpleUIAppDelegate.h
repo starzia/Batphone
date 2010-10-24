@@ -49,7 +49,7 @@ using std::vector;
 @property Fingerprint newFingerprint;
 @property Fingerprint* candidates;
 @property (nonatomic) Fingerprinter* fp; 
-@property (nonatomic) FingerprintDB* database;
+@property (nonatomic, retain) FingerprintDB* database;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
 
 // member functions

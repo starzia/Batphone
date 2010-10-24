@@ -40,54 +40,47 @@ typedef std::vector<Match> QueryResult;
 
 
 // Database class
-class FingerprintDB{
-public:
-	FingerprintDB( unsigned int fpLength );
-	~FingerprintDB();
+@interface FingerprintDB : NSObject {
+	unsigned int len; // length of the Fingerprint vectors
+	std::vector<DBEntry> cache; // a list of recently seen fingerprints from the remote database
+	
+	// buffers for intermediate values, so that we don't have to allocate in functions.
+	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
+	// for HTTP
+	NSMutableData* receivedData;
+};
+
+@property (nonatomic) unsigned int len;
+@property std::vector<DBEntry> cache;
+@property (nonatomic) float* buf1;
+@property (retain) NSMutableData* receivedData;
+
+-(void)	initWithFPLength:(unsigned int) fpLength;
 	
 	/* Query the DB for a list of closest-matching rooms 
 	 * returns the number of matches.
 	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
-	unsigned int queryMatches( QueryResult & result, /* the output */
-							   const float observation[],  /* observed Fingerprint we want to match */
-							   unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-							   GPSLocation location=NULL_GPS ); /* optional estimate of the current GPS location */
-							  
-	/* Query the DB for a given room's name. */
-	NSString* queryName( unsigned int uid );
-	
-	/* Query the DB for a given room's Fingerprint.
-	 * outputFingerprint should be a float[] of length fingerPrinter::fpLength, to be filled by this function
-	 * Returns true if uid matched a fingerprint in the DB. */
-	bool queryFingerprint( unsigned int uid, float outputFingerprint[] );
-	
+-(unsigned int) queryMatches:(QueryResult&)result /* the output */
+				 observation:(const float[])observation  /* observed Fingerprint we want to match */
+				  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+					location:(GPSLocation)location; /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
-	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
-								    NSString* name,      /* name for the new room */
-								    GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
+-(unsigned int) insertFingerprint:(const float[])observation /* the new Fingerprint */
+							 name:(NSString*)name      /* name for the new room */
+						 location:(GPSLocation)location; /* optional estimate of the observation's GPS location; if unneeded, set to NULL_GPS */
 	
-	/* Save database to a file */
-	bool save();
+	/* load cache from file.  Returns false if there is some error. */
+-(bool) loadCache;
+-(bool) saveCache;
+-(void) clearCache;
 	
-	/* load database from a file.  Returns false if file doesn't exist. */
-	bool load();
-	
-	/* clear database, including persistent store */
-	void clear();
-	
-private:
 	/* calculates the distance between two Fingerprints */
-	float distance( const float A[], const float B[] );
-	void makeRandomFingerprint( float outBuf[] );
-	/* get filename for persistent storage */
-	NSString* getDBFilename();
-	
-	unsigned int len; // length of the Fingerprint vectors
-	std::vector<DBEntry> entries;
-	int maxUid; // the highest uid in the database.  This is used to assign new uids
-	// buffers for intermediate values, so that we don't have to allocate in functions.
-	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
-	float* buf2 __attribute__ ((aligned (16)));
-	float* buf3 __attribute__ ((aligned (16)));
-};
+-(float) distanceFrom:(const float[])A to:(const float[])B;
+-(void) makeRandomFingerprint:(float[])outBuf;
+
+/* get filename for persistent storage */
+-(NSString*) getDBFilename;
+
+@end;
