@@ -124,11 +124,11 @@
 		Fingerprint newFP = new float[Fingerprinter::fpLength];
 		app.fp->getFingerprint( newFP );
 		// add to database
-		UInt32 uid = [app.database insertFingerprint:newFP
-											building:newBuilding
-												room:newRoom
-											location:[app getLocation] ];
-		NSLog(@"room #%d: %@ %@ saved",uid,newBuilding,newRoom);
+		NSString* uuid = [app.database insertFingerprint:newFP
+											   building:newBuilding
+												   room:newRoom
+											   location:[app getLocation] ];
+		NSLog(@"room '%@': %@ %@ saved",uuid,newBuilding,newRoom);
 		[newBuilding release];
 		[newRoom release];
 		delete [] newFP;

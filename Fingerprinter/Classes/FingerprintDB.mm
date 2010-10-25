@@ -32,7 +32,6 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 @synthesize cache;
 @synthesize buf1;
 @synthesize receivedData;
-@synthesize maxUid;
 
 -(id) initWithFPLength:(unsigned int) fpLength{
 	[super init];
@@ -52,6 +51,7 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 		[cache[i].building release];
 		[cache[i].room release];
 		[cache[i].location release];
+		[cache[i].uuid release];
 	}
 	[super dealloc];
 }
@@ -112,7 +112,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(unsigned int) insertFingerprint:(const float[])observation
+-(NSString*) insertFingerprint:(const float[])observation
 						 building:(NSString*)newBuilding      
 							 room:(NSString*)newRoom /* name for the new room */
 						 location:(CLLocation*)location{
@@ -124,36 +124,14 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	[newEntry.room retain];
 	newEntry.building = newBuilding;
 	[newEntry.building retain];
-	newEntry.uid = ++(self.maxUid); // increment and assign uid
+	newEntry.uuid = @"some_room"; // TODO: generate UUID
 	newEntry.fingerprint = new float[len];
 	newEntry.location = [[location copy] retain];
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
+	newEntry.uuid = [[NSString alloc] initWithFormat:@"-1"]; // TODO generate UUID
 	
 	// send the request to the remote database
-	{
-		NSString *post = @"key1=val1&key2=val2";
-		NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-		
-		NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
-		
-		NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
-		[request setURL:[NSURL URLWithString:@"http://stevetarzia.com/cgi-bin/fingerprint/interface.py"]];
-		[request setHTTPMethod:@"POST"];
-		[request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-		[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-		[request setHTTPBody:postData];
-		
-		NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:request delegate:self];
-		if (theConnection) {
-			// Create the NSMutableData to hold the received data.
-			// receivedData is an instance variable declared elsewhere.
-			receivedData = [[NSMutableData data] retain];
-		} else {
-			// Inform the user that the connection failed.
-		}
-		// TODO: assign uid from INSERT return value
-		newEntry.uid = -1;
-	}
+	[self addToRemoteDB:newEntry];
 	
 	// add it to the cache DB
 	cache.push_back( newEntry );
@@ -172,9 +150,45 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		dbFile.close();
 		[filename release];
 		[content release];
+	}	
+	return newEntry.uuid;
+}
+
+
+-(void) addToRemoteDB:(DBEntry&)newEntry{
+	NSMutableString *post = [[NSMutableString alloc] init];
+	[post appendFormat:@"type=insert&fingerprint_length=%d",len];
+	[post appendFormat:@"&fingerprint=%f",newEntry.fingerprint[0]];
+	for( int i=1; i<len; i++ ){
+		[post appendFormat:@"_%f",newEntry.fingerprint[i]];
 	}
+	if( newEntry.location.coordinate.latitude != NAN ){
+		[post appendFormat:@"&latitude=%f&longitude=%f&altitude=%f",
+		 newEntry.location.coordinate.latitude, newEntry.location.coordinate.longitude, newEntry.location.altitude ];
+	}
+	[post appendFormat:@"&user_id=Steve"];
+	[post appendFormat:@"&building=%@",newEntry.building];
+	[post appendFormat:@"&room=%@",newEntry.room];
+	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
 	
-	return newEntry.uid;
+	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
+	
+	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+	[request setURL:[NSURL URLWithString:@"http://stevetarzia.com/cgi-bin/fingerprint/interface.py"]];
+	[request setHTTPMethod:@"POST"];
+	[request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+	[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+	[request setHTTPBody:postData];
+	[request setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData]; // don't use request cache
+    
+	NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:request delegate:self];
+	if (theConnection) {
+		// Create the NSMutableData to hold the received data.
+		// receivedData is an instance variable declared elsewhere.
+		receivedData = [[NSMutableData alloc] initWithLength:0];
+	} else {
+		// Inform the user that the connection failed.
+	}
 }
 
 
@@ -237,8 +251,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 -(void) appendEntry:(const DBEntry&)entry
 		   toString:(NSMutableString*)outputBuffer{
-	[outputBuffer appendFormat:@"%d\t%lld\t", 
-	 entry.uid,
+	[outputBuffer appendFormat:@"%@\t%lld\t", 
+	 entry.uuid,
 	 entry.timestamp];
 	[outputBuffer appendFormat:@"%.7f\t%.7f\t%.2f\t%.2f\t%.2f\t", /* 7 digit decimals should give ~1cm precision */
 	 entry.location.coordinate.latitude,
@@ -316,9 +330,9 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){
 		DBEntry newEntry;
-		int theUid;
-		[scanner scanInt:&theUid];
-		newEntry.uid = theUid;
+		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
+								intoString:&(newEntry.uuid)];
+		[newEntry.uuid retain];
 		[scanner scanLongLong:&newEntry.timestamp];
 		double latitude, longitude, altitude, horiz_accuracy, vert_accuracy;
 		[scanner scanDouble:&latitude];
@@ -352,8 +366,6 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		
 		// add it to the DB
 		cache.push_back( newEntry );
-		// update maxUID
-		if( theUid > self.maxUid ) self.maxUid = newEntry.uid;
 	}
     NSLog(@"loaded %d database cache entries", cache.size());
 	return true; // TODO: handle improper file format errors and return false
@@ -367,6 +379,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		[cache[i].building release];
 		[cache[i].room release];
 		[cache[i].location release];
+		[cache[i].uuid release];
 		cache.pop_back();
 	}
 
@@ -473,6 +486,30 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
     NSString *aStr = [[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding];  
     NSLog(@"%@",aStr); 
 	[aStr release];
+}
+
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection{
+    // do something with the data
+    // receivedData is declared as a method instance elsewhere
+    NSLog(@"Succeeded! Received %d bytes of data",[receivedData length]);
+	
+    // release the connection, and the data object
+    [connection release];
+    [receivedData release];
+}
+
+
+- (void)connection:(NSURLConnection *)connection
+  didFailWithError:(NSError *)error{
+    // release the connection, and the data object
+    [connection release];	
+    // receivedData is declared as a method instance elsewhere
+	[receivedData release];
+	
+    // inform the user
+    NSLog(@"Connection failed! Error - %@",
+          [error localizedDescription] );
 }
 
 @end
