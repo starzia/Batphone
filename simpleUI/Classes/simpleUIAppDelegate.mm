@@ -62,12 +62,12 @@ static const int numCandidates = 3;
 		newName = [[NSString alloc] initWithFormat:@"<unnamed>"];
 	}
 	
-	UInt32 uid = [self.database insertFingerprint:self.newFingerprint
-											 name:newName
-										 location:[self getLocation]];
+	NSString* uuid = [self.database insertFingerprint:self.newFingerprint
+												 name:newName
+											 location:[self getLocation]];
 	[newName release];
 	
-	[label setText:[NSString stringWithFormat:@"room #%d: %@ saved",uid,newName]];
+	[label setText:[NSString stringWithFormat:@"room #%@: %@ saved",uuid,newName]];
 	
 	// save the database, since it's changed
 	[self.database saveCache];

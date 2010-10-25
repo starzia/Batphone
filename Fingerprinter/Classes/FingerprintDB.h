@@ -22,7 +22,7 @@ static const GPSLocation NULL_GPS = {NAN, NAN, NAN};
 
 // Database entry
 typedef struct{
-	unsigned int uid;
+	NSString* uuid;
 	long long timestamp;
 	NSString* name;
 	float* fingerprint;
@@ -40,7 +40,7 @@ typedef std::vector<Match> QueryResult;
 
 
 // Database class
-@interface FingerprintDB : NSObject {
+@interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
 	std::vector<DBEntry> cache; // a list of recently seen fingerprints from the remote database
 	
@@ -67,14 +67,16 @@ typedef std::vector<Match> QueryResult;
 
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
--(unsigned int) insertFingerprint:(const float[])observation /* the new Fingerprint */
-							 name:(NSString*)name      /* name for the new room */
-						 location:(GPSLocation)location; /* optional estimate of the observation's GPS location; if unneeded, set to NULL_GPS */
+-(NSString*) insertFingerprint:(const float[])observation /* the new Fingerprint */
+						  name:(NSString*)name      /* name for the new room */
+					  location:(GPSLocation)location; /* optional estimate of the observation's GPS location; if unneeded, set to NULL_GPS */
 	
 	/* load cache from file.  Returns false if there is some error. */
 -(bool) loadCache;
 -(bool) saveCache;
 -(void) clearCache;
+
+#pragma mark private methods
 	
 	/* calculates the distance between two Fingerprints */
 -(float) distanceFrom:(const float[])A to:(const float[])B;
@@ -82,5 +84,8 @@ typedef std::vector<Match> QueryResult;
 
 /* get filename for persistent storage */
 -(NSString*) getDBFilename;
+
+/* starts network transaction to add a given entry to the remote database */
+-(void) addToRemoteDB:(DBEntry&)newEntry;
 
 @end;
