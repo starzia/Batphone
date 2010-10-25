@@ -16,7 +16,7 @@ using std::vector;
 
 // Database entry
 typedef struct{
-	unsigned int uid;
+	NSString* uuid;
 	long long timestamp;
 	NSString* building;
 	NSString* room;
@@ -43,7 +43,7 @@ typedef enum{
 
 
 // Database class
-@interface FingerprintDB : NSObject {
+@interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
 	std::vector<DBEntry> cache; // a list of recently seen fingerprints from the remote database
 	
@@ -51,7 +51,6 @@ typedef enum{
 	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
 	// for HTTP
 	NSMutableData* receivedData;
-	unsigned int maxUid;
 
 };
 
@@ -59,7 +58,6 @@ typedef enum{
 @property std::vector<DBEntry> cache;
 @property (nonatomic) float* buf1;
 @property (retain) NSMutableData* receivedData;
-@property unsigned int maxUid;
 
 -(id) initWithFPLength:(unsigned int) fpLength;
 	
@@ -72,12 +70,12 @@ typedef enum{
 					location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
 			  distanceMetric:(DistanceMetric)distance;
 
-	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
-	 * @return the uid for the new room. */
--(unsigned int) insertFingerprint:(const float[])observation /* the new Fingerprint */
-						 building:(NSString*)building      
-							 room:(NSString*)room /* name for the new room */
-						 location:(CLLocation*)location; /* optional estimate of the observation's GPS location; if unneeded, set to NULL_GPS */
+/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
+ * @return the uuid string for the new room. */
+-(NSString*) insertFingerprint:(const float[])observation /* the new Fingerprint */
+					  building:(NSString*)building      
+						  room:(NSString*)room /* name for the new room */
+					  location:(CLLocation*)location; /* optional estimate of the observation's GPS location; if unneeded, set to NULL_GPS */
 
 /* Query the DB for a list of names of all buildings.  Names are pushed onto result */
 -(bool) getAllBuildings:(vector<NSString*>&)result;
@@ -97,6 +95,8 @@ typedef enum{
 -(bool) loadCacheFromString:( const NSString* )content;
 -(bool) saveCache;
 -(void) clearCache;
+
+#pragma mark private methods
 	
 /* delete all database entries for the given room */
 -(void) deleteRoom:(const NSString*)room
@@ -122,5 +122,8 @@ typedef enum{
 /* appends a string description of the database entry, used for persistent storage */
 -(void) appendEntry:(const DBEntry&)entry
 		   toString:(NSMutableString*)outputBuffer;
+
+/* starts network transaction to add a given entry to the remote database */
+-(void) addToRemoteDB:(DBEntry&)newEntry;
 
 @end;
