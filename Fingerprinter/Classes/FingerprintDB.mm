@@ -123,7 +123,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
 	
 	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
-	[request setURL:[NSURL URLWithString:@"http://stevetarzia.com/cgi-bin/fingerprint/cgi.php"]];
+	[request setURL:[NSURL URLWithString:@"http://stevetarzia.com/cgi-bin/fingerprint/interface.py"]];
 	[request setHTTPMethod:@"POST"];
 	[request setValue:postLength forHTTPHeaderField:@"Content-Length"];
 	[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
