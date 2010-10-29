@@ -110,16 +110,33 @@
 #pragma mark -
 #pragma mark UIPickerViewDelegate
 
+// picker state
+vector<NSString*> buildingsCache;
+vector<NSString*> roomsCache;
+NSString* currentBuilding;
+
 - (void)pickerView:(UIPickerView *)pickerView 
 	  didSelectRow:(NSInteger)row 
 	   inComponent:(NSInteger)component{
-	
+	// set appropriate fields
+	if( component == 0 ){
+		currentBuilding = buildingsCache[row];
+		[roomPicker reloadComponent:1]; // reload room names
+		[buildingField setText:currentBuilding];
+		[roomField setText:roomsCache[0]]; // default picker placement
+	}else{
+		[roomField setText:roomsCache[row]];
+	}
 }
 
 - (NSString *)pickerView:(UIPickerView *)pickerView 
 			 titleForRow:(NSInteger)row 
 			forComponent:(NSInteger)component{
-	return @"dummy";
+	if( component == 0 ){
+		return buildingsCache[row];
+	}else{
+		return roomsCache[row];
+	}
 }
 
 #pragma mark -
@@ -131,7 +148,18 @@
 
 - (NSInteger)pickerView:(UIPickerView *)pickerView 
 numberOfRowsInComponent:(NSInteger)component{
-	return 4;
+	if( component == 0 ){
+		// reload list of buildings
+		buildingsCache.clear();
+		app.database->getAllBuildings( buildingsCache );
+		currentBuilding = buildingsCache[0]; // default picker placement
+		return buildingsCache.size();
+	}else{
+		// reload list of rooms
+		roomsCache.clear();
+		app.database->getRoomsInBuilding( roomsCache, currentBuilding );
+		return roomsCache.size();
+	}
 }
 
 #pragma mark -

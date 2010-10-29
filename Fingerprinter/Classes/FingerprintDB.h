@@ -11,6 +11,8 @@
 #import <string>
 #import <Foundation/Foundation.h>
 
+using std::vector;
+
 // GPS location
 typedef struct{
 	double latitude;
@@ -53,15 +55,7 @@ public:
 							   const float observation[],  /* observed Fingerprint we want to match */
 							   unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 							   GPSLocation location=NULL_GPS ); /* optional estimate of the current GPS location */
-							  
-	/* Query the DB for a given room's name. */
-	NSString* queryName( unsigned int uid );
-	
-	/* Query the DB for a given room's Fingerprint.
-	 * outputFingerprint should be a float[] of length fingerPrinter::fpLength, to be filled by this function
-	 * Returns true if uid matched a fingerprint in the DB. */
-	bool queryFingerprint( unsigned int uid, float outputFingerprint[] );
-	
+							  		
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
@@ -69,6 +63,13 @@ public:
 								    NSString* room,      /* name for the new room */
 								    GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
 	
+	/* Query the DB for a list of names of all buildings.  Names are pushed onto result */
+	bool getAllBuildings( vector<NSString*> & result );
+
+	/* Query the DB for a list of names of all rooms in a certain building.  Names are pushed onto result. */
+	bool getRoomsInBuilding( vector<NSString*> & result, /* output */
+							 NSString* building);        /* input */
+
 	/* Save database to a file */
 	bool save();
 	

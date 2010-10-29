@@ -75,17 +75,6 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 }
 
 
-NSString* FingerprintDB::queryName( unsigned int uid ){
-	return [[[NSString alloc] stringWithFormat:@"room%d", (int)(random()%100)] autorelease];
-}
-
-
-bool FingerprintDB::queryFingerprint( unsigned int uid, float outputFingerprint[] ){
-	this->makeRandomFingerprint( outputFingerprint );
-	return true;
-}
-
-
 unsigned int FingerprintDB::insertFingerprint( const float observation[],
 											   NSString* newBuilding,
 											   NSString* newRoom,
@@ -235,3 +224,43 @@ void FingerprintDB::clear(){
 											   error:nil];
 }
 
+
+bool FingerprintDB::getAllBuildings( vector<NSString*> & result ){
+	bool ret = false;
+	// TODO: keep a persistent list of buildings so we don't have to do this every time.
+	for( int i=0; i<entries.size(); i++ ){
+		NSString* currentBuilding = entries[i].building;
+		// Note that we are not retaining this string b/c we assume that the 
+		// DB entry will not be erased while we are using the results
+		bool duplicate = false;
+		for( int j=0; j<result.size(); j++ ){
+			if( [result[j] isEqualToString:currentBuilding] ) duplicate = true;
+		}
+		if( !duplicate ){
+			result.push_back( currentBuilding );
+			ret = true;
+		}
+	}
+	return ret;
+}
+
+bool FingerprintDB::getRoomsInBuilding( vector<NSString*> & result, /* output */
+									   NSString* building){        /* input */
+	bool ret = false;
+	for( int i=0; i<entries.size(); i++ ){
+		if( [entries[i].building isEqualToString:building] ){
+			NSString* currentRoom = entries[i].room;
+			// Note that we are not retaining this string b/c we assume that the 
+			// DB entry will not be erased while we are using the results
+			bool duplicate = false;
+			for( int j=0; j<result.size(); j++ ){
+				if( [result[j] isEqualToString:currentRoom] ) duplicate = true;
+			}
+			if( !duplicate ){
+				result.push_back( currentRoom );
+				ret = true;
+			}
+		}
+	}
+	return ret;
+}
