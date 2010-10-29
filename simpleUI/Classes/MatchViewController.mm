@@ -112,13 +112,13 @@ static const int numCandidates = 3;
 	// update status display
 	NSMutableString* ss = [[NSMutableString alloc] initWithFormat:@"%d matches: ",numMatches];
 	if( numMatches >= 1 ){
-		[ss appendString:result[0].entry.name];
+		[ss appendFormat:@"%@ %@",result[0].entry.building,result[0].entry.room];
 	}
 	if( numMatches >= 2 ){
-		[ss appendFormat:@" / %@",result[1].entry.name];
+		[ss appendFormat:@" / %@ %@",result[1].entry.building,result[1].entry.room];
 	}
 	if( numMatches >= 3 ){
-		[ss appendFormat:@" / %@",result[2].entry.name];
+		[ss appendFormat:@" / %@ %@",result[2].entry.building,result[2].entry.room];
 	}
     [statusLabel setText:ss];
 	[ss release];

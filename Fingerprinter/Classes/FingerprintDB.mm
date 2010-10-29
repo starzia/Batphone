@@ -38,7 +38,8 @@ FingerprintDB::~FingerprintDB(){
 	// clear database
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		delete[] entries[i].fingerprint;
-		[entries[i].name release];
+		[entries[i].building release];
+		[entries[i].room release];
 	}
 }
 
@@ -85,15 +86,18 @@ bool FingerprintDB::queryFingerprint( unsigned int uid, float outputFingerprint[
 }
 
 
-unsigned int FingerprintDB::insertFingerprint( const float observation[], 
-											   NSString* newName,
+unsigned int FingerprintDB::insertFingerprint( const float observation[],
+											   NSString* newBuilding,
+											   NSString* newRoom,
 											   GPSLocation location){
 	// create new DB entry
 	DBEntry newEntry;
 	NSDate *now = [NSDate date];
 	newEntry.timestamp = [now timeIntervalSince1970];
-	newEntry.name = newName;
-	[newEntry.name retain];
+	newEntry.room = newRoom;
+	[newEntry.room retain];
+	newEntry.building = newBuilding;
+	[newEntry.building retain];
 	newEntry.uid = ++(this->maxUid); // increment and assign uid
 	newEntry.fingerprint = new float[len];
 	newEntry.location = location;
@@ -151,7 +155,8 @@ bool FingerprintDB::save(){
 		 entries[i].location.latitude,
 		 entries[i].location.longitude,
 		 entries[i].location.altitude ];
-		[content appendFormat:@"%@", entries[i].name ];
+		[content appendFormat:@"%@\t", entries[i].building ];
+		[content appendFormat:@"%@", entries[i].room ];
 		// add each element of fingerprint
 		for( int j=0; j<len; j++ ){
 			[content appendFormat:@"\t%f", entries[i].fingerprint[j] ];
@@ -194,8 +199,11 @@ bool FingerprintDB::load(){
 		[scanner scanDouble:&newEntry.location.longitude];
 		[scanner scanDouble:&newEntry.location.altitude];
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
-								intoString:&(newEntry.name)];
-		[newEntry.name retain];
+								intoString:&(newEntry.building)];
+		[newEntry.building retain];
+		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
+								intoString:&(newEntry.room)];
+		[newEntry.room retain];
 
 		// load fingerprint
 		newEntry.fingerprint = new float[len];
@@ -217,7 +225,8 @@ void FingerprintDB::clear(){
 	// clear database
 	for( int i=entries.size()-1; i>=0; --i ){
 		delete[] entries[i].fingerprint;
-		[entries[i].name release];
+		[entries[i].building release];
+		[entries[i].room release];
 		entries.pop_back();
 	}
 

@@ -24,7 +24,8 @@ static const GPSLocation NULL_GPS = {NAN, NAN, NAN};
 typedef struct{
 	unsigned int uid;
 	long long timestamp;
-	NSString* name;
+	NSString* building;
+	NSString* room;
 	float* fingerprint;
 	GPSLocation location; // estimated GPS location of this observed fingerprint
 } DBEntry;
@@ -64,7 +65,8 @@ public:
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
-								    NSString* name,      /* name for the new room */
+								    NSString* building,  /* name of building */
+								    NSString* room,      /* name for the new room */
 								    GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
 	
 	/* Save database to a file */

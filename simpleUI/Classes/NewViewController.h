@@ -9,14 +9,19 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 
-@interface NewViewController : UIViewController <UITextFieldDelegate>{
-	UITextField *nameLabel;	
+@interface NewViewController : UIViewController 
+<UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource>{
+	UITextField *buildingField;
+	UITextField *roomField;
+	UIPickerView *roomPicker;
 	
 	AppDelegate *app;
 }
 
 @property (nonatomic, retain) AppDelegate* app;
-@property (nonatomic, retain) IBOutlet UITextField *nameLabel;
+@property (nonatomic, retain) UITextField *buildingField;
+@property (nonatomic, retain) UITextField *roomField;
+@property (nonatomic, retain) UIPickerView *roomPicker;
 
 -(IBAction) saveButtonHandler;
 
