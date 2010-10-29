@@ -10,16 +10,14 @@
 #import "AppDelegate.h"
 
 @interface NewViewController : UIViewController <UITextFieldDelegate>{
-	UIButton *saveButton;
 	UITextField *nameLabel;	
 	
 	AppDelegate *app;
 }
 
 @property (nonatomic, retain) AppDelegate* app;
-@property (nonatomic, retain) IBOutlet UIButton *saveButton;
 @property (nonatomic, retain) IBOutlet UITextField *nameLabel;
 
--(IBAction) saveButtonHandler:(id)sender;
+-(IBAction) saveButtonHandler;
 
 @end

@@ -17,99 +17,93 @@
 @synthesize candidatePlots;
 @synthesize candidates;
 @synthesize plotTimer;
-@synthesize queryButton;
 @synthesize clearButton;
 @synthesize newFingerprint;
 
 // CONSTANTS
 static const int numCandidates = 3;
 
-
+/*
  // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
         // Custom initialization
-		
-		// Create text label.
-		CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
-		CGRect labelRect = CGRectMake(x , 110, 300.0f, 45.0f);
-		self.statusLabel = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
-		// Set the value of our string
-		[statusLabel setText:@"Fingerprinter is running..."];
-		// Center Align the label's text
-		[statusLabel setTextAlignment:UITextAlignmentCenter];
-		statusLabel.textColor = [UIColor darkTextColor];
-		statusLabel.backgroundColor = [UIColor clearColor];
-		// set font
-		[statusLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
-		// Add the label to the window.
-		[self.view addSubview:statusLabel];
-		
-		// Add query button to the window
-		queryButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-		[queryButton addTarget:self action:@selector(queryButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
-		[queryButton setTitle:@"query for match" forState:UIControlStateNormal];
-		queryButton.frame = CGRectMake(10.0, 70.0, 145.0, 40.0);
-		[self.view addSubview:queryButton];
-		
-		// Add clear button to the window
-		clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-		[clearButton addTarget:self action:@selector(clearButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
-		[clearButton setTitle:@"clear database" forState:UIControlStateNormal];
-		clearButton.frame = CGRectMake(10.0, 430.0, 145.0, 40.0);
-		[self.view addSubview:clearButton];
-		
-		// initialize and blank fingerprints
-		self.candidates = new float*[numCandidates];
-		for( int i=0; i<numCandidates; i++ ){
-			self.candidates[i] = new float[Fingerprinter::fpLength];
-			for (int j=0; j<Fingerprinter::fpLength; ++j){
-				self.candidates[i][j] = 0;
-			}
-		}
-		self.newFingerprint = new float[Fingerprinter::fpLength];
-		for (int i=0; i<Fingerprinter::fpLength; ++i){
-			// blank fingerprint
-			self.newFingerprint[i] = 0;
-		}
-		
-		// Add plot to window
-		CGRect plotRect = CGRectMake(0, 150, 320.0f, 100.0f);
-		self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
-		[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
-		[self.view addSubview:plot];
-		
-		// Add candidate plots to window
-		plotRect = CGRectMake(0, 250, 320.0f, 100.0f);
-		self.candidatePlots = new vector<plotView*>();
-		for( int i=0; i<numCandidates; i++ ){
-			plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:plotRect];
-			self.candidatePlots->push_back( thisCandidatePlot );
-			// assign the appropriate data vector to each plot
-			[thisCandidatePlot setVector:candidates[i] length: Fingerprinter::fpLength];
-			// change color of candidates line (from default of black = {0,0,0}
-			thisCandidatePlot.lineColor[i%numCandidates] = 1; // set either R, G, or B to 1.0
-			[self.view addSubview:thisCandidatePlot];
-		}
-		
-		// create timer to update the plot
-		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
-														  target:self
-														selector:@selector(updatePlot)
-														userInfo:nil
-														 repeats:YES];
     }
     return self;
 }
+ */
 
-/*
+
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
+	self.view.backgroundColor = [UIColor clearColor]; // set striped BG
+	
+	// Create text label.
+	CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
+	CGRect labelRect = CGRectMake(x , 80, 300.0f, 45.0f);
+	self.statusLabel = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
+	// Set the value of our string
+	[statusLabel setText:@"Fingerprinter is running..."];
+	// Center Align the label's text
+	[statusLabel setTextAlignment:UITextAlignmentCenter];
+	statusLabel.textColor = [UIColor darkTextColor];
+	statusLabel.backgroundColor = [UIColor clearColor];
+	// set font
+	[statusLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
+	// Add the label to the window.
+	[self.view addSubview:statusLabel];
+	
+	// Add clear button to the window
+	clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+	[clearButton addTarget:self action:@selector(clearButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
+	[clearButton setTitle:@"clear database" forState:UIControlStateNormal];
+	clearButton.frame = CGRectMake(10.0, 430.0, 145.0, 40.0);
+	[self.view addSubview:clearButton];
+	
+	// initialize and blank fingerprints
+	self.candidates = new float*[numCandidates];
+	for( int i=0; i<numCandidates; i++ ){
+		self.candidates[i] = new float[Fingerprinter::fpLength];
+		for (int j=0; j<Fingerprinter::fpLength; ++j){
+			self.candidates[i][j] = 0;
+		}
+	}
+	self.newFingerprint = new float[Fingerprinter::fpLength];
+	for (int i=0; i<Fingerprinter::fpLength; ++i){
+		// blank fingerprint
+		self.newFingerprint[i] = 0;
+	}
+	
+	// Add plot to window
+	CGRect plotRect = CGRectMake(0, 150, 320.0f, 100.0f);
+	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
+	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
+	[self.view addSubview:plot];
+	
+	// Add candidate plots to window
+	plotRect = CGRectMake(0, 250, 320.0f, 100.0f);
+	self.candidatePlots = new vector<plotView*>();
+	for( int i=0; i<numCandidates; i++ ){
+		plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:plotRect];
+		self.candidatePlots->push_back( thisCandidatePlot );
+		// assign the appropriate data vector to each plot
+		[thisCandidatePlot setVector:candidates[i] length: Fingerprinter::fpLength];
+		// change color of candidates line (from default of black = {0,0,0}
+		thisCandidatePlot.lineColor[i%numCandidates] = 1; // set either R, G, or B to 1.0
+		[self.view addSubview:thisCandidatePlot];
+	}
+	
+	// create timer to update the plot
+	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+													  target:self
+													selector:@selector(updatePlot)
+													userInfo:nil
+													 repeats:YES];
     [super viewDidLoad];
 }
-*/
 
--(void) queryButtonHandler:(id)sender{
+
+-(void) queryButtonHandler{
 	// query for matches
 	QueryResult result;
 	unsigned int numMatches = app.database->queryMatches( result, self.newFingerprint, 
@@ -173,7 +167,7 @@ static const int numCandidates = 3;
 	// if "ok" button was clicked then clear the database
 	if( buttonIndex == 1 ){
 		app.database->clear();
-		[self queryButtonHandler:nil]; // this is a hack to clear the candidate plots
+		[self queryButtonHandler]; // this is a hack to clear the candidate plots
 		[statusLabel setText:@"Database cleared"];
 	}
 }
@@ -205,7 +199,6 @@ static const int numCandidates = 3;
 
 - (void)dealloc {
 	[statusLabel release];
-	[queryButton release];
 	[plot release];
 	[plotTimer release];
 	for( int i=0; i<numCandidates; i++ ){

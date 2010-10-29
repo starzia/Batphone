@@ -23,7 +23,6 @@ using std::vector;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	
 	// PROBABLY WON'T NEED THESE
-	UIButton *queryButton;
 	UIButton *clearButton;
 }
 
@@ -36,11 +35,10 @@ using std::vector;
 @property (nonatomic, retain) NSTimer  *plotTimer; // periodic timer to update the plot
 
 // PROBABLY WON'T NEED THESE
-@property (nonatomic, retain) IBOutlet UIButton *queryButton;
 @property (nonatomic, retain) IBOutlet UIButton *clearButton;
 
 
--(IBAction) queryButtonHandler:(id)sender;
+-(void) queryButtonHandler;
 -(IBAction) clearButtonHandler:(id)sender;
 -(void) updatePlot;
 

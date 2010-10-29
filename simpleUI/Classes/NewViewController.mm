@@ -12,17 +12,17 @@
 @implementation NewViewController
 
 @synthesize app;
-@synthesize saveButton;
 @synthesize nameLabel;
 
 // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
         // Custom initialization
+		self.view.backgroundColor = [UIColor clearColor]; // set striped BG
 		
 		// create textField
 		CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
-		CGRect labelRect = CGRectMake(x , 30, 300.0f, 30.0f);
+		CGRect labelRect = CGRectMake(x , 80, 300.0f, 30.0f);
 		self.nameLabel = [[[UITextField alloc] initWithFrame:labelRect] autorelease];
 		[nameLabel setPlaceholder:@"new room's name"];
 		[nameLabel setBorderStyle:UITextBorderStyleRoundedRect];
@@ -30,14 +30,6 @@
 		nameLabel.clearButtonMode = UITextFieldViewModeWhileEditing;	// has a clear 'x'
 		nameLabel.delegate = self; // sends events to this class, so this class must implement UITextFieldDelegate protocol
 		[self.view addSubview:nameLabel];
-		
-		// Add save button to the window
-		saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-		[saveButton addTarget:self action:@selector(saveButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
-		[saveButton setTitle:@"save as new" forState:UIControlStateNormal];
-		saveButton.frame = CGRectMake(165.0, 70.0, 145.0, 40.0);
-		[self.view addSubview:saveButton];
-		
     }
     return self;
 }
@@ -58,7 +50,7 @@
 */
 
 /* called by button */
--(void) saveButtonHandler:(id)sender{
+-(void) saveButtonHandler{
 	// build name
 	NSString* newName;
 	if( self.nameLabel.text.length > 0 ){
@@ -110,7 +102,6 @@
 
 
 - (void)dealloc {
-	[saveButton release];
 	[nameLabel release];
 
     [super dealloc];

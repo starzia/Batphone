@@ -66,24 +66,53 @@ using namespace std;
 
 
 #pragma mark -
+#pragma mark UINavigationBarDelegate
+-(void) navigationBar:(UINavigationBar*) theNavBar
+		   didPopItem:(UINavigationItem*) theItem{
+	// swap views
+	[newViewController.view removeFromSuperview];
+	[window addSubview:matchViewController.view];
+	[window addSubview:navBar];	
+}
+
+-(void) navigationBar:(UINavigationBar*) theNavBar
+		  didPushItem:(UINavigationItem*) theItem{
+}
+
+-(void) newButtonHandler{
+	if( !newViewController ){
+		// create view controller
+		NewViewController *aNewViewController = [[NewViewController alloc]
+		  initWithNibName:@"NewViewController" bundle:[NSBundle mainBundle]];
+		self.newViewController = aNewViewController;
+		[aNewViewController release];
+		self.newViewController.app = self;
+	}
+	// set up navigation bar
+	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New Fingerprint"] autorelease];
+	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithTitle:@"Save" 
+									style:UIBarButtonItemStylePlain target:self 
+									action:@selector(saveButtonHandler)] autorelease];
+	[newItem setRightBarButtonItem:newButton animated:YES];	
+	// swap views
+	[matchViewController.view removeFromSuperview];
+	[window addSubview:newViewController.view];
+	[window addSubview:navBar];	
+	[navBar pushNavigationItem:newItem animated:YES];
+}
+
+-(void) saveButtonHandler{
+	// pass message on to view controller
+	[newViewController saveButtonHandler];
+	// pop view off stack
+	[navBar popNavigationItemAnimated:YES];
+}
+
+#pragma mark -
 #pragma mark Application lifecycle
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
-	// initialize view controllers
-	MatchViewController *aMatchViewController = [[MatchViewController alloc]
-												 initWithNibName:@"MatchViewController" bundle:[NSBundle mainBundle]];
-	self.matchViewController = aMatchViewController;
-	[aMatchViewController release];
-	
-	NewViewController *aNewViewController = [[NewViewController alloc]
-											 initWithNibName:@"NewViewController" bundle:[NSBundle mainBundle]];
-	self.newViewController = aNewViewController;
-	[aNewViewController release];
-	
-	LocationViewController *aLocationViewController = [[LocationViewController alloc]
-												 initWithNibName:@"LocationViewController" bundle:[NSBundle mainBundle]];
-	self.locationViewController = aLocationViewController;
-	[aLocationViewController release];
+	window.backgroundColor = [UIColor groupTableViewBackgroundColor]; // set striped BG
 	
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
@@ -98,17 +127,38 @@ using namespace std;
 	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
 	locationManager.headingFilter = kCLHeadingFilterNone; // as above
 	[self.locationManager startUpdatingLocation]; // start location service
+		
+	// initialize the first view controller
+	MatchViewController *aMatchViewController = [[MatchViewController alloc]
+												 initWithNibName:@"MatchViewController" bundle:[NSBundle mainBundle]];
+	self.matchViewController = aMatchViewController;
+	[aMatchViewController release];
+	self.matchViewController.app = self;
+
+	// set as foreground
+	[window addSubview:matchViewController.view];	
 	
 	// Create navigation bar
-	CGRect navRect = CGRectMake(0, 20, 320, 44);
-	self.navBar = [[[UINavigationBar alloc] initWithFrame:navRect] autorelease];
-	[window addSubview:navBar];
+    CGRect navRect = CGRectMake(0, 20, 320, 44);
+    self.navBar = [[[UINavigationBar alloc] initWithFrame:navRect] autorelease];
+	navBar.delegate = self;
+    [window addSubview:navBar];	
+			
+	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Matches"] autorelease];
+	UIBarButtonItem* queryButton = [[[UIBarButtonItem alloc] initWithTitle:@"Query" 
+								   style:UIBarButtonItemStylePlain target:matchViewController 
+								   action:@selector(queryButtonHandler)] autorelease];
+	[matchesItem setLeftBarButtonItem:queryButton animated:YES];	
+	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithTitle:@"New" 
+								 style:UIBarButtonItemStylePlain target:self 
+								 action:@selector(newButtonHandler)] autorelease];
+	[matchesItem setRightBarButtonItem:newButton animated:YES];	
+	[navBar pushNavigationItem:matchesItem animated:YES];	
 	
 	// update view
-	window.backgroundColor = [UIColor groupTableViewBackgroundColor]; // set striped BG
     [window makeKeyAndVisible];
 	
-	// auto start recording
+	// start recording
 	self.fp->startRecording();
 	
     return YES;

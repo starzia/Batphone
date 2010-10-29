@@ -24,9 +24,6 @@
 		AAAC4D25127A149000FB24C1 /* MatchViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D23127A149000FB24C1 /* MatchViewController.mm */; };
 		AAAC4D2B127A14F100FB24C1 /* NewViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D29127A14F100FB24C1 /* NewViewController.mm */; };
 		AAAC4D30127A16A700FB24C1 /* LocationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */; };
-		AAAC4DCD127A3B2000FB24C1 /* LocationViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AAAC4DCA127A3B2000FB24C1 /* LocationViewController.xib */; };
-		AAAC4DCE127A3B2000FB24C1 /* MatchViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AAAC4DCB127A3B2000FB24C1 /* MatchViewController.xib */; };
-		AAAC4DCF127A3B2000FB24C1 /* NewViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = AAAC4DCC127A3B2000FB24C1 /* NewViewController.xib */; };
 		AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D6312639F36003C20EB /* Icon-72.png */; };
 		AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D691263A03E003C20EB /* Icon@2x.png */; };
 		AAC415D31254EFF0008DA27C /* plotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.mm */; };
@@ -66,9 +63,6 @@
 		AAAC4D29127A14F100FB24C1 /* NewViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NewViewController.mm; sourceTree = "<group>"; };
 		AAAC4D2D127A16A700FB24C1 /* LocationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationViewController.h; sourceTree = "<group>"; };
 		AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LocationViewController.mm; sourceTree = "<group>"; };
-		AAAC4DCA127A3B2000FB24C1 /* LocationViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LocationViewController.xib; sourceTree = "<group>"; };
-		AAAC4DCB127A3B2000FB24C1 /* MatchViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MatchViewController.xib; sourceTree = "<group>"; };
-		AAAC4DCC127A3B2000FB24C1 /* NewViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = NewViewController.xib; sourceTree = "<group>"; };
 		AAAF2D6312639F36003C20EB /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		AAAF2D691263A03E003C20EB /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
@@ -152,9 +146,6 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				AAAC4DCA127A3B2000FB24C1 /* LocationViewController.xib */,
-				AAAC4DCB127A3B2000FB24C1 /* MatchViewController.xib */,
-				AAAC4DCC127A3B2000FB24C1 /* NewViewController.xib */,
 				AAAF2D691263A03E003C20EB /* Icon@2x.png */,
 				AAAF2D6312639F36003C20EB /* Icon-72.png */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
@@ -264,9 +255,6 @@
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */,
 				AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */,
-				AAAC4DCD127A3B2000FB24C1 /* LocationViewController.xib in Resources */,
-				AAAC4DCE127A3B2000FB24C1 /* MatchViewController.xib in Resources */,
-				AAAC4DCF127A3B2000FB24C1 /* NewViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

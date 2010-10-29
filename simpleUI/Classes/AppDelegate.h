@@ -20,7 +20,7 @@ using std::vector;
 @class LocationViewController;
 
 @interface AppDelegate : NSObject 
-<UIApplicationDelegate, CLLocationManagerDelegate> {
+<UIApplicationDelegate, CLLocationManagerDelegate, UINavigationBarDelegate> {
 	// data members
     UIWindow *window;
 	UINavigationBar *navBar;
@@ -35,10 +35,10 @@ using std::vector;
 
 // accessors
 @property (nonatomic, retain) IBOutlet UIWindow *window;
-@property (nonatomic, retain) UINavigationBar* navBar;
-@property (nonatomic, retain) MatchViewController *matchViewController;
-@property (nonatomic, retain) NewViewController *newViewController;
-@property (nonatomic, retain) LocationViewController *locationViewController;
+@property (nonatomic, retain) IBOutlet UINavigationBar* navBar;
+@property (nonatomic, retain) IBOutlet MatchViewController *matchViewController;
+@property (nonatomic, retain) IBOutlet NewViewController *newViewController;
+@property (nonatomic, retain) IBOutlet LocationViewController *locationViewController;
 
 @property (nonatomic) Fingerprinter* fp; 
 @property (nonatomic) FingerprintDB* database;
