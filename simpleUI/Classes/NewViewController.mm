@@ -16,6 +16,10 @@
 @synthesize roomField;
 @synthesize roomPicker;
 
+@synthesize buildingsCache;
+@synthesize roomsCache;
+@synthesize currentBuilding;
+
 // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
@@ -107,26 +111,42 @@
     return YES;	
 }
 
+- (void)textFieldDidBeginEditing:(UITextField *)textField {
+	// if user is editing field, then set picker to "custom" row
+	if( textField == roomField ){
+		[roomPicker selectRow:roomsCache.size() inComponent:1 animated:NO];
+	}else if( textField == buildingField ){
+		[roomPicker selectRow:buildingsCache.size() inComponent:0 animated:NO];		
+	}
+}
+
 #pragma mark -
 #pragma mark UIPickerViewDelegate
-
-// picker state
-vector<NSString*> buildingsCache;
-vector<NSString*> roomsCache;
-NSString* currentBuilding;
 
 - (void)pickerView:(UIPickerView *)pickerView 
 	  didSelectRow:(NSInteger)row 
 	   inComponent:(NSInteger)component{
 	// set appropriate fields
 	if( component == 0 ){
-		currentBuilding = buildingsCache[row];
+		if ( row == buildingsCache.size() ){
+			// if <new> was selected, clear the textfield
+			currentBuilding = @"";
+		}else{
+			// if a buiding name was selected, set it in the textfield
+			currentBuilding = buildingsCache[row];
+		}
 		[pickerView reloadComponent:1]; // reload room names
 		[buildingField setText:currentBuilding];
 		[pickerView selectRow:0 inComponent:1 animated:NO]; // reset picker placement
-		[roomField setText:roomsCache[0]]; // adjust textfield
-	}else{
-		[roomField setText:roomsCache[row]];
+		[self pickerView:roomPicker didSelectRow:0 inComponent:1];
+	}else if( component == 1){
+		if ( row == roomsCache.size() ){
+			// if <new> was selected, clear the textfield
+			[roomField setText:@""];
+		}else{
+			// if a room name was selected, set it in the textfield
+			[roomField setText:roomsCache[row]];
+		}
 	}
 }
 
@@ -134,9 +154,17 @@ NSString* currentBuilding;
 			 titleForRow:(NSInteger)row 
 			forComponent:(NSInteger)component{
 	if( component == 0 ){
-		return buildingsCache[row];
+		if( row < buildingsCache.size() ){
+			return buildingsCache[row];
+		}else{
+			return @"<new>";
+		}
 	}else{
-		return roomsCache[row];
+		if( row < roomsCache.size() ){
+			return roomsCache[row];
+		}else{
+			return @"<new>";
+		}
 	}
 }
 
@@ -154,12 +182,12 @@ numberOfRowsInComponent:(NSInteger)component{
 		buildingsCache.clear();
 		app.database->getAllBuildings( buildingsCache );
 		if( currentBuilding == nil ) currentBuilding = buildingsCache[0]; // default picker placement
-		return buildingsCache.size();
+		return buildingsCache.size()+1; // plus one for "custom" row
 	}else{
 		// reload list of rooms
 		roomsCache.clear();
 		app.database->getRoomsInBuilding( roomsCache, currentBuilding );
-		return roomsCache.size();
+		return roomsCache.size()+1; // plus one for "custom" row
 	}
 }
 

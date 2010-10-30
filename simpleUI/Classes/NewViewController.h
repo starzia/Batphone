@@ -16,12 +16,22 @@
 	UIPickerView *roomPicker;
 	
 	AppDelegate *app;
+	
+	// picker state
+	vector<NSString*> buildingsCache;
+	vector<NSString*> roomsCache;
+	NSString* currentBuilding;	
 }
 
 @property (nonatomic, retain) AppDelegate* app;
 @property (nonatomic, retain) UITextField *buildingField;
 @property (nonatomic, retain) UITextField *roomField;
 @property (nonatomic, retain) UIPickerView *roomPicker;
+
+@property (nonatomic) vector<NSString*> buildingsCache;
+@property (nonatomic) vector<NSString*> roomsCache;
+@property (nonatomic, retain) NSString* currentBuilding;
+
 
 -(IBAction) saveButtonHandler;
 
