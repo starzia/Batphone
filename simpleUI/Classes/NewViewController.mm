@@ -121,9 +121,10 @@ NSString* currentBuilding;
 	// set appropriate fields
 	if( component == 0 ){
 		currentBuilding = buildingsCache[row];
-		[roomPicker reloadComponent:1]; // reload room names
+		[pickerView reloadComponent:1]; // reload room names
 		[buildingField setText:currentBuilding];
-		[roomField setText:roomsCache[0]]; // default picker placement
+		[pickerView selectRow:0 inComponent:1 animated:NO]; // reset picker placement
+		[roomField setText:roomsCache[0]]; // adjust textfield
 	}else{
 		[roomField setText:roomsCache[row]];
 	}
@@ -152,7 +153,7 @@ numberOfRowsInComponent:(NSInteger)component{
 		// reload list of buildings
 		buildingsCache.clear();
 		app.database->getAllBuildings( buildingsCache );
-		currentBuilding = buildingsCache[0]; // default picker placement
+		if( currentBuilding == nil ) currentBuilding = buildingsCache[0]; // default picker placement
 		return buildingsCache.size();
 	}else{
 		// reload list of rooms

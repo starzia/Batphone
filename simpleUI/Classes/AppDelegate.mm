@@ -97,7 +97,8 @@ using namespace std;
 	// swap views
 	[matchViewController.view removeFromSuperview];
 	[window addSubview:newViewController.view];
-	[window addSubview:navBar];	
+	[window addSubview:navBar];
+	[newViewController.roomPicker reloadAllComponents]; // update picker to reflect possible new rooms
 	[navBar pushNavigationItem:newItem animated:YES];
 }
 
