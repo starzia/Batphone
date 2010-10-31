@@ -21,25 +21,20 @@ using std::vector;
 	Fingerprint* candidates;
 	Fingerprint newFingerprint;
 	NSTimer  *plotTimer; // periodic timer to update the plot
-	
-	// PROBABLY WON'T NEED THESE
-	UIButton *clearButton;
+	NSTimer  *queryTimer; // periodic timer to query the DB for matches
 }
 
 @property (nonatomic, retain) AppDelegate* app;
-@property (nonatomic, retain) IBOutlet UILabel  *statusLabel;
-@property (nonatomic, retain) IBOutlet plotView *plot;            // live fingerprint plot
+@property (nonatomic, retain) UILabel  *statusLabel;
+@property (nonatomic, retain) plotView *plot;            // live fingerprint plot
 @property (nonatomic) vector<plotView*>* candidatePlots; 
 @property Fingerprint* candidates;
 @property Fingerprint newFingerprint;
 @property (nonatomic, retain) NSTimer  *plotTimer; // periodic timer to update the plot
+@property (nonatomic, retain) NSTimer  *queryTimer; // periodic timer to update the plot
 
-// PROBABLY WON'T NEED THESE
-@property (nonatomic, retain) IBOutlet UIButton *clearButton;
-
-
--(void) queryButtonHandler;
--(IBAction) clearButtonHandler:(id)sender;
+-(void) clearButtonHandler;
+-(void) query;
 -(void) updatePlot;
 
 @end

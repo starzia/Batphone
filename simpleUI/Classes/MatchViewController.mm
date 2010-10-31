@@ -17,11 +17,14 @@
 @synthesize candidatePlots;
 @synthesize candidates;
 @synthesize plotTimer;
-@synthesize clearButton;
+@synthesize queryTimer;
 @synthesize newFingerprint;
 
 // CONSTANTS
 static const int numCandidates = 3;
+
+#pragma mark -
+#pragma mark UIViewController inherited
 
 /*
  // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
@@ -52,13 +55,6 @@ static const int numCandidates = 3;
 	[statusLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
 	// Add the label to the window.
 	[self.view addSubview:statusLabel];
-	
-	// Add clear button to the window
-	clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-	[clearButton addTarget:self action:@selector(clearButtonHandler:) forControlEvents:UIControlEventTouchUpInside];
-	[clearButton setTitle:@"clear database" forState:UIControlStateNormal];
-	clearButton.frame = CGRectMake(10.0, 430.0, 145.0, 40.0);
-	[self.view addSubview:clearButton];
 	
 	// initialize and blank fingerprints
 	self.candidates = new float*[numCandidates];
@@ -99,11 +95,33 @@ static const int numCandidates = 3;
 													selector:@selector(updatePlot)
 													userInfo:nil
 													 repeats:YES];
+	// create timer to continuously query
+	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:2
+													  target:self
+													selector:@selector(query)
+													userInfo:nil
+													 repeats:YES];
     [super viewDidLoad];
 }
 
+/*
+ NOTE we don't actually disable timers.  This means that as long as the app
+ is running, plotting and querying continue.  If the app moves into the
+ background, then the OS ignores these timers.
+ 
+// restart timers for plotting and querying
+-(void) viewWillAppear:(BOOL)animated{
+}
 
--(void) queryButtonHandler{
+// pause timers for plotting and querying
+-(void) viewDidDissapear:(BOOL)animated{
+}
+ */
+
+#pragma mark -
+#pragma mark app events
+
+-(void) query{
 	// query for matches
 	QueryResult result;
 	unsigned int numMatches = app.database->queryMatches( result, self.newFingerprint, 
@@ -140,7 +158,7 @@ static const int numCandidates = 3;
 }
 
 
--(void)clearButtonHandler:(id)sender{
+-(void)clearButtonHandler{
 	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 													message:@"You are about to erase the entire room fingerprint database." 
 												   delegate:self 
@@ -167,7 +185,7 @@ static const int numCandidates = 3;
 	// if "ok" button was clicked then clear the database
 	if( buttonIndex == 1 ){
 		app.database->clear();
-		[self queryButtonHandler]; // this is a hack to clear the candidate plots
+		[self query]; // this is a hack to clear the candidate plots
 		[statusLabel setText:@"Database cleared"];
 	}
 }

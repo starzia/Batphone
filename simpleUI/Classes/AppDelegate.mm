@@ -149,10 +149,10 @@ using namespace std;
     [window addSubview:navBar];	
 			
 	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Matches"] autorelease];
-	UIBarButtonItem* queryButton = [[[UIBarButtonItem alloc] initWithTitle:@"Query" 
+	UIBarButtonItem* resetButton = [[[UIBarButtonItem alloc] initWithTitle:@"Reset" 
 								   style:UIBarButtonItemStylePlain target:matchViewController 
-								   action:@selector(queryButtonHandler)] autorelease];
-	[matchesItem setLeftBarButtonItem:queryButton animated:YES];	
+								   action:@selector(clearButtonHandler)] autorelease];
+	[matchesItem setLeftBarButtonItem:resetButton animated:YES];	
 	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithTitle:@"New" 
 								 style:UIBarButtonItemStylePlain target:self 
 								 action:@selector(newButtonHandler)] autorelease];
