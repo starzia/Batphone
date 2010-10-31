@@ -11,7 +11,11 @@
 
 @interface LocationViewController : UIViewController {
 	AppDelegate *app;
+	NSString* room;
+	NSString* building;
 }
 @property (nonatomic, retain) AppDelegate* app;
+@property (nonatomic, retain) NSString* room;
+@property (nonatomic, retain) NSString* building;
 
 @end

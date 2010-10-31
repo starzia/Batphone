@@ -37,7 +37,7 @@ static const int numCandidates = 10;
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
-	self.view.backgroundColor = [UIColor clearColor]; // set striped BG
+	self.view.backgroundColor = [UIColor clearColor];
 		
 	// initialize and blank fingerprint
 	self.newFingerprint = new float[Fingerprinter::fpLength];
@@ -167,27 +167,22 @@ static const int numCandidates = 10;
 									   reuseIdentifier:kMatchCellID] autorelease];
 		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	}
+	DBEntry* entry = &matches[indexPath.row].entry;
 	cell.textLabel.text = [[[NSString alloc] 
-		initWithFormat:@"%@ : %@",matches[indexPath.row].entry.building,
-								  matches[indexPath.row].entry.room ] autorelease];
+		initWithFormat:@"%@ : %@",entry->building, entry->room ] autorelease];
 	cell.detailTextLabel.text = [[[NSString alloc]
-		initWithFormat:@"GPS: %f %f %f",
-					matches[indexPath.row].entry.location.latitude,
-					matches[indexPath.row].entry.location.longitude,
-					matches[indexPath.row].entry.location.altitude] autorelease];
+		initWithFormat:@"GPS: %f %f %f", entry->location.latitude,
+			entry->location.longitude, entry->location.altitude] autorelease];
     return cell;
 }
 
-/*
 // Delegate method invoked after the user selects a row. Selecting a row containing a location object
 // will navigate to a new view controller displaying details about that location.
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
-    CLLocation *location = [locationMeasurements objectAtIndex:indexPath.row];
-    self.locationDetailViewController.location = location;
-    [self.navigationController pushViewController:locationDetailViewController animated:YES];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+	DBEntry* entry = &matches[indexPath.row].entry;
+	[app showRoom:entry->room inBuilding:entry->building];
 }
- */
 
 
 #pragma mark -

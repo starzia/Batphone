@@ -28,7 +28,7 @@
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
         // Custom initialization
-		self.view.backgroundColor = [UIColor clearColor]; // set striped BG
+		self.view.backgroundColor = [UIColor clearColor];
 		
 		// create instruction label
 		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 200, 300.0f, 30.0f)] autorelease];

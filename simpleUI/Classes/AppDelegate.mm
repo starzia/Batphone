@@ -86,7 +86,7 @@ using namespace std;
 		  initWithNibName:@"NewViewController" bundle:[NSBundle mainBundle]];
 		self.newViewController = aNewViewController;
 		[aNewViewController release];
-		self.newViewController.app = self;
+		newViewController.app = self;
 	}
 	// set up navigation bar
 	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New Fingerprint"] autorelease];
@@ -97,6 +97,30 @@ using namespace std;
 	// swap views
 	[matchViewController.view removeFromSuperview];
 	[window addSubview:newViewController.view];
+	[window addSubview:navBar];
+	[navBar pushNavigationItem:newItem animated:YES];
+}
+
+// called after clicking a room in MatchViewController's matchTable
+-(void) showRoom:(NSString*)room inBuilding:(NSString*)building{
+	if( !locationViewController ){
+		// create view controller
+		LocationViewController *aLocationViewController = [[LocationViewController alloc]
+				initWithNibName:@"LocationViewController" bundle:[NSBundle mainBundle]];
+		self.locationViewController = aLocationViewController;
+		[aLocationViewController release];
+		locationViewController.app = self;
+		locationViewController.room = room;
+		locationViewController.building = building;
+	}
+	// set up navigation bar
+	NSString* title = [[NSString alloc] initWithFormat:@"%@ : %@",building,room];
+	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:title] autorelease];
+	[title release];
+
+	// swap views
+	[matchViewController.view removeFromSuperview];
+	[window addSubview:locationViewController.view];
 	[window addSubview:navBar];
 	[navBar pushNavigationItem:newItem animated:YES];
 }

@@ -47,6 +47,9 @@ using std::vector;
 // member functions
 -(void) printFingerprint: (Fingerprint) fingerprint;
 -(GPSLocation)getLocation; // return the current GPSLocation from locationManager
+
+// show details of a room
+-(void) showRoom:(NSString*)room inBuilding:(NSString*)building;
  
 @end
 
