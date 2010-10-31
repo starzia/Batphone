@@ -15,10 +15,14 @@
 @synthesize buildingField;
 @synthesize roomField;
 @synthesize roomPicker;
+@synthesize locationLabel;
 
 @synthesize buildingsCache;
 @synthesize roomsCache;
 @synthesize currentBuilding;
+
+#pragma mark -
+#pragma mark UIViewController inherited
 
 // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
@@ -26,8 +30,21 @@
         // Custom initialization
 		self.view.backgroundColor = [UIColor clearColor]; // set striped BG
 		
+		// create instruction label
+		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 200, 300.0f, 30.0f)] autorelease];
+		// Set the value of our string
+		[locationLabel setText:@"Describe your current location:"];
+		// Center Align the label's text
+		[locationLabel setTextAlignment:UITextAlignmentLeft];
+		locationLabel.textColor = [UIColor darkTextColor];
+		locationLabel.backgroundColor = [UIColor clearColor];
+		// set font
+		[locationLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
+		// Add the label to the window.
+		[self.view addSubview:locationLabel];
+		
 		// create buildingField
-		CGRect rect = CGRectMake(10 , 80, 150.0f, 30.0f);
+		CGRect rect = CGRectMake(10 , 230, 150.0f, 30.0f);
 		self.buildingField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[buildingField setPlaceholder:@"building's name"];
 		[buildingField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -37,9 +54,9 @@
 		[self.view addSubview:buildingField];
 		
 		// create roomField
-		rect = CGRectMake(160 , 80, 150.0f, 30.0f);
+		rect = CGRectMake(160 , 230, 150.0f, 30.0f);
 		self.roomField = [[[UITextField alloc] initWithFrame:rect] autorelease];
-		[roomField setPlaceholder:@"new room's name"];
+		[roomField setPlaceholder:@"room's name"];
 		[roomField setBorderStyle:UITextBorderStyleRoundedRect];
 		roomField.autocorrectionType = UITextAutocorrectionTypeNo;
 		roomField.clearButtonMode = UITextFieldViewModeWhileEditing;	// has a clear 'x'
@@ -47,6 +64,7 @@
 		[self.view addSubview:roomField];
 		
 		// create picker
+		currentBuilding = @"";
 		rect = CGRectMake( 0, 265, 300, 300 );
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
 		roomPicker.delegate = roomPicker.dataSource = self;
@@ -54,6 +72,16 @@
 		[self.view addSubview:roomPicker];
     }
     return self;
+}
+
+-(void) viewWillAppear:(BOOL)animated{
+	[super viewWillAppear:animated];
+	if( [currentBuilding isEqualToString:@""] ){
+		// by default set building picker to <new>
+		// Note that we call pickerView:numberOfRowsInComponent: to build buildingCache
+		[roomPicker selectRow:[self pickerView:roomPicker numberOfRowsInComponent:0]-1
+				  inComponent:0 animated:NO];
+	}
 }
 
 /*
@@ -71,35 +99,44 @@
 }
 */
 
+#pragma mark -
+#pragma mark button event handling
+
 /* called by button */
--(void) saveButtonHandler{
-	// build name
-	NSString* newBuilding;
-	if( self.buildingField.text.length > 0 ){
-		newBuilding = [[NSString alloc] initWithString:self.buildingField.text]; 
+-(bool) saveButtonHandler{
+	if( self.buildingField.text.length > 0  && self.roomField.text.length > 0 ){
+		// build name
+		NSString* newBuilding = [[NSString alloc] initWithString:self.buildingField.text]; 
+		NSString* newRoom = [[NSString alloc] initWithString:self.roomField.text];
+		currentBuilding = newBuilding;
+		
+		// get new fingerprint
+		Fingerprint newFP = new float[Fingerprinter::fpLength];
+		app.fp->getFingerprint( newFP );
+		// add to database
+		UInt32 uid = app.database->insertFingerprint(newFP, newBuilding, newRoom, [app getLocation] );
+		NSLog(@"room #%d: %@ %@ saved",uid,newBuilding,newRoom);
+		[newBuilding release];
+		[newRoom release];
+		delete [] newFP;
+		
+		// save the entire database, since it's changed
+		app.database->save();
+		
+		return true;
 	}else{
-		newBuilding = [[NSString alloc] initWithFormat:@"<unnamed>"];
+		// notify user that text fields cannot be left blank
+		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Name is missing" 
+														message:@"You must choose a building and room name before saving this Fingerprint.  You may choose from existing names or enter a new name." 
+													   delegate:nil 
+											  cancelButtonTitle:@"OK" 
+											  otherButtonTitles:nil];
+		[alert show];
+		[alert release];
+		return false;
 	}
-	NSString* newRoom;
-	if( self.roomField.text.length > 0 ){
-		newRoom = [[NSString alloc] initWithString:self.roomField.text]; 
-	}else{
-		newRoom = [[NSString alloc] initWithFormat:@"<unnamed>"];
-	}
-	
-	// get new fingerprint
-	Fingerprint newFP = new float[Fingerprinter::fpLength];
-	app.fp->getFingerprint( newFP );
-	// add to database
-	UInt32 uid = app.database->insertFingerprint(newFP, newBuilding, newRoom, [app getLocation] );
-	NSLog(@"room #%d: %@ %@ saved",uid,newBuilding,newRoom);
-	[newBuilding release];
-	[newRoom release];
-	delete [] newFP;
-	
-	// save the entire database, since it's changed
-	app.database->save();
 }
+
 
 #pragma mark -
 #pragma mark UITextFieldDelegate
@@ -112,11 +149,13 @@
 }
 
 - (void)textFieldDidBeginEditing:(UITextField *)textField {
-	// if user is editing field, then set picker to "custom" row
-	if( textField == roomField ){
+	// if user is editing field, then set picker to <new> row
+	if( textField == buildingField ){
+		[roomPicker selectRow:buildingsCache.size() inComponent:0 animated:NO];
+		[self pickerView:roomPicker didSelectRow:buildingsCache.size() inComponent:0];
+	}else{
 		[roomPicker selectRow:roomsCache.size() inComponent:1 animated:NO];
-	}else if( textField == buildingField ){
-		[roomPicker selectRow:buildingsCache.size() inComponent:0 animated:NO];		
+		[self pickerView:roomPicker didSelectRow:roomsCache.size() inComponent:1];
 	}
 }
 
@@ -137,8 +176,8 @@
 		}
 		[pickerView reloadComponent:1]; // reload room names
 		[buildingField setText:currentBuilding];
-		[pickerView selectRow:0 inComponent:1 animated:NO]; // reset picker placement
-		[self pickerView:roomPicker didSelectRow:0 inComponent:1];
+		[pickerView selectRow:roomsCache.size() inComponent:1 animated:NO]; // reset room picker
+		[self pickerView:roomPicker didSelectRow:roomsCache.size() inComponent:1];
 	}else if( component == 1){
 		if ( row == roomsCache.size() ){
 			// if <new> was selected, clear the textfield
@@ -157,13 +196,13 @@
 		if( row < buildingsCache.size() ){
 			return buildingsCache[row];
 		}else{
-			return @"<new>";
+			return @""; //@"<new>";
 		}
 	}else{
 		if( row < roomsCache.size() ){
 			return roomsCache[row];
 		}else{
-			return @"<new>";
+			return @""; //@"<new>";
 		}
 	}
 }
@@ -181,7 +220,7 @@ numberOfRowsInComponent:(NSInteger)component{
 		// reload list of buildings
 		buildingsCache.clear();
 		app.database->getAllBuildings( buildingsCache );
-		if( currentBuilding == nil ) currentBuilding = buildingsCache[0]; // default picker placement
+		
 		return buildingsCache.size()+1; // plus one for "custom" row
 	}else{
 		// reload list of rooms

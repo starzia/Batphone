@@ -98,15 +98,18 @@ using namespace std;
 	[matchViewController.view removeFromSuperview];
 	[window addSubview:newViewController.view];
 	[window addSubview:navBar];
-	[newViewController.roomPicker reloadAllComponents]; // update picker to reflect possible new rooms
 	[navBar pushNavigationItem:newItem animated:YES];
 }
 
 -(void) saveButtonHandler{
 	// pass message on to view controller
-	[newViewController saveButtonHandler];
-	// pop view off stack
-	[navBar popNavigationItemAnimated:YES];
+	if( [newViewController saveButtonHandler] ){
+		// if save was successful
+		// update picker to reflect possible new rooms
+		[newViewController.roomPicker reloadAllComponents];
+		// pop view off stack
+		[navBar popNavigationItemAnimated:YES];
+	}
 }
 
 #pragma mark -

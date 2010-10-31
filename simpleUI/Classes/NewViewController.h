@@ -14,7 +14,7 @@
 	UITextField *buildingField;
 	UITextField *roomField;
 	UIPickerView *roomPicker;
-	
+	UILabel *locationLabel;
 	AppDelegate *app;
 	
 	// picker state
@@ -27,12 +27,13 @@
 @property (nonatomic, retain) UITextField *buildingField;
 @property (nonatomic, retain) UITextField *roomField;
 @property (nonatomic, retain) UIPickerView *roomPicker;
+@property (nonatomic, retain) UILabel *locationLabel;
 
 @property (nonatomic) vector<NSString*> buildingsCache;
 @property (nonatomic) vector<NSString*> roomsCache;
 @property (nonatomic, retain) NSString* currentBuilding;
 
 
--(IBAction) saveButtonHandler;
+-(bool) saveButtonHandler;
 
 @end
