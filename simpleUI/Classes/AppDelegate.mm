@@ -148,7 +148,7 @@ using namespace std;
 	navBar.delegate = self;
     [window addSubview:navBar];	
 			
-	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Matches"] autorelease];
+	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Current"] autorelease];
 	UIBarButtonItem* resetButton = [[[UIBarButtonItem alloc] initWithTitle:@"Reset" 
 								   style:UIBarButtonItemStylePlain target:matchViewController 
 								   action:@selector(clearButtonHandler)] autorelease];

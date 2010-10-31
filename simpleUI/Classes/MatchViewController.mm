@@ -8,21 +8,18 @@
 
 #import "MatchViewController.h"
 
-
 @implementation MatchViewController
 
 @synthesize app;
-@synthesize statusLabel;
 @synthesize plot;
-@synthesize candidatePlots;
-@synthesize candidates;
 @synthesize plotTimer;
 @synthesize queryTimer;
 @synthesize newFingerprint;
 @synthesize matchTable;
+@synthesize matches;
 
 // CONSTANTS
-static const int numCandidates = 3;
+static const int numCandidates = 10;
 
 #pragma mark -
 #pragma mark UIViewController inherited
@@ -41,30 +38,8 @@ static const int numCandidates = 3;
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
 	self.view.backgroundColor = [UIColor clearColor]; // set striped BG
-	
-	// Create text label.
-	CGFloat x = 320/2 - 300/2; // screen width / 2 - label width / 2
-	CGRect labelRect = CGRectMake(x , 80, 300.0f, 45.0f);
-	self.statusLabel = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
-	// Set the value of our string
-	[statusLabel setText:@"Fingerprinter is running..."];
-	// Center Align the label's text
-	[statusLabel setTextAlignment:UITextAlignmentCenter];
-	statusLabel.textColor = [UIColor darkTextColor];
-	statusLabel.backgroundColor = [UIColor clearColor];
-	// set font
-	[statusLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
-	// Add the label to the window.
-	[self.view addSubview:statusLabel];
-	
-	// initialize and blank fingerprints
-	self.candidates = new float*[numCandidates];
-	for( int i=0; i<numCandidates; i++ ){
-		self.candidates[i] = new float[Fingerprinter::fpLength];
-		for (int j=0; j<Fingerprinter::fpLength; ++j){
-			self.candidates[i][j] = 0;
-		}
-	}
+		
+	// initialize and blank fingerprint
 	self.newFingerprint = new float[Fingerprinter::fpLength];
 	for (int i=0; i<Fingerprinter::fpLength; ++i){
 		// blank fingerprint
@@ -72,26 +47,13 @@ static const int numCandidates = 3;
 	}
 	
 	// Add plot to window
-	CGRect rect = CGRectMake(0, 150, 320.0f, 100.0f);
+	CGRect rect = CGRectMake(0, 80, 320.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[self.view addSubview:plot];
 	
-	// Add candidate plots to window
-	rect = CGRectMake(0, 250, 320.0f, 100.0f);
-	self.candidatePlots = new vector<plotView*>();
-	for( int i=0; i<numCandidates; i++ ){
-		plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:rect];
-		self.candidatePlots->push_back( thisCandidatePlot );
-		// assign the appropriate data vector to each plot
-		[thisCandidatePlot setVector:candidates[i] length: Fingerprinter::fpLength];
-		// change color of candidates line (from default of black = {0,0,0}
-		thisCandidatePlot.lineColor[i%numCandidates] = 1; // set either R, G, or B to 1.0
-		[self.view addSubview:thisCandidatePlot];
-	}
-	
 	// create matchTable
-	rect = CGRectMake( 0, 265, 320, 215 );
+	rect = CGRectMake( 0, 210, 320, 270 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = matchTable.dataSource = self;
@@ -141,38 +103,11 @@ static const int numCandidates = 3;
 
 -(void) query{
 	// query for matches
-	QueryResult result;
-	unsigned int numMatches = app.database->queryMatches( result, self.newFingerprint, 
-														  numCandidates, [app getLocation] );
-	
-	// update status display
-	NSMutableString* ss = [[NSMutableString alloc] initWithFormat:@"%d matches: ",numMatches];
-	if( numMatches >= 1 ){
-		[ss appendFormat:@"%@ %@",result[0].entry.building,result[0].entry.room];
-	}
-	if( numMatches >= 2 ){
-		[ss appendFormat:@" / %@ %@",result[1].entry.building,result[1].entry.room];
-	}
-	if( numMatches >= 3 ){
-		[ss appendFormat:@" / %@ %@",result[2].entry.building,result[2].entry.room];
-	}
-    [statusLabel setText:ss];
-	[ss release];
-	
-	// update candidate line plots
-	for( int i=0; i<numCandidates; ++i ){
-		plotView* candidatePlot = (*self.candidatePlots)[i];
-		if( i<numMatches ){
-			// plot this candidate
-			memcpy( self.candidates[i], result[i].entry.fingerprint, sizeof(float)*Fingerprinter::fpLength);
-		}else{
-			// blank out this plot slot
-			for (int j=0; j<Fingerprinter::fpLength; ++j){
-				self.candidates[i][j] = 0;
-			}
-		}
-		[candidatePlot setNeedsDisplay];
-	}
+	matches.clear(); // clear previous results
+	app.database->queryMatches( matches, self.newFingerprint, 
+								numCandidates, [app getLocation] );
+	// update table
+	[matchTable reloadData];
 }
 
 
@@ -204,7 +139,6 @@ static const int numCandidates = 3;
 	if( buttonIndex == 1 ){
 		app.database->clear();
 		[self query]; // this is a hack to clear the candidate plots
-		[statusLabel setText:@"Database cleared"];
 	}
 }
 
@@ -217,11 +151,11 @@ static const int numCandidates = 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	return @"Room matches";
+	return @"Room fingerprint matches";
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
-	return numCandidates;
+	return matches.size();
 }
 
 - (UITableViewCell *)tableView:(UITableView *)table cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -233,8 +167,14 @@ static const int numCandidates = 3;
 									   reuseIdentifier:kMatchCellID] autorelease];
 		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	}
-	cell.textLabel.text = @"some match";
-	cell.detailTextLabel.text = @"some timestamp or coordinates";
+	cell.textLabel.text = [[[NSString alloc] 
+		initWithFormat:@"%@ : %@",matches[indexPath.row].entry.building,
+								  matches[indexPath.row].entry.room ] autorelease];
+	cell.detailTextLabel.text = [[[NSString alloc]
+		initWithFormat:@"GPS: %f %f %f",
+					matches[indexPath.row].entry.location.latitude,
+					matches[indexPath.row].entry.location.longitude,
+					matches[indexPath.row].entry.location.altitude] autorelease];
     return cell;
 }
 
@@ -268,17 +208,10 @@ static const int numCandidates = 3;
 
 
 - (void)dealloc {
-	[statusLabel release];
 	[plot release];
 	[plotTimer release];
-	for( int i=0; i<numCandidates; i++ ){
-		delete[] candidates[i];
-		delete (*candidatePlots)[i];
-	}
-	delete[] candidates;
 	delete[] newFingerprint;
-	delete candidatePlots;	
-	
+	[matchTable release];
     [super dealloc];
 }
 
