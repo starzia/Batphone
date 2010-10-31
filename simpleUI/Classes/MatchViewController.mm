@@ -19,6 +19,7 @@
 @synthesize plotTimer;
 @synthesize queryTimer;
 @synthesize newFingerprint;
+@synthesize matchTable;
 
 // CONSTANTS
 static const int numCandidates = 3;
@@ -71,16 +72,16 @@ static const int numCandidates = 3;
 	}
 	
 	// Add plot to window
-	CGRect plotRect = CGRectMake(0, 150, 320.0f, 100.0f);
-	self.plot = [[[plotView alloc] initWith_Frame:plotRect] autorelease];
+	CGRect rect = CGRectMake(0, 150, 320.0f, 100.0f);
+	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	[self.view addSubview:plot];
 	
 	// Add candidate plots to window
-	plotRect = CGRectMake(0, 250, 320.0f, 100.0f);
+	rect = CGRectMake(0, 250, 320.0f, 100.0f);
 	self.candidatePlots = new vector<plotView*>();
 	for( int i=0; i<numCandidates; i++ ){
-		plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:plotRect];
+		plotView* thisCandidatePlot = [[plotView alloc] initWith_Frame:rect];
 		self.candidatePlots->push_back( thisCandidatePlot );
 		// assign the appropriate data vector to each plot
 		[thisCandidatePlot setVector:candidates[i] length: Fingerprinter::fpLength];
@@ -88,6 +89,13 @@ static const int numCandidates = 3;
 		thisCandidatePlot.lineColor[i%numCandidates] = 1; // set either R, G, or B to 1.0
 		[self.view addSubview:thisCandidatePlot];
 	}
+	
+	// create matchTable
+	rect = CGRectMake( 0, 265, 320, 215 );
+	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
+	matchTable.backgroundColor = [UIColor clearColor];
+	matchTable.delegate = matchTable.dataSource = self;
+	[self.view addSubview:matchTable];
 	
 	// create timer to update the plot
 	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
@@ -103,6 +111,16 @@ static const int numCandidates = 3;
 													 repeats:YES];
     [super viewDidLoad];
 }
+
+
+/*
+ // Override to allow orientations other than the default portrait orientation.
+ - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+ // Return YES for supported orientations
+ return (interfaceOrientation == UIInterfaceOrientationPortrait);
+ }
+ */
+
 
 /*
  NOTE we don't actually disable timers.  This means that as long as the app
@@ -190,13 +208,47 @@ static const int numCandidates = 3;
 	}
 }
 
-/*
-// Override to allow orientations other than the default portrait orientation.
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    // Return YES for supported orientations
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
+
+#pragma mark -
+#pragma mark TableView DataSource/Delegate
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)table {
+    return 1;
 }
-*/
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+	return @"Room matches";
+}
+
+- (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
+	return numCandidates;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)table cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    // The cells for the location rows use the cell style "UITableViewCellStyleSubtitle", which has a left-aligned label across the top and a left-aligned label below it in smaller gray text. The text label shows the coordinates for the location and the detail text label shows its timestamp.
+	static NSString * const kMatchCellID = @"MatchCellID";
+	UITableViewCell *cell = [table dequeueReusableCellWithIdentifier:kMatchCellID];
+	if (cell == nil) {
+		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle 
+									   reuseIdentifier:kMatchCellID] autorelease];
+		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+	}
+	cell.textLabel.text = @"some match";
+	cell.detailTextLabel.text = @"some timestamp or coordinates";
+    return cell;
+}
+
+/*
+// Delegate method invoked after the user selects a row. Selecting a row containing a location object
+// will navigate to a new view controller displaying details about that location.
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+    CLLocation *location = [locationMeasurements objectAtIndex:indexPath.row];
+    self.locationDetailViewController.location = location;
+    [self.navigationController pushViewController:locationDetailViewController animated:YES];
+}
+ */
+
 
 #pragma mark -
 #pragma mark memory management

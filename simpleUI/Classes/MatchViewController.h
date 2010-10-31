@@ -13,7 +13,8 @@
 using std::vector;
 
 
-@interface MatchViewController : UIViewController <UIAlertViewDelegate>{
+@interface MatchViewController : UIViewController 
+<UIAlertViewDelegate, UITableViewDelegate, UITableViewDataSource>{
 	AppDelegate *app;
 	UILabel  *statusLabel;
 	plotView *plot;            // live fingerprint plot
@@ -22,6 +23,7 @@ using std::vector;
 	Fingerprint newFingerprint;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	NSTimer  *queryTimer; // periodic timer to query the DB for matches
+	UITableView *matchTable; // table of DB matches
 }
 
 @property (nonatomic, retain) AppDelegate* app;
@@ -32,6 +34,7 @@ using std::vector;
 @property Fingerprint newFingerprint;
 @property (nonatomic, retain) NSTimer  *plotTimer; // periodic timer to update the plot
 @property (nonatomic, retain) NSTimer  *queryTimer; // periodic timer to update the plot
+@property (nonatomic, retain) UITableView *matchTable;
 
 -(void) clearButtonHandler;
 -(void) query;
