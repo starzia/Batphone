@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 #import "plotView.h"
+#import <MapKit/MapKit.h>
 
 @interface LocationViewController : UIViewController {
 	AppDelegate *app;
@@ -19,6 +20,7 @@
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	int plotIndex; // index in fingerprints of currently-displayed plot
 	UILabel *label;
+	MKMapView *map;
 }
 @property (nonatomic, retain) AppDelegate* app;
 @property (nonatomic, retain) NSString* room;
@@ -28,6 +30,7 @@
 @property (nonatomic, retain) NSTimer  *plotTimer;
 @property (nonatomic) int plotIndex;
 @property (nonatomic, retain) UILabel* label;
+@property (nonatomic, retain) MKMapView *map;
 
 // custom initializer
 - (id)initWithApp:(AppDelegate *)app 
@@ -35,5 +38,6 @@
 			 room:(NSString*)room;
 // timer handler
 -(void)updatePlot;
+-(void)zoomToFitMapAnnotations:(MKMapView*)mapView;
 
 @end
