@@ -70,7 +70,11 @@ using namespace std;
 -(void) navigationBar:(UINavigationBar*) theNavBar
 		   didPopItem:(UINavigationItem*) theItem{
 	// swap views
+	
+	// just remove them both, since we're not sure which is present
 	[newViewController.view removeFromSuperview];
+	[locationViewController.view removeFromSuperview];
+	
 	[window addSubview:matchViewController.view];
 	[window addSubview:navBar];	
 }
@@ -83,10 +87,9 @@ using namespace std;
 	if( !newViewController ){
 		// create view controller
 		NewViewController *aNewViewController = [[NewViewController alloc]
-		  initWithNibName:@"NewViewController" bundle:[NSBundle mainBundle]];
+												 initWithApp:self];
 		self.newViewController = aNewViewController;
 		[aNewViewController release];
-		newViewController.app = self;
 	}
 	// set up navigation bar
 	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New Fingerprint"] autorelease];
@@ -106,12 +109,9 @@ using namespace std;
 	if( !locationViewController ){
 		// create view controller
 		LocationViewController *aLocationViewController = [[LocationViewController alloc]
-				initWithNibName:@"LocationViewController" bundle:[NSBundle mainBundle]];
+							   initWithApp:self building:building room:room];
 		self.locationViewController = aLocationViewController;
 		[aLocationViewController release];
-		locationViewController.app = self;
-		locationViewController.room = room;
-		locationViewController.building = building;
 	}
 	// set up navigation bar
 	NSString* title = [[NSString alloc] initWithFormat:@"%@ : %@",building,room];
@@ -158,10 +158,9 @@ using namespace std;
 		
 	// initialize the first view controller
 	MatchViewController *aMatchViewController = [[MatchViewController alloc]
-												 initWithNibName:@"MatchViewController" bundle:[NSBundle mainBundle]];
+												 initWithApp:self];
 	self.matchViewController = aMatchViewController;
 	[aMatchViewController release];
-	self.matchViewController.app = self;
 
 	// set as foreground
 	[window addSubview:matchViewController.view];	
@@ -181,7 +180,7 @@ using namespace std;
 								 style:UIBarButtonItemStylePlain target:self 
 								 action:@selector(newButtonHandler)] autorelease];
 	[matchesItem setRightBarButtonItem:newButton animated:YES];	
-	[navBar pushNavigationItem:matchesItem animated:YES];	
+	[navBar pushNavigationItem:matchesItem animated:NO];	
 	
 	// update view
     [window makeKeyAndVisible];

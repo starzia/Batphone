@@ -29,8 +29,8 @@ using std::vector;
 	LocationViewController *locationViewController;
 
 	Fingerprinter* fp;
-	FingerprintDB* database;
 	CLLocationManager *locationManager; 	// data for SkyHook/GPS localization
+	FingerprintDB* database;
 }
 
 // accessors

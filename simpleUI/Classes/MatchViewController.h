@@ -32,6 +32,9 @@ using std::vector;
 @property (nonatomic, retain) UITableView *matchTable;
 @property (nonatomic) QueryResult matches;
 
+// custom initializer
+- (id)initWithApp:(AppDelegate *)theApp;
+
 -(void) clearButtonHandler;
 -(void) query;
 -(void) updatePlot;

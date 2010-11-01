@@ -53,23 +53,28 @@ public:
 	 * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
 	unsigned int queryMatches( QueryResult & result, /* the output */
 							   const float observation[],  /* observed Fingerprint we want to match */
-							   unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-							   GPSLocation location=NULL_GPS ); /* optional estimate of the current GPS location */
+							   const unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+							   const GPSLocation location=NULL_GPS ); /* optional estimate of the current GPS location */
 							  		
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
-								    NSString* building,  /* name of building */
-								    NSString* room,      /* name for the new room */
-								    GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
+								    const NSString* building,  /* name of building */
+								    const NSString* room,      /* name for the new room */
+								    const GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
 	
 	/* Query the DB for a list of names of all buildings.  Names are pushed onto result */
 	bool getAllBuildings( vector<NSString*> & result );
 
 	/* Query the DB for a list of names of all rooms in a certain building.  Names are pushed onto result. */
 	bool getRoomsInBuilding( vector<NSString*> & result, /* output */
-							 NSString* building);        /* input */
+							 const NSString* building);        /* input */
 
+	/* Query the DB for all fingerprints from a certain room. */
+	bool getEntriesFrom( vector<DBEntry> & result, /* the output */
+						 const NSString* building,
+						 const NSString* room );
+	
 	/* Save database to a file */
 	bool save();
 	

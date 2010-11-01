@@ -76,9 +76,9 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 
 
 unsigned int FingerprintDB::insertFingerprint( const float observation[],
-											   NSString* newBuilding,
-											   NSString* newRoom,
-											   GPSLocation location){
+											   const NSString* newBuilding,
+											   const NSString* newRoom,
+											   const GPSLocation location){
 	// create new DB entry
 	DBEntry newEntry;
 	NSDate *now = [NSDate date];
@@ -225,7 +225,7 @@ void FingerprintDB::clear(){
 }
 
 
-bool FingerprintDB::getAllBuildings( vector<NSString*> & result ){
+bool FingerprintDB::getAllBuildings(vector<NSString*> & result ){
 	bool ret = false;
 	// TODO: keep a persistent list of buildings so we don't have to do this every time.
 	for( int i=0; i<entries.size(); i++ ){
@@ -244,8 +244,8 @@ bool FingerprintDB::getAllBuildings( vector<NSString*> & result ){
 	return ret;
 }
 
-bool FingerprintDB::getRoomsInBuilding( vector<NSString*> & result, /* output */
-									   NSString* building){        /* input */
+bool FingerprintDB::getRoomsInBuilding(vector<NSString*> & result, /* output */
+									   const NSString* building){        /* input */
 	bool ret = false;
 	for( int i=0; i<entries.size(); i++ ){
 		if( [entries[i].building isEqualToString:building] ){
@@ -263,4 +263,18 @@ bool FingerprintDB::getRoomsInBuilding( vector<NSString*> & result, /* output */
 		}
 	}
 	return ret;
+}
+
+bool FingerprintDB::getEntriesFrom(vector<DBEntry> & result, /* the output */
+								   const NSString* building,
+								   const NSString* room ){
+	bool success = false;
+	for( int i=0; i<entries.size(); i++ ){
+		if( [entries[i].building isEqualToString:building] && 
+		    [entries[i].room isEqualToString:room] ){
+			result.push_back( entries[i] );
+			success = true;
+		}
+	}
+	return success;
 }

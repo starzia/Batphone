@@ -33,6 +33,8 @@
 @property (nonatomic) vector<NSString*> roomsCache;
 @property (nonatomic, retain) NSString* currentBuilding;
 
+// custom initializer
+- (id)initWithApp:(AppDelegate *)theApp;
 
 -(bool) saveButtonHandler;
 

@@ -24,9 +24,9 @@
 #pragma mark -
 #pragma mark UIViewController inherited
 
-// The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
-    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
+- (id)initWithApp:(AppDelegate *)theApp {
+	self.app = theApp;
+	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
 		self.view.backgroundColor = [UIColor clearColor];
 		
@@ -160,7 +160,7 @@
 }
 
 #pragma mark -
-#pragma mark UIPickerViewDelegate
+#pragma mark UIPickerView Delegate
 
 - (void)pickerView:(UIPickerView *)pickerView 
 	  didSelectRow:(NSInteger)row 
@@ -207,7 +207,6 @@
 	}
 }
 
-#pragma mark -
 #pragma mark UIPickerViewDataSource
 
 - (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView{

@@ -34,6 +34,13 @@ static const int numCandidates = 10;
 }
  */
 
+- (id)initWithApp:(AppDelegate *)theApp{
+	if ((self = [super initWithNibName:nil bundle:nil])) {
+        // Custom initialization
+		self.app = theApp;
+    }
+    return self;
+}
 
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
@@ -50,6 +57,10 @@ static const int numCandidates = 10;
 	CGRect rect = CGRectMake(0, 80, 320.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
+	// make line red
+	self.plot.lineColor[0] = 1;
+	self.plot.lineColor[1] = 0;
+	self.plot.lineColor[2] = 0;
 	[self.view addSubview:plot];
 	
 	// create matchTable
