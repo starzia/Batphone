@@ -112,7 +112,11 @@ using namespace std;
 							   initWithApp:self building:building room:room];
 		self.locationViewController = aLocationViewController;
 		[aLocationViewController release];
+	}else{
+		// reset room data
+		[self.locationViewController resetWithBuilding:building room:room];
 	}
+
 	// set up navigation bar
 	NSString* title = [[NSString alloc] initWithFormat:@"%@ : %@",building,room];
 	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:title] autorelease];

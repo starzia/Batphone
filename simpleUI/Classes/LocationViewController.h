@@ -36,6 +36,8 @@
 - (id)initWithApp:(AppDelegate *)app 
 		 building:(NSString*)building
 			 room:(NSString*)room;
+-(void)resetWithBuilding:(NSString*)building
+					room:(NSString*)room;
 // timer handler
 -(void)updatePlot;
 -(void)zoomToFitMapAnnotations:(MKMapView*)mapView;

@@ -34,9 +34,6 @@
 		self.room = theRoom;
 		self.plotIndex = 0;
 		
-		// load room's fingerprints from database
-		app.database->getEntriesFrom( fingerprints, self.building, self.room );
-
 		// set up view
 		self.view.backgroundColor = [UIColor clearColor];
 		
@@ -49,39 +46,57 @@
 		[label setFont:[UIFont fontWithName:@"Arial" size:10]];
 		[self.view addSubview:label];	
 		
-		if( fingerprints.size() > 0 ){
-			// Add plot to window
-			CGRect rect = CGRectMake(0, 80, 320.0f, 100.0f);
-			self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
-			[self updatePlot];
-			[self.view addSubview:plot];
+		// Add plot to window
+		CGRect rect = CGRectMake(0, 80, 320.0f, 100.0f);
+		self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
+		[self.view addSubview:plot];
 		
-			// create timer to update the plot
-			self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:1
-															  target:self
-															selector:@selector(updatePlot)
-															userInfo:nil
-															 repeats:YES];
-		}
-		
+		// create timer to update the plot
+		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:1
+														  target:self
+														selector:@selector(updatePlot)
+														userInfo:nil
+														 repeats:YES];
 		// Add map
 		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,240,320,240)] autorelease];
+		map.scrollEnabled = NO;
 		[self.view addSubview:map];
-
-		// annotate map
-		for( int i=0; i<fingerprints.size(); i++ ){
-			MKPointAnnotation *mPlacemark = [[MKPointAnnotation alloc] init];
-			CLLocationCoordinate2D coord;
-			coord.latitude = fingerprints[i].location.latitude;
-			coord.longitude = fingerprints[i].location.longitude;
-			mPlacemark.coordinate = coord;
-			[map addAnnotation:mPlacemark];
-			[mPlacemark release];
-		}
-		[self zoomToFitMapAnnotations:map];
 		
+		// load room data
+		[self resetWithBuilding:building room:room];
 	}
     return self;
+}
+
+
+-(void)resetWithBuilding:(NSString*)theBuilding
+					room:(NSString*)theRoom{
+	self.building = theBuilding;
+	self.room = theRoom;
+	
+	fingerprints.clear();
+	// load room's fingerprints from database
+	app.database->getEntriesFrom( fingerprints, self.building, self.room );
+
+	if( fingerprints.size() <= 0 ){
+		NSLog(@"ERROR: somehow viewing empty room");
+	}
+	// update plot
+	[self updatePlot];
+	
+	[map removeAnnotations:map.annotations];
+	// annotate map
+	for( int i=0; i<fingerprints.size(); i++ ){
+		MKPointAnnotation *mPlacemark = [[MKPointAnnotation alloc] init];
+		CLLocationCoordinate2D coord;
+		coord.latitude = fingerprints[i].location.latitude;
+		coord.longitude = fingerprints[i].location.longitude;
+		mPlacemark.coordinate = coord;
+		[map addAnnotation:mPlacemark];
+		[mPlacemark release];
+	}
+	[self zoomToFitMapAnnotations:map];
+	
 }
 
 // from http://codisllc.com/blog/zoom-mkmapview-to-fit-annotations/
