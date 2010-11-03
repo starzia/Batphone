@@ -167,15 +167,23 @@ bool FingerprintDB::save(){
 
 bool FingerprintDB::load(){
 	// test that DB file exists
-	if( ![[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
-		return false;
+	NSString* DBFilename;
+	if( [[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
+		DBFilename = [this->getDBFilename() retain];
+	}else{
+		// if there is no database.txt in the documents folder, then load the 
+		// default database from the resources bundle
+		DBFilename = [[[NSBundle mainBundle] pathForResource:@"database" 
+													  ofType:@"txt"] retain];
 	}
 	
 	// read contents of file
-	NSString *content = [[NSString alloc] initWithContentsOfFile:this->getDBFilename()
+	NSString *content = [[NSString alloc] initWithContentsOfFile:DBFilename
 													usedEncoding:nil
 														   error:nil];
-    NSLog(@"LOADED:\n%@\n", content);
+	[DBFilename release];
+	
+    ///NSLog(@"LOADED:\n%@\n", content);
 	// fill DB with content
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){

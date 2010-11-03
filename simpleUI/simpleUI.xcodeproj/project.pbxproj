@@ -28,6 +28,7 @@
 		AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D6312639F36003C20EB /* Icon-72.png */; };
 		AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D691263A03E003C20EB /* Icon@2x.png */; };
 		AAC415D31254EFF0008DA27C /* plotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.mm */; };
+		AACB4B361281022E00E6F3EA /* database.txt in Resources */ = {isa = PBXBuildFile; fileRef = AACB4B351281022E00E6F3EA /* database.txt */; };
 		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
 		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
 		AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */; };
@@ -38,7 +39,7 @@
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		1D3623250D0F684500981E51 /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
-		1D6058910D05DD3D006BFB54 /* simpleUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = simpleUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D6058910D05DD3D006BFB54 /* Batphone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Batphone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		288765FC0DF74451002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
@@ -69,6 +70,7 @@
 		AAAF2D691263A03E003C20EB /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
 		AAC415D21254EFF0008DA27C /* plotView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = plotView.mm; sourceTree = "<group>"; };
+		AACB4B351281022E00E6F3EA /* database.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = database.txt; sourceTree = "<group>"; };
 		AAD14E85125C097A0066A446 /* Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Heap.cpp; path = ../Fingerprinter/Classes/Heap.cpp; sourceTree = SOURCE_ROOT; };
 		AAD14E86125C097A0066A446 /* Heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Heap.h; path = ../Fingerprinter/Classes/Heap.h; sourceTree = SOURCE_ROOT; };
 		AAD14E87125C097A0066A446 /* SlidingWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SlidingWindow.h; path = ../Fingerprinter/Classes/SlidingWindow.h; sourceTree = SOURCE_ROOT; };
@@ -118,7 +120,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1D6058910D05DD3D006BFB54 /* simpleUI.app */,
+				1D6058910D05DD3D006BFB54 /* Batphone.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -149,6 +151,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AACB4B351281022E00E6F3EA /* database.txt */,
 				AAAF2D691263A03E003C20EB /* Icon@2x.png */,
 				AAAF2D6312639F36003C20EB /* Icon-72.png */,
 				28AD733E0D9D9553002E5188 /* MainWindow.xib */,
@@ -207,9 +210,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1D6058900D05DD3D006BFB54 /* simpleUI */ = {
+		1D6058900D05DD3D006BFB54 /* Batphone */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "simpleUI" */;
+			buildConfigurationList = 1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "Batphone" */;
 			buildPhases = (
 				1D60588D0D05DD3D006BFB54 /* Resources */,
 				1D60588E0D05DD3D006BFB54 /* Sources */,
@@ -219,9 +222,9 @@
 			);
 			dependencies = (
 			);
-			name = simpleUI;
+			name = Batphone;
 			productName = simpleUI;
-			productReference = 1D6058910D05DD3D006BFB54 /* simpleUI.app */;
+			productReference = 1D6058910D05DD3D006BFB54 /* Batphone.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -246,7 +249,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1D6058900D05DD3D006BFB54 /* simpleUI */,
+				1D6058900D05DD3D006BFB54 /* Batphone */,
 			);
 		};
 /* End PBXProject section */
@@ -259,6 +262,7 @@
 				28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */,
 				AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */,
 				AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */,
+				AACB4B361281022E00E6F3EA /* database.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -299,7 +303,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = simpleUI_Prefix.pch;
 				INFOPLIST_FILE = "simpleUI-Info.plist";
-				PRODUCT_NAME = simpleUI;
+				PRODUCT_NAME = Batphone;
 			};
 			name = Debug;
 		};
@@ -311,7 +315,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = simpleUI_Prefix.pch;
 				INFOPLIST_FILE = "simpleUI-Info.plist";
-				PRODUCT_NAME = simpleUI;
+				PRODUCT_NAME = Batphone;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -346,7 +350,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "simpleUI" */ = {
+		1D6058960D05DD3E006BFB54 /* Build configuration list for PBXNativeTarget "Batphone" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1D6058940D05DD3E006BFB54 /* Debug */,

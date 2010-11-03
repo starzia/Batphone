@@ -55,7 +55,7 @@ using namespace std;
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation 
 {
-    NSLog(@"Location: %@", [newLocation description]);
+    //NSLog(@"Location: %@", [newLocation description]);
 }
 
 - (void)locationManager:(CLLocationManager *)manager

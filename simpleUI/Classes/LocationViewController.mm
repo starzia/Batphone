@@ -60,6 +60,8 @@
 		// Add map
 		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,240,320,240)] autorelease];
 		map.scrollEnabled = NO;
+		map.zoomEnabled = NO;
+		map.mapType = MKMapTypeHybrid;
 		[self.view addSubview:map];
 		
 		// load room data
@@ -126,6 +128,10 @@
     region.center.longitude = topLeftCoord.longitude + (bottomRightCoord.longitude - topLeftCoord.longitude) * 0.5;
     region.span.latitudeDelta = fabs(topLeftCoord.latitude - bottomRightCoord.latitude) * 1.1; // Add a little extra space on the sides
     region.span.longitudeDelta = fabs(bottomRightCoord.longitude - topLeftCoord.longitude) * 1.1; // Add a little extra space on the sides
+
+	// make sure it's not too zoomed in
+	region.span.latitudeDelta = fmax( region.span.latitudeDelta, 0.002 );
+	region.span.longitudeDelta = fmax( region.span.longitudeDelta, 0.002 );
 	
     region = [mapView regionThatFits:region];
     [mapView setRegion:region animated:YES];
