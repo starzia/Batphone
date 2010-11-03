@@ -55,7 +55,6 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 										  unsigned int numMatches,
 										  GPSLocation location ){
 	// TODO: range query using GPSLocation
-	unsigned int resultSize = min(numMatches, (unsigned int)entries.size() );
 	
 	// calculate distances to all entries in DB
 	pair<float,int>* distances = new pair<float,int>[entries.size()]; // first element of pair is distance, second is index
@@ -64,6 +63,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	}
 	// sort distances
 	sort(distances+0, distances+entries.size(), smaller_by_first );
+	int k=0;
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		// add only rooms which are not already represented in results
 		DBEntry* e = &entries[distances[i].second];
@@ -80,10 +80,13 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			m.entry = entries[distances[i].second];
 			m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
 			result.push_back( m );
+			if( ++k >= numMatches ){
+				return k;
+			}
 		}
 	}
 	delete distances;
-	return resultSize;
+	return k;
 }
 
 

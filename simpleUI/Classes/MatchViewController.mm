@@ -179,11 +179,16 @@ static const int numCandidates = 10;
 		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	}
 	DBEntry* entry = &matches[indexPath.row].entry;
+	// main label is the room name
 	cell.textLabel.text = [[[NSString alloc] 
 		initWithFormat:@"%@ : %@",entry->building, entry->room ] autorelease];
+	// secondary label is the estimated distance from current location
+	CLLocation* roomLoc = [[CLLocation alloc] initWithLatitude:entry->location.latitude
+													 longitude:entry->location.longitude];
+	double distance = [roomLoc distanceFromLocation:app.locationManager.location];
+	[roomLoc release];
 	cell.detailTextLabel.text = [[[NSString alloc]
-		initWithFormat:@"GPS: %f %f %f", entry->location.latitude,
-			entry->location.longitude, entry->location.altitude] autorelease];
+		initWithFormat:@"estimated distance: %.0f meters", distance] autorelease];
     return cell;
 }
 
