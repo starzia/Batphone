@@ -17,7 +17,7 @@ using std::vector;
 using std::pair;
 using std::make_pair;
 using std::min;
-using std::partial_sort;
+using std::sort;
 
 
 const NSString* DBFilename = @"db.txt";
@@ -62,13 +62,25 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		distances[i] = make_pair( distance( observation, entries[i].fingerprint ), i );
 	}
-	// sort distances (partial sort b/c we are interested only in first numMatches)
-	partial_sort(distances+0, distances+resultSize, distances+entries.size(), smaller_by_first );
-	for( unsigned int i=0; i<resultSize; ++i ){
-		Match m;
-		m.entry = entries[distances[i].second];
-		m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
-		result.push_back( m );
+	// sort distances
+	sort(distances+0, distances+entries.size(), smaller_by_first );
+	for( unsigned int i=0; i<entries.size(); ++i ){
+		// add only rooms which are not already represented in results
+		DBEntry* e = &entries[distances[i].second];
+		bool unique=true;
+		for( int j=0; j<result.size(); j++ ){
+			if( [result[j].entry.building isEqualToString:e->building] && 
+			    [result[j].entry.room isEqualToString:e->room] ){
+				unique=false;
+				break;
+			}
+		}
+		if(unique){
+			Match m;
+			m.entry = entries[distances[i].second];
+			m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
+			result.push_back( m );
+		}
 	}
 	delete distances;
 	return resultSize;
