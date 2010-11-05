@@ -57,7 +57,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	// TODO: range query using GPSLocation
 	
 	// calculate distances to all entries in DB
-	pair<float,int>* distances = new pair<float,int>[entries.size()]; // first element of pair is distance, second is index
+	pair<float,int> distances[entries.size()]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		distances[i] = make_pair( distance( observation, entries[i].fingerprint ), i );
 	}
@@ -85,7 +85,6 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			}
 		}
 	}
-	delete distances;
 	return k;
 }
 
