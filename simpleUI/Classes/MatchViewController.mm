@@ -17,6 +17,7 @@
 @synthesize newFingerprint;
 @synthesize matchTable;
 @synthesize matches;
+@synthesize alert;
 
 // CONSTANTS
 static const int numCandidates = 10;
@@ -82,6 +83,22 @@ static const int numCandidates = 10;
 													selector:@selector(query)
 													userInfo:nil
 													 repeats:YES];
+	// alert user that fingerprint is not yet ready
+	alert = [[UIAlertView alloc] initWithTitle:@"Please wait" 
+									   message:@"Ten seconds of audio is needed to build a room fingerprint." 
+									  delegate:nil 
+							 cancelButtonTitle:nil 
+							 otherButtonTitles:nil];
+	[alert show];
+	// add spinning activity indicator
+	UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]  
+										  initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];  
+	indicator.center = CGPointMake(alert.bounds.size.width / 2,   
+								   alert.bounds.size.height - 45);  
+	[indicator startAnimating];  
+	[alert addSubview:indicator];  
+	[indicator release];  
+	
     [super viewDidLoad];
 }
 
@@ -123,14 +140,14 @@ static const int numCandidates = 10;
 
 
 -(void)clearButtonHandler{
-	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
-													message:@"You are about to erase the entire room fingerprint database." 
-												   delegate:self 
-										  cancelButtonTitle:@"Cancel" 
-										  otherButtonTitles:nil];
-	[alert addButtonWithTitle:@"OK"];
-	[alert show];
-	[alert release];
+	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
+													  message:@"You are about to erase the entire room fingerprint database." 
+													 delegate:self 
+											cancelButtonTitle:@"Cancel" 
+											otherButtonTitles:nil];
+	[myAlert addButtonWithTitle:@"OK"];
+	[myAlert show];
+	[myAlert release];
 }
 
 /* called by timer */
@@ -139,6 +156,11 @@ static const int numCandidates = 10;
 	if( app.fp->getFingerprint( self.newFingerprint ) ){
 		// if successful, then redraw
 		[self.plot setNeedsDisplay];
+		
+		// if fingerprint is newly available, then dismiss alert
+		if( alert.visible && self.newFingerprint[0]>0 ){
+			[alert dismissWithClickedButtonIndex:0 animated:YES];
+		}
 	}
 }
 
@@ -223,6 +245,7 @@ static const int numCandidates = 10;
 	[plotTimer release];
 	delete[] newFingerprint;
 	[matchTable release];
+	[alert release];
     [super dealloc];
 }
 

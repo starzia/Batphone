@@ -22,6 +22,7 @@ using std::vector;
 	NSTimer  *queryTimer; // periodic timer to query the DB for matches
 	UITableView *matchTable; // table of DB matches
 	QueryResult matches;
+	UIAlertView *alert; // popup explaining that there is not enough data yet
 }
 
 @property (nonatomic, retain) AppDelegate* app;
@@ -31,6 +32,7 @@ using std::vector;
 @property (nonatomic, retain) NSTimer  *queryTimer; // periodic timer to update the plot
 @property (nonatomic, retain) UITableView *matchTable;
 @property (nonatomic) QueryResult matches;
+@property (nonatomic, retain) UIAlertView *alert;
 
 // custom initializer
 - (id)initWithApp:(AppDelegate *)theApp;
