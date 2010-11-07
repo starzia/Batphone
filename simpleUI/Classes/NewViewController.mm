@@ -120,9 +120,6 @@
 		[newRoom release];
 		delete [] newFP;
 		
-		// save the entire database, since it's changed
-		app.database->save();
-		
 		return true;
 	}else{
 		// notify user that text fields cannot be left blank

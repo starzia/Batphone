@@ -90,6 +90,8 @@ private:
 	void makeRandomFingerprint( float outBuf[] );
 	/* get filename for persistent storage */
 	NSString* getDBFilename();
+	/* appends a string description of the database entry, used for persistent storage */
+	void appendEntryString( NSMutableString* outputBuffer, const DBEntry & entry );
 	
 	unsigned int len; // length of the Fingerprint vectors
 	std::vector<DBEntry> entries;

@@ -13,6 +13,9 @@
 #import <algorithm> // for partial_sort
 #import <utility> // for pair
 
+#include <iostream>
+#include <fstream>
+
 using std::vector;
 using std::pair;
 using std::make_pair;
@@ -108,6 +111,23 @@ unsigned int FingerprintDB::insertFingerprint( const float observation[],
 	
 	// add it to the DB
 	entries.push_back( newEntry );
+	
+	// save new line in DB file
+	{
+		// prepare the entry string
+		NSMutableString *content = [[NSMutableString alloc] init];
+		appendEntryString( content, newEntry );
+		
+		// open database file for appending
+		NSString* DBFilename = [this->getDBFilename() retain];
+		std::ofstream dbFile;
+		dbFile.open([DBFilename UTF8String], std::ios::out | std::ios::app);
+		dbFile << [content UTF8String]; // append the new entry
+		dbFile.close();
+		[DBFilename release];
+		[content release];
+	}
+	
 	return newEntry.uid;
 }
 
@@ -145,27 +165,38 @@ NSString* FingerprintDB::getDBFilename(){
 }
 
 
+void FingerprintDB::appendEntryString( NSMutableString* outputBuffer, 
+									   const DBEntry & entry ){
+	[outputBuffer appendFormat:@"%d\t%lld\t", 
+	 entry.uid,
+	 entry.timestamp];
+	[outputBuffer appendFormat:@"%.7f\t%.7f\t%.7f\t", /* 7 digit decimals should give ~1cm precision */
+	 entry.location.latitude,
+	 entry.location.longitude,
+	 entry.location.altitude ];
+	[outputBuffer appendFormat:@"%@\t", entry.building ];
+	[outputBuffer appendFormat:@"%@", entry.room ];
+	// add each element of fingerprint
+	for( int j=0; j<len; j++ ){
+		// we don't want "nan" in the database file, so replace it with 0
+		if( entry.fingerprint[j] != entry.fingerprint[j] /* test for NaN */ ){
+			[outputBuffer appendFormat:@"\t0" ];
+		}else{
+			[outputBuffer appendFormat:@"\t%f", entry.fingerprint[j] ];
+		}
+	}
+	// newline at end
+	[outputBuffer appendString:@"\n"];	
+}
+
+
 bool FingerprintDB::save(){
 	// create content - four lines of text
 	NSMutableString *content = [[NSMutableString alloc] init];
 
 	// loop through DB entries, appending to string
 	for( int i=0; i<entries.size(); i++ ){
-		[content appendFormat:@"%d\t%lld\t", 
-		 entries[i].uid,
-		 entries[i].timestamp];
-		[content appendFormat:@"%.7f\t%.7f\t%.7f\t", /* 7 digit decimals should give ~1cm precision */
-		 entries[i].location.latitude,
-		 entries[i].location.longitude,
-		 entries[i].location.altitude ];
-		[content appendFormat:@"%@\t", entries[i].building ];
-		[content appendFormat:@"%@", entries[i].room ];
-		// add each element of fingerprint
-		for( int j=0; j<len; j++ ){
-			[content appendFormat:@"\t%f", entries[i].fingerprint[j] ];
-		}
-		// newline at end
-		[content appendString:@"\n"];
+		appendEntryString( content, entries[i] );
 	}
 	// save content to the file
 	[content writeToFile:this->getDBFilename() 
@@ -181,6 +212,7 @@ bool FingerprintDB::save(){
 
 bool FingerprintDB::load(){
 	// test that DB file exists
+	bool loadedDefault = false;
 	NSString* DBFilename;
 	if( [[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
 		DBFilename = [this->getDBFilename() retain];
@@ -189,6 +221,7 @@ bool FingerprintDB::load(){
 		// default database from the resources bundle
 		DBFilename = [[[NSBundle mainBundle] pathForResource:@"database" 
 													  ofType:@"txt"] retain];
+		loadedDefault = true;
 	}
 	
 	// read contents of file
@@ -225,8 +258,11 @@ bool FingerprintDB::load(){
 		entries.push_back( newEntry );
 		// update maxUID
 		if( theUid > this->maxUid ) this->maxUid = newEntry.uid;
-	}		
+	}
+    NSLog(@"loaded %d database entries", entries.size());
 	[content release];
+	// save entire database to file if we loaded the default DB from the app bundle
+	if( loadedDefault ) this->save();
 	return true;
 	// TODO file access error handling
 }
