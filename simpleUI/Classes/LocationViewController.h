@@ -40,6 +40,10 @@
 					room:(NSString*)room;
 // timer handler
 -(void)updatePlot;
--(void)zoomToFitMapAnnotations:(MKMapView*)mapView;
+// add placemark to map
++(void)annotateMap:(MKMapView*)map 
+		  location:(GPSLocation)location
+			 title:(NSString*)title; // title can be nil
++(void)zoomToFitMapAnnotations:(MKMapView*)mapView;
 
 @end

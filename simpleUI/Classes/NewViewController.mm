@@ -7,7 +7,7 @@
 //
 
 #import "NewViewController.h"
-
+#import "LocationViewController.h" // for map zoom
 
 @implementation NewViewController
 
@@ -21,6 +21,8 @@
 @synthesize roomsCache;
 @synthesize currentBuilding;
 
+@synthesize map;
+
 #pragma mark -
 #pragma mark UIViewController inherited
 
@@ -28,15 +30,15 @@
 	self.app = theApp;
 	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
-		self.view.backgroundColor = [UIColor clearColor];
+		self.view.backgroundColor = [UIColor blackColor];
 		
 		// create instruction label
-		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 180, 300.0f, 30.0f)] autorelease];
+		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 185, 300.0f, 30.0f)] autorelease];
 		// Set the value of our string
 		[locationLabel setText:@"Describe your current location:"];
 		// Center Align the label's text
 		[locationLabel setTextAlignment:UITextAlignmentLeft];
-		locationLabel.textColor = [UIColor darkTextColor];
+		locationLabel.textColor = [UIColor lightTextColor];
 		locationLabel.backgroundColor = [UIColor clearColor];
 		// set font
 		[locationLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
@@ -65,11 +67,24 @@
 		
 		// create picker
 		currentBuilding = @"";
-		rect = CGRectMake( 0, 245, 300, 280 );
+		rect = CGRectMake( 0, 245, 300, 215 );
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
 		roomPicker.delegate = roomPicker.dataSource = self;
 		roomPicker.showsSelectionIndicator = YES;
 		[self.view addSubview:roomPicker];
+		
+		// Add map
+		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,40,320,150)] autorelease];
+		map.scrollEnabled = NO;
+		map.zoomEnabled = NO;
+		map.mapType = MKMapTypeHybrid;
+		[self.view addSubview:map];
+		
+		// update map for current location
+		[LocationViewController annotateMap:map 
+								   location:[self.app getLocation]
+									  title:@"approximate GPS location"];
+		[LocationViewController zoomToFitMapAnnotations:map];
     }
     return self;
 }

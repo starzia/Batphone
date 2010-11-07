@@ -191,6 +191,9 @@ using namespace std;
 	
 	// start recording
 	self.fp->startRecording();
+
+	// disable shake-to-undo because user will be moving around a lot with this app
+	[UIApplication sharedApplication].applicationSupportsShakeToEdit = NO; 
 	
     return YES;
 }

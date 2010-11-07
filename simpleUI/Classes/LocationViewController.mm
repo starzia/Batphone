@@ -38,7 +38,7 @@
 		self.view.backgroundColor = [UIColor clearColor];
 		
 		// Add plot label
-		CGRect labelRect = CGRectMake(0 , 200, 320.0f, 20.0f);
+		CGRect labelRect = CGRectMake(0 , 150, 320.0f, 20.0f);
 		self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
 		[label setTextAlignment:UITextAlignmentCenter];
 		label.textColor = [UIColor darkTextColor];
@@ -47,7 +47,7 @@
 		[self.view addSubview:label];	
 		
 		// Add plot to window
-		CGRect rect = CGRectMake(0, 80, 320.0f, 100.0f);
+		CGRect rect = CGRectMake(0, 45, 320.0f, 100.0f);
 		self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 		[self.view addSubview:plot];
 		
@@ -58,7 +58,7 @@
 														userInfo:nil
 														 repeats:YES];
 		// Add map
-		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,240,320,240)] autorelease];
+		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,170,320,290)] autorelease];
 		map.scrollEnabled = NO;
 		map.zoomEnabled = NO;
 		map.mapType = MKMapTypeHybrid;
@@ -89,20 +89,30 @@
 	[map removeAnnotations:map.annotations];
 	// annotate map
 	for( int i=0; i<fingerprints.size(); i++ ){
-		MKPointAnnotation *mPlacemark = [[MKPointAnnotation alloc] init];
-		CLLocationCoordinate2D coord;
-		coord.latitude = fingerprints[i].location.latitude;
-		coord.longitude = fingerprints[i].location.longitude;
-		mPlacemark.coordinate = coord;
-		[map addAnnotation:mPlacemark];
-		[mPlacemark release];
+		[LocationViewController annotateMap:map 
+								   location:fingerprints[i].location
+									  title:nil];
 	}
-	[self zoomToFitMapAnnotations:map];
+	[LocationViewController zoomToFitMapAnnotations:map];
 	
 }
 
+
++(void)annotateMap:(MKMapView*)map 
+		  location:(GPSLocation)location
+			 title:(NSString*)title{
+	MKPointAnnotation *mPlacemark = [[MKPointAnnotation alloc] init];
+	CLLocationCoordinate2D coord;
+	coord.latitude = location.latitude;
+	coord.longitude = location.longitude;
+	mPlacemark.coordinate = coord;
+	mPlacemark.title = title;
+	[map addAnnotation:mPlacemark];
+	[mPlacemark release];
+}
+
 // from http://codisllc.com/blog/zoom-mkmapview-to-fit-annotations/
--(void)zoomToFitMapAnnotations:(MKMapView*)mapView{
++(void)zoomToFitMapAnnotations:(MKMapView*)mapView{
     if([mapView.annotations count] == 0)
         return;
 	

@@ -55,7 +55,7 @@ static const int numCandidates = 10;
 	}
 	
 	// Add plot to window
-	CGRect rect = CGRectMake(0, 80, 320.0f, 100.0f);
+	CGRect rect = CGRectMake(0, 45, 320.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	// make line red
@@ -65,7 +65,7 @@ static const int numCandidates = 10;
 	[self.view addSubview:plot];
 	
 	// create matchTable
-	rect = CGRectMake( 0, 210, 320, 270 );
+	rect = CGRectMake( 0, 160, 320, 300 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = matchTable.dataSource = self;
@@ -85,7 +85,7 @@ static const int numCandidates = 10;
 													 repeats:YES];
 	// alert user that fingerprint is not yet ready
 	alert = [[UIAlertView alloc] initWithTitle:@"Please wait" 
-									   message:@"Ten seconds of audio is needed to build a room fingerprint." 
+									   message:@"Ten seconds of audio is needed to compute a room fingerprint." 
 									  delegate:nil 
 							 cancelButtonTitle:nil 
 							 otherButtonTitles:nil];
@@ -184,7 +184,7 @@ static const int numCandidates = 10;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	return @"Room fingerprint matches";
+	return @"Closest room fingerprint matches";
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
