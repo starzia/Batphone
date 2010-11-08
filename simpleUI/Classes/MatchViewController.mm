@@ -18,6 +18,7 @@
 @synthesize matchTable;
 @synthesize matches;
 @synthesize alert;
+@synthesize tabBar;
 
 // CONSTANTS
 static const int numCandidates = 10;
@@ -65,11 +66,24 @@ static const int numCandidates = 10;
 	[self.view addSubview:plot];
 	
 	// create matchTable
-	rect = CGRectMake( 0, 160, 320, 300 );
+	rect = CGRectMake( 0, 160, 320, 240 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = matchTable.dataSource = self;
 	[self.view addSubview:matchTable];
+	
+	// create tabbar at bottom
+	rect = CGRectMake(0, 400, 320, 60);
+	self.tabBar = [[[UITabBar alloc] initWithFrame:rect] autorelease];
+	tabBar.delegate = self;
+	UITabBarItem* acousticButton = [[UITabBarItem alloc] autorelease];
+	[acousticButton initWithTitle:@"acoustic" image:nil tag:0];	
+	UITabBarItem* wifiButton = [[UITabBarItem alloc] autorelease];
+	[wifiButton initWithTitle:@"wifi" image:nil tag:0];
+	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,wifiButton,nil];
+	[self.tabBar setItems:barItems animated:NO];
+	tabBar.selectedItem = acousticButton;
+	[self.view addSubview:tabBar];
 	
 	// create timer to update the plot
 	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
@@ -177,6 +191,13 @@ static const int numCandidates = 10;
 
 
 #pragma mark -
+#pragma mark UITabBarDelegate
+- (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
+	NSLog(@"tabbar clicked");
+}
+
+
+#pragma mark -
 #pragma mark TableView DataSource/Delegate
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)table {
@@ -246,6 +267,7 @@ static const int numCandidates = 10;
 	delete[] newFingerprint;
 	[matchTable release];
 	[alert release];
+	[tabBar release];
     [super dealloc];
 }
 

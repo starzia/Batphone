@@ -93,8 +93,8 @@ using namespace std;
 	}
 	// set up navigation bar
 	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New Fingerprint"] autorelease];
-	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithTitle:@"Save" 
-									style:UIBarButtonItemStylePlain target:self 
+	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
+									target:self 
 									action:@selector(saveButtonHandler)] autorelease];
 	[newItem setRightBarButtonItem:newButton animated:YES];	
 	// swap views
@@ -175,13 +175,13 @@ using namespace std;
 	navBar.delegate = self;
     [window addSubview:navBar];	
 			
-	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Current"] autorelease];
-	UIBarButtonItem* resetButton = [[[UIBarButtonItem alloc] initWithTitle:@"Reset" 
-								   style:UIBarButtonItemStylePlain target:matchViewController 
+	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Measurement"] autorelease];
+	UIBarButtonItem* resetButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash 
+								   target:matchViewController 
 								   action:@selector(clearButtonHandler)] autorelease];
 	[matchesItem setLeftBarButtonItem:resetButton animated:YES];	
-	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithTitle:@"New" 
-								 style:UIBarButtonItemStylePlain target:self 
+	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd 
+								 target:self 
 								 action:@selector(newButtonHandler)] autorelease];
 	[matchesItem setRightBarButtonItem:newButton animated:YES];	
 	[navBar pushNavigationItem:matchesItem animated:NO];	

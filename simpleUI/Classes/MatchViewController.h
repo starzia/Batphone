@@ -14,7 +14,8 @@ using std::vector;
 
 
 @interface MatchViewController : UIViewController 
-<UIAlertViewDelegate, UITableViewDelegate, UITableViewDataSource>{
+<UIAlertViewDelegate, UITableViewDelegate, UITableViewDataSource,
+ UITabBarDelegate>{
 	AppDelegate *app;
 	plotView *plot;            // live fingerprint plot
 	Fingerprint newFingerprint;
@@ -23,6 +24,7 @@ using std::vector;
 	UITableView *matchTable; // table of DB matches
 	QueryResult matches;
 	UIAlertView *alert; // popup explaining that there is not enough data yet
+	UITabBar* tabBar; // choose acoustic/CL localization
 }
 
 @property (nonatomic, retain) AppDelegate* app;
@@ -33,6 +35,7 @@ using std::vector;
 @property (nonatomic, retain) UITableView *matchTable;
 @property (nonatomic) QueryResult matches;
 @property (nonatomic, retain) UIAlertView *alert;
+@property (nonatomic, retain) UITabBar *tabBar;
 
 // custom initializer
 - (id)initWithApp:(AppDelegate *)theApp;
