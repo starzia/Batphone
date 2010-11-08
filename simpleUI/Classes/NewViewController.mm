@@ -21,8 +21,6 @@
 @synthesize roomsCache;
 @synthesize currentBuilding;
 
-@synthesize map;
-
 #pragma mark -
 #pragma mark UIViewController inherited
 
@@ -30,20 +28,30 @@
 	self.app = theApp;
 	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
-		self.view.backgroundColor = [UIColor blackColor];
+		self.view.backgroundColor = [UIColor clearColor];
 		
 		// create instruction label
-		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 185, 300.0f, 30.0f)] autorelease];
+		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 140, 300.0f, 100.0f)] autorelease];
 		// Set the value of our string
-		[locationLabel setText:@"Describe your current location:"];
+		[locationLabel setText:@"Describe your\ncurrent location:"];
 		// Center Align the label's text
 		[locationLabel setTextAlignment:UITextAlignmentLeft];
-		locationLabel.textColor = [UIColor lightTextColor];
+		locationLabel.textColor = [UIColor darkTextColor];
 		locationLabel.backgroundColor = [UIColor clearColor];
 		// set font
-		[locationLabel setFont:[UIFont fontWithName:@"Arial" size:12]];
+		[locationLabel setFont:[UIFont fontWithName:@"Arial" size:20]];
 		// Add the label to the window.
 		[self.view addSubview:locationLabel];
+		
+		// add question mark graphic
+		UILabel* question = [[UILabel alloc] initWithFrame:CGRectMake(0, 70, 320, 100)];
+		[question setText:@"?"];
+		[question setTextAlignment:UITextAlignmentCenter];
+		question.textColor = [UIColor darkTextColor];
+		question.backgroundColor = [UIColor clearColor];
+		[question setFont:[UIFont fontWithName:@"Arial" size:96]];
+		[self.view addSubview:question];
+		[question release];
 		
 		// create buildingField
 		CGRect rect = CGRectMake(10 , 210, 150.0f, 30.0f);
@@ -72,19 +80,6 @@
 		roomPicker.delegate = roomPicker.dataSource = self;
 		roomPicker.showsSelectionIndicator = YES;
 		[self.view addSubview:roomPicker];
-		
-		// Add map
-		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,40,320,150)] autorelease];
-		map.scrollEnabled = NO;
-		map.zoomEnabled = NO;
-		map.mapType = MKMapTypeHybrid;
-		[self.view addSubview:map];
-		
-		// update map for current location
-		[LocationViewController annotateMap:map 
-								   location:[self.app getLocation]
-									  title:@"approximate GPS location"];
-		[LocationViewController zoomToFitMapAnnotations:map];
     }
     return self;
 }

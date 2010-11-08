@@ -59,8 +59,6 @@
 														 repeats:YES];
 		// Add map
 		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,170,320,290)] autorelease];
-		map.scrollEnabled = NO;
-		map.zoomEnabled = NO;
 		map.mapType = MKMapTypeHybrid;
 		[self.view addSubview:map];
 		
@@ -89,11 +87,17 @@
 	[map removeAnnotations:map.annotations];
 	// annotate map
 	for( int i=0; i<fingerprints.size(); i++ ){
+		NSString* title = [[NSString alloc] initWithFormat:@"tagged %@",
+						   [[NSDate dateWithTimeIntervalSince1970:fingerprints[i].timestamp] 
+							description]];
 		[LocationViewController annotateMap:map 
 								   location:fingerprints[i].location
-									  title:nil];
+									  title:title];
+		[title release];
 	}
 	[LocationViewController zoomToFitMapAnnotations:map];
+	map.scrollEnabled = YES;
+	map.zoomEnabled = YES;
 	
 }
 
@@ -140,7 +144,7 @@
     region.span.longitudeDelta = fabs(bottomRightCoord.longitude - topLeftCoord.longitude) * 1.1; // Add a little extra space on the sides
 
 	// make sure it's not too zoomed in
-	region.span.latitudeDelta = fmax( region.span.latitudeDelta, 0.002 );
+	region.span.latitudeDelta = fmax( region.span.latitudeDelta, 0.001 );
 	region.span.longitudeDelta = fmax( region.span.longitudeDelta, 0.002 );
 	
     region = [mapView regionThatFits:region];

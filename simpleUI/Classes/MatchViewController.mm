@@ -7,6 +7,7 @@
 //
 
 #import "MatchViewController.h"
+#import "LocationViewController.h" // for map functions
 
 @implementation MatchViewController
 
@@ -20,6 +21,7 @@
 @synthesize alert;
 @synthesize tabBar;
 @synthesize useAcousticDistance;
+@synthesize map;
 
 // CONSTANTS
 static const int numCandidates = 10;
@@ -57,19 +59,26 @@ static const int numCandidates = 10;
 	}
 	
 	// Add plot to window
-	CGRect rect = CGRectMake(0, 45, 320.0f, 100.0f);
+	CGRect rect = CGRectMake(0, 45, 320.0f, 120.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	// make line red
-	self.plot.lineColor[0] = 1;
-	self.plot.lineColor[1] = 0;
-	self.plot.lineColor[2] = 0;
+	self.plot.lineColor[0] = 1; //R
+	self.plot.lineColor[1] = 0; //G
+	self.plot.lineColor[2] = 0; //B
 	[self.view addSubview:plot];
 	
+	// Add map which will be show alternatively in place of plot
+	self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,40,320,135)] autorelease];
+	map.scrollEnabled = NO;
+	map.zoomEnabled = NO;
+	map.mapType = MKMapTypeHybrid;
+	[self.view addSubview:map];
+	
 	// create matchTable
-	rect = CGRectMake( 0, 145, 320, 265 );
+	rect = CGRectMake( 0, 165, 320, 245 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
-	matchTable.backgroundColor = [UIColor clearColor];
+	matchTable.backgroundColor = [UIColor groupTableViewBackgroundColor];
 	matchTable.delegate = matchTable.dataSource = self;
 	[self.view addSubview:matchTable];
 	
@@ -89,8 +98,7 @@ static const int numCandidates = 10;
 						  tag:0];
 	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
-	tabBar.selectedItem = acousticButton;
-	self.useAcousticDistance = true;
+	[self tabBar:tabBar didSelectItem:acousticButton]; // default tabBar choice
 	[self.view addSubview:tabBar];
 	
 	// create timer to update the plot
@@ -158,12 +166,19 @@ static const int numCandidates = 10;
 							    [app getLocation], useAcousticDistance );
 	// update table
 	[matchTable reloadData];
+	
+	// update map
+	[map removeAnnotations:map.annotations];
+	[LocationViewController annotateMap:map 
+							   location:[self.app getLocation]
+								  title:@"approximate GPS location"];
+	[LocationViewController zoomToFitMapAnnotations:map];
 }
 
 
 -(void)clearButtonHandler{
 	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
-													  message:@"You are about to erase the entire room fingerprint database." 
+													  message:@"You are about to erase ALL of your location tags." 
 													 delegate:self 
 											cancelButtonTitle:@"Cancel" 
 											otherButtonTitles:nil];
@@ -205,6 +220,14 @@ static const int numCandidates = 10;
 	useAcousticDistance = [item.title isEqualToString:@"Acoustic"];
 	// reload table
 	[self query];
+	// switch between plot/map
+	if( useAcousticDistance ){
+		[plot setHidden:NO];
+		[map setHidden:YES];
+	}else{
+		[map setHidden:NO];
+		[plot setHidden:YES];
+	}
 }
 
 
@@ -239,7 +262,7 @@ static const int numCandidates = 10;
 	// secondary label depends on the distance metric
 	NSString* detailText;
 	if( useAcousticDistance ){
-		detailText = [[NSString alloc] initWithFormat:@"acoustic signal distance: %.1f dB", 
+		detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
 											matches[indexPath.row].distance];		
 	}else{
 		detailText = [[NSString alloc] initWithFormat:@"estimated GPS distance: %.0f meters", 
@@ -283,6 +306,7 @@ static const int numCandidates = 10;
 	[matchTable release];
 	[alert release];
 	[tabBar release];
+	[map release];
     [super dealloc];
 }
 

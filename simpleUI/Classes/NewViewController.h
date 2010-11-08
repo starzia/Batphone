@@ -8,7 +8,6 @@
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
-#import <MapKit/MapKit.h>
 
 @interface NewViewController : UIViewController 
 <UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource>{
@@ -22,8 +21,6 @@
 	vector<NSString*> buildingsCache;
 	vector<NSString*> roomsCache;
 	NSString* currentBuilding;	
-	
-	MKMapView *map;
 }
 
 @property (nonatomic, retain) AppDelegate* app;
@@ -35,8 +32,6 @@
 @property (nonatomic) vector<NSString*> buildingsCache;
 @property (nonatomic) vector<NSString*> roomsCache;
 @property (nonatomic, retain) NSString* currentBuilding;
-
-@property (nonatomic, retain) MKMapView *map;
 
 // custom initializer
 - (id)initWithApp:(AppDelegate *)theApp;

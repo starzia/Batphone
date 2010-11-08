@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "plotView.h"
 #import "AppDelegate.h"
+#import <MapKit/MapKit.h>
 
 using std::vector;
 
@@ -26,6 +27,7 @@ using std::vector;
     bool useAcousticDistance; // vs physical distance for DB match query
 	UIAlertView *alert; // popup explaining that there is not enough data yet
 	UITabBar* tabBar; // choose acoustic/CL localization
+	MKMapView *map; // view of current GPS location
 }
 
 @property (nonatomic, retain) AppDelegate* app;
@@ -38,6 +40,7 @@ using std::vector;
 @property (nonatomic) bool useAcousticDistance;
 @property (nonatomic, retain) UIAlertView *alert;
 @property (nonatomic, retain) UITabBar *tabBar;
+@property (nonatomic, retain) MKMapView *map;
 
 // custom initializer
 - (id)initWithApp:(AppDelegate *)theApp;
