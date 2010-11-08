@@ -92,7 +92,7 @@ using namespace std;
 		[aNewViewController release];
 	}
 	// set up navigation bar
-	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New Fingerprint"] autorelease];
+	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New tag"] autorelease];
 	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
 									target:self 
 									action:@selector(saveButtonHandler)] autorelease];
@@ -175,7 +175,7 @@ using namespace std;
 	navBar.delegate = self;
     [window addSubview:navBar];	
 			
-	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Measurement"] autorelease];
+	UINavigationItem* matchesItem = [[[UINavigationItem alloc] initWithTitle:@"Location"] autorelease];
 	UIBarButtonItem* resetButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash 
 								   target:matchViewController 
 								   action:@selector(clearButtonHandler)] autorelease];

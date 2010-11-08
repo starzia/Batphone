@@ -67,20 +67,26 @@ static const int numCandidates = 10;
 	[self.view addSubview:plot];
 	
 	// create matchTable
-	rect = CGRectMake( 0, 160, 320, 240 );
+	rect = CGRectMake( 0, 145, 320, 265 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = matchTable.dataSource = self;
 	[self.view addSubview:matchTable];
 	
 	// create tabbar at bottom
-	rect = CGRectMake(0, 400, 320, 60);
+	rect = CGRectMake(0, 410, 320, 50);
 	self.tabBar = [[[UITabBar alloc] initWithFrame:rect] autorelease];
 	tabBar.delegate = self;
 	UITabBarItem* acousticButton = [[UITabBarItem alloc] autorelease];
-	[acousticButton initWithTitle:@"Acoustic" image:nil tag:0];	
+	[acousticButton initWithTitle:@"Acoustic" 
+							image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"mic" 
+																								   ofType:@"png"]] 
+							  tag:0];	
 	UITabBarItem* wifiButton = [[UITabBarItem alloc] autorelease];
-	[wifiButton initWithTitle:@"Wifi" image:nil tag:0];
+	[wifiButton initWithTitle:@"GPS/Wifi"
+						image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"bullseye" 
+																							   ofType:@"png"]]  
+						  tag:0];
 	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
 	tabBar.selectedItem = acousticButton;
@@ -210,7 +216,7 @@ static const int numCandidates = 10;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	return @"Closest rooms";
+	return @"Closest tags";
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {

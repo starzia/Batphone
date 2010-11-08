@@ -139,7 +139,7 @@
 	}else{
 		// notify user that text fields cannot be left blank
 		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Name is missing" 
-														message:@"You must choose a building and room name before saving this Fingerprint.  You may choose from existing names or enter a new name." 
+														message:@"You must choose a building and room name before saving this location tag.  You may choose from existing names or enter a new name." 
 													   delegate:nil 
 											  cancelButtonTitle:@"OK" 
 											  otherButtonTitles:nil];
