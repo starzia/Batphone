@@ -20,7 +20,8 @@ using std::vector;
 @class LocationViewController;
 
 @interface AppDelegate : NSObject 
-<UIApplicationDelegate, CLLocationManagerDelegate, UINavigationBarDelegate> {
+<UIApplicationDelegate, CLLocationManagerDelegate, UINavigationBarDelegate,
+ UIAlertViewDelegate> {
 	// data members
     UIWindow *window;
 	UINavigationBar *navBar;

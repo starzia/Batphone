@@ -86,6 +86,10 @@ public:
 	/* clear database, including persistent store */
 	void clear();
 	
+	/* delete all database entries for the given room */
+	void deleteRoom( const NSString* building, const NSString* room );
+	
+	
 private:
 	/* calculates the distance between two Fingerprints */
 	float signal_distance( const float A[], const float B[] );

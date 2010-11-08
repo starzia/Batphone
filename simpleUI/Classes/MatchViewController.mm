@@ -77,8 +77,8 @@ static const int numCandidates = 10;
 	
 	// create matchTable
 	rect = CGRectMake( 0, 165, 320, 245 );
-	self.matchTable = [[[UITableView alloc] initWithFrame:rect] autorelease];
-	matchTable.backgroundColor = [UIColor groupTableViewBackgroundColor];
+	self.matchTable = [[[UITableView alloc] initWithFrame:rect style:UITableViewStylePlain] autorelease];
+	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = matchTable.dataSource = self;
 	[self.view addSubview:matchTable];
 	
@@ -178,11 +178,11 @@ static const int numCandidates = 10;
 
 -(void)clearButtonHandler{
 	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
-													  message:@"You are about to erase ALL of your location tags." 
+													  message:@"You are about to delete ALL of your location tags." 
 													 delegate:self 
 											cancelButtonTitle:@"Cancel" 
 											otherButtonTitles:nil];
-	[myAlert addButtonWithTitle:@"OK"];
+	[myAlert addButtonWithTitle:@"Delete"];
 	[myAlert show];
 	[myAlert release];
 }
@@ -205,7 +205,7 @@ static const int numCandidates = 10;
 #pragma mark -
 #pragma mark UIAlertViewDelegate
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
-	// if "ok" button was clicked then clear the database
+	// if "delete" button was clicked then clear the database
 	if( buttonIndex == 1 ){
 		app.database->clear();
 		[self query]; // this is a hack to clear the candidate plots
@@ -258,7 +258,8 @@ static const int numCandidates = 10;
 	DBEntry* entry = &matches[indexPath.row].entry;
 	// main label is the room name
 	cell.textLabel.text = [[[NSString alloc] 
-		initWithFormat:@"%@ : %@",entry->building, entry->room ] autorelease];
+		initWithFormat:@"%d) %@ : %@",indexPath.row+1,
+						entry->building, entry->room ] autorelease];
 	// secondary label depends on the distance metric
 	NSString* detailText;
 	if( useAcousticDistance ){

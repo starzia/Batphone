@@ -91,6 +91,9 @@ using namespace std;
 		self.newViewController = aNewViewController;
 		[aNewViewController release];
 	}
+	// update picker to reflect possible database changes (new/deleted rooms)
+	[newViewController.roomPicker reloadAllComponents];
+	
 	// set up navigation bar
 	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:@"New tag"] autorelease];
 	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
@@ -121,6 +124,11 @@ using namespace std;
 	NSString* title = [[NSString alloc] initWithFormat:@"%@ : %@",building,room];
 	UINavigationItem* newItem = [[[UINavigationItem alloc] initWithTitle:title] autorelease];
 	[title release];
+	UIBarButtonItem* deleteButton = [[[UIBarButtonItem alloc] 
+						initWithBarButtonSystemItem:UIBarButtonSystemItemTrash 
+											 target:self 
+											 action:@selector(deleteRoomButtonHandler)] autorelease];
+	[newItem setRightBarButtonItem:deleteButton animated:YES];
 
 	// swap views
 	[matchViewController.view removeFromSuperview];
@@ -133,8 +141,32 @@ using namespace std;
 	// pass message on to view controller
 	if( [newViewController saveButtonHandler] ){
 		// if save was successful
-		// update picker to reflect possible new rooms
-		[newViewController.roomPicker reloadAllComponents];
+		// pop view off stack
+		[navBar popNavigationItemAnimated:YES];
+	}
+}
+
+
+// delete room
+-(void) deleteRoomButtonHandler{
+	// show confimation popup
+	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really delete tags?" 
+													  message:@"You are about to delete all tags for this room." 
+													 delegate:self 
+											cancelButtonTitle:@"Cancel" 
+											otherButtonTitles:nil];
+	[myAlert addButtonWithTitle:@"Delete"];
+	[myAlert show];
+	[myAlert release];
+}
+
+#pragma mark -
+#pragma mark UIAlertViewDelegate (delete room popup)
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
+	// if "delete" button was clicked then clear this room from the database
+	if( buttonIndex == 1 ){
+		database->deleteRoom( locationViewController.building, 
+							  locationViewController.room );
 		// pop view off stack
 		[navBar popNavigationItemAnimated:YES];
 	}

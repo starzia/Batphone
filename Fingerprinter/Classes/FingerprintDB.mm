@@ -354,3 +354,20 @@ bool FingerprintDB::getEntriesFrom(vector<DBEntry> & result, /* the output */
 	}
 	return success;
 }
+
+void FingerprintDB::deleteRoom( const NSString* building, const NSString* room ){
+	bool didSomething = false;
+	for( int i=0; i<entries.size(); i++ ){
+		if( [entries[i].building isEqualToString:building] && 
+		    [entries[i].room isEqualToString:room] ){
+			entries.erase(entries.begin()+i); // erase this entry
+			i--; // decrement i because vector just contracted
+			didSomething = true;
+		}
+	}
+	// if DB was modified then resave it
+	if(didSomething){
+		save();
+	}
+	
+}

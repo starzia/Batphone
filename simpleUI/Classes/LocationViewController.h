@@ -40,6 +40,7 @@
 					room:(NSString*)room;
 // timer handler
 -(void)updatePlot;
+
 // add placemark to map
 +(void)annotateMap:(MKMapView*)map 
 		  location:(GPSLocation)location
