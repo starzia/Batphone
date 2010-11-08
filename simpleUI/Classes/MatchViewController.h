@@ -23,6 +23,7 @@ using std::vector;
 	NSTimer  *queryTimer; // periodic timer to query the DB for matches
 	UITableView *matchTable; // table of DB matches
 	QueryResult matches;
+    bool useAcousticDistance; // vs physical distance for DB match query
 	UIAlertView *alert; // popup explaining that there is not enough data yet
 	UITabBar* tabBar; // choose acoustic/CL localization
 }
@@ -34,6 +35,7 @@ using std::vector;
 @property (nonatomic, retain) NSTimer  *queryTimer; // periodic timer to update the plot
 @property (nonatomic, retain) UITableView *matchTable;
 @property (nonatomic) QueryResult matches;
+@property (nonatomic) bool useAcousticDistance;
 @property (nonatomic, retain) UIAlertView *alert;
 @property (nonatomic, retain) UITabBar *tabBar;
 

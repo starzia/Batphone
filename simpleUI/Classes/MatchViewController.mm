@@ -19,6 +19,7 @@
 @synthesize matches;
 @synthesize alert;
 @synthesize tabBar;
+@synthesize useAcousticDistance;
 
 // CONSTANTS
 static const int numCandidates = 10;
@@ -77,12 +78,13 @@ static const int numCandidates = 10;
 	self.tabBar = [[[UITabBar alloc] initWithFrame:rect] autorelease];
 	tabBar.delegate = self;
 	UITabBarItem* acousticButton = [[UITabBarItem alloc] autorelease];
-	[acousticButton initWithTitle:@"acoustic" image:nil tag:0];	
+	[acousticButton initWithTitle:@"Acoustic" image:nil tag:0];	
 	UITabBarItem* wifiButton = [[UITabBarItem alloc] autorelease];
-	[wifiButton initWithTitle:@"wifi" image:nil tag:0];
+	[wifiButton initWithTitle:@"Wifi" image:nil tag:0];
 	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
 	tabBar.selectedItem = acousticButton;
+	self.useAcousticDistance = true;
 	[self.view addSubview:tabBar];
 	
 	// create timer to update the plot
@@ -146,8 +148,8 @@ static const int numCandidates = 10;
 -(void) query{
 	// query for matches
 	matches.clear(); // clear previous results
-	app.database->queryMatches( matches, self.newFingerprint, 
-								numCandidates, [app getLocation] );
+	app.database->queryMatches( matches, self.newFingerprint, numCandidates, 
+							    [app getLocation], useAcousticDistance );
 	// update table
 	[matchTable reloadData];
 }
@@ -193,7 +195,10 @@ static const int numCandidates = 10;
 #pragma mark -
 #pragma mark UITabBarDelegate
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
-	NSLog(@"tabbar clicked");
+	// change distance metric accordingly
+	useAcousticDistance = [item.title isEqualToString:@"Acoustic"];
+	// reload table
+	[self query];
 }
 
 
@@ -205,7 +210,7 @@ static const int numCandidates = 10;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	return @"Closest room fingerprint matches";
+	return @"Closest rooms";
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
@@ -225,13 +230,17 @@ static const int numCandidates = 10;
 	// main label is the room name
 	cell.textLabel.text = [[[NSString alloc] 
 		initWithFormat:@"%@ : %@",entry->building, entry->room ] autorelease];
-	// secondary label is the estimated distance from current location
-	CLLocation* roomLoc = [[CLLocation alloc] initWithLatitude:entry->location.latitude
-													 longitude:entry->location.longitude];
-	double distance = [roomLoc distanceFromLocation:app.locationManager.location];
-	[roomLoc release];
-	cell.detailTextLabel.text = [[[NSString alloc]
-		initWithFormat:@"estimated distance: %.0f meters", distance] autorelease];
+	// secondary label depends on the distance metric
+	NSString* detailText;
+	if( useAcousticDistance ){
+		detailText = [[NSString alloc] initWithFormat:@"acoustic signal distance: %.1f dB", 
+											matches[indexPath.row].distance];		
+	}else{
+		detailText = [[NSString alloc] initWithFormat:@"estimated GPS distance: %.0f meters", 
+											matches[indexPath.row].distance];
+	}
+	cell.detailTextLabel.text = detailText;
+	[detailText release];
     return cell;
 }
 

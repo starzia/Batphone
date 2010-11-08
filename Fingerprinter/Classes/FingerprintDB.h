@@ -36,6 +36,7 @@ typedef struct{
 typedef struct {
 	DBEntry entry;    /* the candidate room */
 	float confidence; /* confidence level between 0-1 indicating how good of a match it is, 1 is closest */
+	float distance;
 } Match;
 
 /* Query result is a list of matches.  These are sorted by descending confidence level */
@@ -54,8 +55,9 @@ public:
 	unsigned int queryMatches( QueryResult & result, /* the output */
 							   const float observation[],  /* observed Fingerprint we want to match */
 							   const unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-							   const GPSLocation location=NULL_GPS ); /* optional estimate of the current GPS location */
-							  		
+							   const GPSLocation location=NULL_GPS, /* optional estimate of the current GPS location */
+							   const bool useAcousticDistance=true ); /* use acoustic or physical distance		
+
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
@@ -86,7 +88,11 @@ public:
 	
 private:
 	/* calculates the distance between two Fingerprints */
-	float distance( const float A[], const float B[] );
+	float signal_distance( const float A[], const float B[] );
+	/* calculates the distance "as the bird flies" between two locations.
+	 * Technically, this is the orthodromic distance. */
+	float physical_distance( const GPSLocation B, const GPSLocation b );
+	
 	void makeRandomFingerprint( float outBuf[] );
 	/* get filename for persistent storage */
 	NSString* getDBFilename();

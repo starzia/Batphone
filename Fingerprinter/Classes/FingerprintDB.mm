@@ -12,6 +12,7 @@
 #include <stdlib.h> // for random()
 #import <algorithm> // for partial_sort
 #import <utility> // for pair
+#import <CoreLocation/CoreLocation.h> // for physical_distance
 
 #include <iostream>
 #include <fstream>
@@ -56,13 +57,18 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 unsigned int FingerprintDB::queryMatches( QueryResult & result, 
 										  const float observation[],  
 										  unsigned int numMatches,
-										  GPSLocation location ){
+										  GPSLocation location,
+										  bool useAcousticDistance ){
 	// TODO: range query using GPSLocation
 	
 	// calculate distances to all entries in DB
 	pair<float,int> distances[entries.size()]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<entries.size(); ++i ){
-		distances[i] = make_pair( distance( observation, entries[i].fingerprint ), i );
+		if( useAcousticDistance ){
+			distances[i] = make_pair( signal_distance( observation, entries[i].fingerprint ), i );
+		}else{ // use physical distance
+			distances[i] = make_pair( physical_distance( location, entries[i].location ), i );			
+		}
 	}
 	// sort distances
 	sort(distances+0, distances+entries.size(), smaller_by_first );
@@ -82,6 +88,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			Match m;
 			m.entry = entries[distances[i].second];
 			m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
+			m.distance = distances[i].first;
 			result.push_back( m );
 			if( ++k >= numMatches ){
 				return k;
@@ -132,7 +139,7 @@ unsigned int FingerprintDB::insertFingerprint( const float observation[],
 }
 
 
-float FingerprintDB::distance( const float A[], const float B[] ){
+float FingerprintDB::signal_distance( const float A[], const float B[] ){
 	// vector subtraction
 	vDSP_vsub( A, 1, B, 1, buf1, 1, len );
 	
@@ -144,6 +151,17 @@ float FingerprintDB::distance( const float A[], const float B[] ){
 	vDSP_sve( buf1, 1, &result, len );
 	
 	return sqrt(result);
+}
+
+float FingerprintDB::physical_distance( const GPSLocation a, GPSLocation b ){
+	CLLocation* aLoc = [[CLLocation alloc] initWithLatitude:a.latitude
+												  longitude:a.longitude];
+	CLLocation* bLoc = [[CLLocation alloc] initWithLatitude:b.latitude
+												  longitude:b.longitude];
+	double distance = [aLoc distanceFromLocation:bLoc];
+	[aLoc release];
+	[bLoc release];
+	return distance;
 }
 
 
