@@ -167,6 +167,20 @@
 }
 
 #pragma mark -
+-(void) resetPicker{
+	// reload list of buildings
+	buildingsCache.clear();
+	app.database->getAllBuildings( buildingsCache );
+	currentBuilding = @"";
+	
+	// clear list of rooms
+	roomsCache.clear();
+
+	[buildingField setText:@""];
+	[roomField setText:@""];
+	[roomPicker reloadAllComponents];
+}
+
 #pragma mark UIPickerView Delegate
 
 - (void)pickerView:(UIPickerView *)pickerView 

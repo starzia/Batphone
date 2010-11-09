@@ -37,8 +37,15 @@
 		// set up view
 		self.view.backgroundColor = [UIColor clearColor];
 		
+		// add grid image to window
+		UIImage* gridImage = [UIImage imageNamed:@"grid.png"];
+		UIImageView* imageView = [[UIImageView alloc] initWithImage:gridImage];
+		imageView.center = CGPointMake(160, 105);
+		[self.view addSubview:imageView];
+		[imageView release];
+		
 		// Add plot label
-		CGRect labelRect = CGRectMake(0 , 150, 320.0f, 20.0f);
+		CGRect labelRect = CGRectMake(0 , 145, 320.0f, 20.0f);
 		self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
 		[label setTextAlignment:UITextAlignmentCenter];
 		label.textColor = [UIColor darkTextColor];
@@ -58,7 +65,7 @@
 														userInfo:nil
 														 repeats:YES];
 		// Add map
-		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,170,320,290)] autorelease];
+		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,165,320,295)] autorelease];
 		map.mapType = MKMapTypeHybrid;
 		[self.view addSubview:map];
 		

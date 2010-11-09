@@ -58,14 +58,21 @@ static const int numCandidates = 10;
 		self.newFingerprint[i] = 0;
 	}
 	
+	// add CRT image to window
+	UIImage* crtImage = [UIImage imageNamed:@"crt.png"];
+	UIImageView* imageView = [[UIImageView alloc] initWithImage:crtImage];
+	imageView.center = CGPointMake(160, 105);
+	[self.view addSubview:imageView];
+	[imageView release];
+	
 	// Add plot to window
-	CGRect rect = CGRectMake(0, 45, 320.0f, 120.0f);
+	CGRect rect = CGRectMake(10, 55, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	// make line red
-	self.plot.lineColor[0] = 1; //R
-	self.plot.lineColor[1] = 0; //G
-	self.plot.lineColor[2] = 0; //B
+	self.plot.lineColor[0] = 0.5; //R
+	self.plot.lineColor[1] = 1; //G
+	self.plot.lineColor[2] = 0.2; //B
 	[self.view addSubview:plot];
 	
 	// Add map which will be show alternatively in place of plot

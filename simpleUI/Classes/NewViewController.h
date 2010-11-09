@@ -36,6 +36,9 @@
 // custom initializer
 - (id)initWithApp:(AppDelegate *)theApp;
 
+// reload from DB and clear text fields
+-(void) resetPicker;
+
 -(bool) saveButtonHandler;
 
 @end
