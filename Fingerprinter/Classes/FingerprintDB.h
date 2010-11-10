@@ -89,7 +89,8 @@ public:
 	/* delete all database entries for the given room */
 	void deleteRoom( const NSString* building, const NSString* room );
 	
-	
+	/* get filename for persistent storage */
+	NSString* getDBFilename();	
 private:
 	/* calculates the distance between two Fingerprints */
 	float signal_distance( const float A[], const float B[] );
@@ -98,8 +99,7 @@ private:
 	float physical_distance( const GPSLocation B, const GPSLocation b );
 	
 	void makeRandomFingerprint( float outBuf[] );
-	/* get filename for persistent storage */
-	NSString* getDBFilename();
+
 	/* appends a string description of the database entry, used for persistent storage */
 	void appendEntryString( NSMutableString* outputBuffer, const DBEntry & entry );
 	

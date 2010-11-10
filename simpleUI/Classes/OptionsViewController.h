@@ -9,7 +9,12 @@
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
 
-@interface OptionsViewController : UITableViewController <UIAlertViewDelegate> {
+// for email
+#import <MessageUI/MessageUI.h>
+#import <MessageUI/MFMailComposeViewController.h>
+
+@interface OptionsViewController : UITableViewController 
+<UIAlertViewDelegate, MFMailComposeViewControllerDelegate> {
 	AppDelegate* app;
 }
 @property (nonatomic, retain) AppDelegate* app;

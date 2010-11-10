@@ -8,7 +8,6 @@
 
 #import "OptionsViewController.h"
 
-
 @implementation OptionsViewController
 
 @synthesize app;
@@ -68,11 +67,16 @@
 
 
 #pragma mark -
-#pragma mark app events
+#pragma mark MKMailComposeViewControllerDelegate
 
--(void)clearButtonHandler{
-
+// finished trying to email
+- (void)mailComposeController:(MFMailComposeViewController*)controller 
+		  didFinishWithResult:(MFMailComposeResult)result 
+						error:(NSError*)error{
+	// make email window disappear
+	[controller dismissModalViewControllerAnimated:YES];
 }
+
 
 
 #pragma mark -
@@ -80,13 +84,17 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    return 1;
+    return 2;
 }
 
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    return 3;
+	if( section == 0 ){
+		return 3;
+	}else{
+		return 1;
+	}
 }
 
 
@@ -101,12 +109,18 @@
     }
     
     // Configure the cell...
+	if(indexPath.section == 0 ){
 	if(indexPath.row == 0){
 		cell.textLabel.text = @"Email database";
 	}else if(indexPath.row == 1){
 		cell.textLabel.text = @"Load database";
 	}else if(indexPath.row == 2){
 		cell.textLabel.text = @"Clear database";
+	}
+	}else if( indexPath.section == 1){
+		if( indexPath.row == 0 ){
+			cell.textLabel.text = @"Send us feedback";
+		}
 	}
 	
     return cell;
@@ -157,8 +171,39 @@
 #pragma mark Table view delegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	// Email DB or feedback
+	if( indexPath.row == 0 ){
+		if( [MFMailComposeViewController canSendMail] ){
+			MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
+			mailer.mailComposeDelegate = self;
+			
+			if( indexPath.section == 0 ){
+				// email database
+				[mailer setSubject:@"[Batphone DB]"];
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
+								 mimeType:@"text/plain" 
+								 fileName:@"database.txt"];
+			}else{
+				// email feedback
+				[mailer setSubject:@"[Batphone feedback]"];
+			}
+			[mailer setMessageBody:@"" isHTML:NO];
+			[mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
+			
+			[self presentModalViewController:mailer animated:YES];
+			[mailer release];
+		}else{
+			UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Email unavailable" 
+															  message:@"Please configure your email settings before trying to use this option." 
+															 delegate:self 
+													cancelButtonTitle:@"OK" 
+													otherButtonTitles:nil];
+			[myAlert show];
+			[myAlert release];	
+		}
+
 	// delete
-	if( indexPath.row == 2 ){
+	}else if( indexPath.section == 0 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
 														 delegate:self 
