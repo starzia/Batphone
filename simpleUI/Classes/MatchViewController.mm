@@ -61,12 +61,12 @@ static const int numCandidates = 10;
 	// add CRT image to window
 	UIImage* crtImage = [UIImage imageNamed:@"crt.png"];
 	UIImageView* imageView = [[UIImageView alloc] initWithImage:crtImage];
-	imageView.center = CGPointMake(160, 105);
+	imageView.center = CGPointMake(160, 60);
 	[self.view addSubview:imageView];
 	[imageView release];
 	
 	// Add plot to window
-	CGRect rect = CGRectMake(10, 55, 300.0f, 100.0f);
+	CGRect rect = CGRectMake(10, 10, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	// make line red
@@ -76,21 +76,21 @@ static const int numCandidates = 10;
 	[self.view addSubview:plot];
 	
 	// Add map which will be show alternatively in place of plot
-	self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,40,320,135)] autorelease];
+	self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,0,320,125)] autorelease];
 	map.scrollEnabled = NO;
 	map.zoomEnabled = NO;
 	map.mapType = MKMapTypeHybrid;
 	[self.view addSubview:map];
 	
 	// create matchTable
-	rect = CGRectMake( 0, 165, 320, 245 );
+	rect = CGRectMake( 0, 120, 320, 245 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect style:UITableViewStylePlain] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = matchTable.dataSource = self;
 	[self.view addSubview:matchTable];
 	
 	// create tabbar at bottom
-	rect = CGRectMake(0, 410, 320, 50);
+	rect = CGRectMake(0, 366, 320, 50);
 	self.tabBar = [[[UITabBar alloc] initWithFrame:rect] autorelease];
 	tabBar.delegate = self;
 	UITabBarItem* acousticButton = [[UITabBarItem alloc] autorelease];
@@ -105,7 +105,8 @@ static const int numCandidates = 10;
 						  tag:0];
 	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
-	[self tabBar:tabBar didSelectItem:acousticButton]; // default tabBar choice
+	self.tabBar.selectedItem=[tabBar.items objectAtIndex:0]; // default tabBar choice
+	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:0]]; 
 	[self.view addSubview:tabBar];
 	
 	// create timer to update the plot
@@ -182,18 +183,6 @@ static const int numCandidates = 10;
 	[LocationViewController zoomToFitMapAnnotations:map];
 }
 
-
--(void)clearButtonHandler{
-	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
-													  message:@"You are about to delete ALL of your location tags." 
-													 delegate:self 
-											cancelButtonTitle:@"Cancel" 
-											otherButtonTitles:nil];
-	[myAlert addButtonWithTitle:@"Delete"];
-	[myAlert show];
-	[myAlert release];
-}
-
 /* called by timer */
 -(void) updatePlot{
 	// get the current fingerprint and save to "New" slot
@@ -205,17 +194,6 @@ static const int numCandidates = 10;
 		if( alert.visible && self.newFingerprint[0]>0 ){
 			[alert dismissWithClickedButtonIndex:0 animated:YES];
 		}
-	}
-}
-
-
-#pragma mark -
-#pragma mark UIAlertViewDelegate
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
-	// if "delete" button was clicked then clear the database
-	if( buttonIndex == 1 ){
-		app.database->clear();
-		[self query]; // this is a hack to clear the candidate plots
 	}
 }
 

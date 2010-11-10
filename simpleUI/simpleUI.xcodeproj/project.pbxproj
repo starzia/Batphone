@@ -30,6 +30,7 @@
 		AA7B060912523FFA00FFA088 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B060812523FFA00FFA088 /* AudioToolbox.framework */; };
 		AA7B06261252402F00FFA088 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B06251252402F00FFA088 /* CoreAudio.framework */; };
 		AA7B066C1252433200FFA088 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B066B1252433200FFA088 /* Accelerate.framework */; };
+		AA91A1BC128A42A5007C27A4 /* OptionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */; };
 		AAAC4D25127A149000FB24C1 /* MatchViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D23127A149000FB24C1 /* MatchViewController.mm */; };
 		AAAC4D2B127A14F100FB24C1 /* NewViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D29127A14F100FB24C1 /* NewViewController.mm */; };
 		AAAC4D30127A16A700FB24C1 /* LocationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */; };
@@ -76,6 +77,8 @@
 		AA7B060812523FFA00FFA088 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		AA7B06251252402F00FFA088 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		AA7B066B1252433200FFA088 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		AA91A1BA128A42A5007C27A4 /* OptionsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionsViewController.h; sourceTree = "<group>"; };
+		AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OptionsViewController.mm; sourceTree = "<group>"; };
 		AAAC4D22127A149000FB24C1 /* MatchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchViewController.h; sourceTree = "<group>"; };
 		AAAC4D23127A149000FB24C1 /* MatchViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MatchViewController.mm; sourceTree = "<group>"; };
 		AAAC4D28127A14F100FB24C1 /* NewViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewViewController.h; sourceTree = "<group>"; };
@@ -129,6 +132,8 @@
 				AAAC4D29127A14F100FB24C1 /* NewViewController.mm */,
 				AAAC4D2D127A16A700FB24C1 /* LocationViewController.h */,
 				AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */,
+				AA91A1BA128A42A5007C27A4 /* OptionsViewController.h */,
+				AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -319,6 +324,7 @@
 				AAAC4D25127A149000FB24C1 /* MatchViewController.mm in Sources */,
 				AAAC4D2B127A14F100FB24C1 /* NewViewController.mm in Sources */,
 				AAAC4D30127A16A700FB24C1 /* LocationViewController.mm in Sources */,
+				AA91A1BC128A42A5007C27A4 /* OptionsViewController.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

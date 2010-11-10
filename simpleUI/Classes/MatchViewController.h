@@ -15,8 +15,7 @@ using std::vector;
 
 
 @interface MatchViewController : UIViewController 
-<UIAlertViewDelegate, UITableViewDelegate, UITableViewDataSource,
- UITabBarDelegate>{
+<UITableViewDelegate, UITableViewDataSource, UITabBarDelegate>{
 	AppDelegate *app;
 	plotView *plot;            // live fingerprint plot
 	Fingerprint newFingerprint;
@@ -45,7 +44,6 @@ using std::vector;
 // custom initializer
 - (id)initWithApp:(AppDelegate *)theApp;
 
--(void) clearButtonHandler;
 -(void) query;
 -(void) updatePlot;
 

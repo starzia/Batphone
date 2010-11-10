@@ -18,17 +18,19 @@ using std::vector;
 @class MatchViewController;
 @class NewViewController;
 @class LocationViewController;
+@class OptionsViewController;
 
 @interface AppDelegate : NSObject 
 <UIApplicationDelegate, CLLocationManagerDelegate, UINavigationBarDelegate,
  UIAlertViewDelegate> {
 	// data members
     UIWindow *window;
-	UINavigationBar *navBar;
+	UINavigationController *navController;
 	MatchViewController *matchViewController;
 	NewViewController *newViewController;
 	LocationViewController *locationViewController;
-
+	OptionsViewController *optionsViewController;
+	 
 	Fingerprinter* fp;
 	CLLocationManager *locationManager; 	// data for SkyHook/GPS localization
 	FingerprintDB* database;
@@ -36,10 +38,11 @@ using std::vector;
 
 // accessors
 @property (nonatomic, retain) IBOutlet UIWindow *window;
-@property (nonatomic, retain) UINavigationBar* navBar;
+@property (nonatomic, retain) UINavigationController* navController;
 @property (nonatomic, retain) MatchViewController *matchViewController;
 @property (nonatomic, retain) NewViewController *newViewController;
 @property (nonatomic, retain) LocationViewController *locationViewController;
+@property (nonatomic, retain) OptionsViewController *optionsViewController;
 
 @property (nonatomic) Fingerprinter* fp; 
 @property (nonatomic) FingerprintDB* database;

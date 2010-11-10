@@ -31,7 +31,7 @@
 		self.view.backgroundColor = [UIColor clearColor];
 		
 		// create instruction label
-		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 140, 300.0f, 100.0f)] autorelease];
+		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 95, 300.0f, 100.0f)] autorelease];
 		// Set the value of our string
 		[locationLabel setText:@"Describe your\ncurrent location:"];
 		// Center Align the label's text
@@ -44,7 +44,7 @@
 		[self.view addSubview:locationLabel];
 		
 		// add question mark graphic
-		UILabel* question = [[UILabel alloc] initWithFrame:CGRectMake(0, 70, 320, 100)];
+		UILabel* question = [[UILabel alloc] initWithFrame:CGRectMake(0, 25, 320, 100)];
 		[question setText:@"?"];
 		[question setTextAlignment:UITextAlignmentCenter];
 		question.textColor = [UIColor darkTextColor];
@@ -54,7 +54,7 @@
 		[question release];
 		
 		// create buildingField
-		CGRect rect = CGRectMake(10 , 210, 150.0f, 30.0f);
+		CGRect rect = CGRectMake(10 , 165, 150.0f, 30.0f);
 		self.buildingField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[buildingField setPlaceholder:@"building's name"];
 		[buildingField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -64,7 +64,7 @@
 		[self.view addSubview:buildingField];
 		
 		// create roomField
-		rect = CGRectMake(160 , 210, 150.0f, 30.0f);
+		rect = CGRectMake(160 , 165, 150.0f, 30.0f);
 		self.roomField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[roomField setPlaceholder:@"room's name"];
 		[roomField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -75,7 +75,7 @@
 		
 		// create picker
 		currentBuilding = @"";
-		rect = CGRectMake( 0, 245, 300, 215 );
+		rect = CGRectMake( 0, 200, 300, 215 );
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
 		roomPicker.delegate = roomPicker.dataSource = self;
 		roomPicker.showsSelectionIndicator = YES;
