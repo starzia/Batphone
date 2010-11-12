@@ -97,13 +97,21 @@
     return 2;
 }
 
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+	if( section == 1 ){
+		return @"Advanced database options";
+	}else{
+		return @"";
+	}
+}
+
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
 	if( section == 0 ){
-		return 3;
-	}else{
 		return 1;
+	}else{
+		return 3;
 	}
 }
 
@@ -119,15 +127,15 @@
     }
     
     // Configure the cell...
-	if(indexPath.section == 0 ){
-	if(indexPath.row == 0){
-		cell.textLabel.text = @"Email database";
-	}else if(indexPath.row == 1){
-		cell.textLabel.text = @"Load database";
-	}else if(indexPath.row == 2){
-		cell.textLabel.text = @"Clear database";
-	}
-	}else if( indexPath.section == 1){
+	if(indexPath.section == 1 ){
+		if(indexPath.row == 0){
+			cell.textLabel.text = @"Email database";
+		}else if(indexPath.row == 1){
+			cell.textLabel.text = @"Load database";
+		}else if(indexPath.row == 2){
+			cell.textLabel.text = @"Clear database";
+		}
+	}else if( indexPath.section == 0){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Send us feedback";
 		}
@@ -187,7 +195,7 @@
 			MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
 			mailer.mailComposeDelegate = self;
 			
-			if( indexPath.section == 0 ){
+			if( indexPath.section == 1 ){
 				// email database
 				[mailer setSubject:@"[Batphone DB]"];
 				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude, building name, room name, fingerprint[0],...,fingerprint[1023]\n" 
@@ -215,7 +223,7 @@
 		}
 	}
 	// delete
-	else if( indexPath.section == 0 && indexPath.row == 2 ){
+	else if( indexPath.section == 1 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
 														 delegate:self 
@@ -225,10 +233,10 @@
 		[myAlert release];
 	}
 	// load from URL
-	else if( indexPath.section == 0 && indexPath.row == 1 ){
+	else if( indexPath.section == 1 && indexPath.row == 1 ){
 		// Ask for URL
 		UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"Please supply a URL" 
-															message:@"WARNING: all of your location tags will be cleared before the new tags are loaded.\n\n\n" 
+															message:@"These location tags will be added to your current database.  You should backup your database first.\n\n\n" 
 														   delegate:self 
 												  cancelButtonTitle:@"Cancel" 
 												  otherButtonTitles:@"Load", nil];

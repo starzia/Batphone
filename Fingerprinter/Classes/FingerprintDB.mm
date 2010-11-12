@@ -269,18 +269,24 @@ bool FingerprintDB::loadFromString( NSString* content ){
 		[scanner scanDouble:&newEntry.location.latitude];
 		[scanner scanDouble:&newEntry.location.longitude];
 		[scanner scanDouble:&newEntry.location.altitude];
-		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
-								intoString:&(newEntry.building)];
+		[scanner scanUpToString:@"\t" intoString:&(newEntry.building)];
 		[newEntry.building retain];
-		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
-								intoString:&(newEntry.room)];
+		[scanner scanUpToString:@"\t" intoString:&(newEntry.room)];
 		[newEntry.room retain];
 		
-		// load fingerprint
+		// load remainder of line
+		//  we do this so that any junk at end of line (eg if fingerprint is too long)
+		//  won't throw off the scanner alignment
+		NSString* remainder;
+		[scanner scanUpToString:@"\n" intoString:&remainder];
+		NSScanner *floatScanner = [NSScanner scannerWithString:remainder];
+
+		// load fingerprint from remainder
 		newEntry.fingerprint = new float[len];
 		for( int j=0; j<len; j++ ){
-			[scanner scanFloat:&(newEntry.fingerprint[j]) ];
-		}		
+			[floatScanner scanFloat:&(newEntry.fingerprint[j]) ];
+		}
+		
 		// add it to the DB
 		entries.push_back( newEntry );
 		// update maxUID
