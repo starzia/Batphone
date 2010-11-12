@@ -11,6 +11,7 @@
 @implementation OptionsViewController
 
 @synthesize app;
+@synthesize URLField;
 
 #pragma mark -
 #pragma mark Initialization
@@ -20,6 +21,15 @@
 - (id)initWithStyle:(UITableViewStyle)style app:(AppDelegate *)theApp{
     if ((self = [super initWithStyle:style])) {
 		self.app = theApp;
+		
+		// create URL text field
+		UITextField *utextfield = [[UITextField alloc] initWithFrame:CGRectMake(12.0, 120.0, 260.0, 25.0)]; 
+		self.URLField = utextfield;
+		[utextfield release];		
+		URLField.placeholder = @"eg. http://somesite.com/file.txt";
+		URLField.text = @"http://stevetarzia.com/batphone/database.txt";
+		[URLField setBackgroundColor:[UIColor whiteColor]];
+		
     }
     return self;
 }
@@ -180,14 +190,16 @@
 			if( indexPath.section == 0 ){
 				// email database
 				[mailer setSubject:@"[Batphone DB]"];
+				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude, building name, room name, fingerprint[0],...,fingerprint[1023]\n" 
+								isHTML:NO];
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
 			}else{
 				// email feedback
 				[mailer setSubject:@"[Batphone feedback]"];
+				[mailer setMessageBody:@"" isHTML:NO];
 			}
-			[mailer setMessageBody:@"" isHTML:NO];
 			[mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
 			
 			[self presentModalViewController:mailer animated:YES];
@@ -201,38 +213,88 @@
 			[myAlert show];
 			[myAlert release];	
 		}
-
+	}
 	// delete
-	}else if( indexPath.section == 0 && indexPath.row == 2 ){
+	else if( indexPath.section == 0 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
 														 delegate:self 
 												cancelButtonTitle:@"Cancel" 
-												otherButtonTitles:nil];
-		[myAlert addButtonWithTitle:@"Delete"];
+												otherButtonTitles:@"Delete",nil];
 		[myAlert show];
 		[myAlert release];
 	}
-	
-    // Navigation logic may go here. Create and push another view controller.
-	/*
-	 <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-	 [self.navigationController pushViewController:detailViewController animated:YES];
-	 [detailViewController release];
-	 */
+	// load from URL
+	else if( indexPath.section == 0 && indexPath.row == 1 ){
+		// Ask for URL
+		UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"Please supply a URL" 
+															message:@"WARNING: all of your location tags will be cleared before the new tags are loaded.\n\n\n" 
+														   delegate:self 
+												  cancelButtonTitle:@"Cancel" 
+												  otherButtonTitles:@"Load", nil];
+		// Adds a URL Field
+		[alertview addSubview:self.URLField];
+		
+		// Show alert on screen.
+		[alertview show];
+		[alertview release];
+	} 
 }
+
 	
 	
 #pragma mark -
 #pragma mark UIAlertViewDelegate
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
-	// if "delete" button was clicked then clear the database
-	if( buttonIndex == 1 ){
-		app.database->clear();
-		// TODO: somehow clear the match table
+	// clear database alert
+	if( [alertView.title isEqualToString:@"Really clear database?"] ){
+		// if "delete" button was clicked then clear the database
+		if( buttonIndex == 1 ){
+			app.database->clear();
+			// TODO: somehow clear the match table
+		}
 	}
+	// load URL alert
+	else if( [alertView.title isEqualToString:@"Please supply a URL"] ){
+		// if load button was clicked
+		if( buttonIndex == 1 ){
+			// try downloading
+			NSString* urlContents = [[NSString alloc] initWithContentsOfURL:[NSURL URLWithString:URLField.text]
+																   encoding:NSUTF8StringEncoding
+																	  error:nil];
+			if( urlContents == nil ){
+				// if download failed
+				UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Error downloading database" 
+																  message:@"The URL you specified could not be downloaded." 
+																 delegate:self 
+														cancelButtonTitle:@"OK" 
+														otherButtonTitles:nil];
+				[myAlert show];
+				[myAlert release];
+			}else{
+				// if download succeeded
+				if( app.database->loadFromString( urlContents ) ){
+					// successfully loaded database
+					app.database->save();
+				}else{
+					app.database->clear();
+					UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Error loading database" 
+																	  message:@"The file you specified is not a valid database file." 
+																	 delegate:self 
+															cancelButtonTitle:@"OK" 
+															otherButtonTitles:nil];
+					[myAlert show];
+					[myAlert release];
+				}
+			}
+		}
+	}
+	// Unselect the selected row if any
+	NSIndexPath* selection = [self.tableView indexPathForSelectedRow];
+	if (selection){
+		[self.tableView deselectRowAtIndexPath:selection animated:YES];
+	}
+	[self.tableView reloadData];
 }
 
 
@@ -254,6 +316,8 @@
 
 
 - (void)dealloc {
+	[URLField release];
+	[app release];
     [super dealloc];
 }
 

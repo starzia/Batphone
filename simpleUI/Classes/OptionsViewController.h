@@ -16,8 +16,10 @@
 @interface OptionsViewController : UITableViewController 
 <UIAlertViewDelegate, MFMailComposeViewControllerDelegate> {
 	AppDelegate* app;
+	UITextField* URLField;
 }
 @property (nonatomic, retain) AppDelegate* app;
+@property (nonatomic, retain) UITextField* URLField;
 
 // custom initializer
 - (id)initWithStyle:(UITableViewStyle)style app:(AppDelegate *)theApp;

@@ -248,8 +248,17 @@ bool FingerprintDB::load(){
 														   error:nil];
 	[DBFilename release];
 	
-    ///NSLog(@"LOADED:\n%@\n", content);
 	// fill DB with content
+	bool loadSuccess = loadFromString( content );
+	[content release];
+	// save entire database to file if we loaded the default DB from the app bundle
+	if( loadedDefault && loadSuccess ) this->save();
+	return loadSuccess;
+	// TODO file access error handling
+}
+
+
+bool FingerprintDB::loadFromString( NSString* content ){
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){
 		DBEntry newEntry;
@@ -266,7 +275,7 @@ bool FingerprintDB::load(){
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
 								intoString:&(newEntry.room)];
 		[newEntry.room retain];
-
+		
 		// load fingerprint
 		newEntry.fingerprint = new float[len];
 		for( int j=0; j<len; j++ ){
@@ -278,11 +287,7 @@ bool FingerprintDB::load(){
 		if( theUid > this->maxUid ) this->maxUid = newEntry.uid;
 	}
     NSLog(@"loaded %d database entries", entries.size());
-	[content release];
-	// save entire database to file if we loaded the default DB from the app bundle
-	if( loadedDefault ) this->save();
-	return true;
-	// TODO file access error handling
+	return true; // TODO: handle improper file format errors and return false
 }
 
 

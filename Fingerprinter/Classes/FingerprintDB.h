@@ -82,6 +82,7 @@ public:
 	
 	/* load database from a file.  Returns false if file doesn't exist. */
 	bool load();
+	bool loadFromString( NSString* content );
 	
 	/* clear database, including persistent store */
 	void clear();
