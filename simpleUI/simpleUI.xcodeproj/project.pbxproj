@@ -32,6 +32,7 @@
 		AA7B066C1252433200FFA088 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7B066B1252433200FFA088 /* Accelerate.framework */; };
 		AA91A1BC128A42A5007C27A4 /* OptionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */; };
 		AA91A243128A5B33007C27A4 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA91A242128A5B33007C27A4 /* MessageUI.framework */; };
+		AA91A360128E04DB007C27A4 /* combined.png in Resources */ = {isa = PBXBuildFile; fileRef = AA91A35F128E04DB007C27A4 /* combined.png */; };
 		AAAC4D25127A149000FB24C1 /* MatchViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D23127A149000FB24C1 /* MatchViewController.mm */; };
 		AAAC4D2B127A14F100FB24C1 /* NewViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D29127A14F100FB24C1 /* NewViewController.mm */; };
 		AAAC4D30127A16A700FB24C1 /* LocationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */; };
@@ -81,6 +82,7 @@
 		AA91A1BA128A42A5007C27A4 /* OptionsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionsViewController.h; sourceTree = "<group>"; };
 		AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OptionsViewController.mm; sourceTree = "<group>"; };
 		AA91A242128A5B33007C27A4 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
+		AA91A35F128E04DB007C27A4 /* combined.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = combined.png; sourceTree = "<group>"; };
 		AAAC4D22127A149000FB24C1 /* MatchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchViewController.h; sourceTree = "<group>"; };
 		AAAC4D23127A149000FB24C1 /* MatchViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MatchViewController.mm; sourceTree = "<group>"; };
 		AAAC4D28127A14F100FB24C1 /* NewViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewViewController.h; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AA91A35F128E04DB007C27A4 /* combined.png */,
 				AA1E5752128913B4001A12E3 /* grid.png */,
 				AA1E5753128913B4001A12E3 /* grid@2x.png */,
 				AA1E573012890972001A12E3 /* crt.png */,
@@ -304,6 +307,7 @@
 				AA1E573312890972001A12E3 /* crt@2x.png in Resources */,
 				AA1E5754128913B4001A12E3 /* grid.png in Resources */,
 				AA1E5755128913B4001A12E3 /* grid@2x.png in Resources */,
+				AA91A360128E04DB007C27A4 /* combined.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

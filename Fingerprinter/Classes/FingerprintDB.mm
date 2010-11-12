@@ -25,6 +25,7 @@ using std::sort;
 
 
 const NSString* DBFilename = @"db.txt";
+const float FingerprintDB::neighborhoodRadius = 50; // meters
 
 
 FingerprintDB::FingerprintDB( unsigned int fpLength ): len(fpLength), maxUid(-1) {
@@ -58,14 +59,16 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 										  const float observation[],  
 										  unsigned int numMatches,
 										  GPSLocation location,
-										  bool useAcousticDistance ){
+										  const DistanceMetric distanceMetric ){
 	// TODO: range query using GPSLocation
 	
 	// calculate distances to all entries in DB
 	pair<float,int> distances[entries.size()]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<entries.size(); ++i ){
-		if( useAcousticDistance ){
+		// if using acoustic or combined criterion then acoustic distance is primary sorting key
+		if( distanceMetric != DistanceMetricPhysical ){
 			distances[i] = make_pair( signal_distance( observation, entries[i].fingerprint ), i );
+
 		}else{ // use physical distance
 			distances[i] = make_pair( physical_distance( location, entries[i].location ), i );			
 		}
@@ -89,9 +92,15 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			m.entry = entries[distances[i].second];
 			m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
 			m.distance = distances[i].first;
-			result.push_back( m );
-			if( ++k >= numMatches ){
-				return k;
+			
+			// exclude this result if using combined criterion and physical distance is too far
+			if( distanceMetric != DistanceMetricCombined
+			   || physical_distance(location, m.entry.location) < FingerprintDB::neighborhoodRadius ){
+				// add this result
+				result.push_back( m );
+				if( ++k >= numMatches ){
+					return k;
+				}
 			}
 		}
 	}

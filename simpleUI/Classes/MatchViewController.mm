@@ -20,7 +20,7 @@
 @synthesize matches;
 @synthesize alert;
 @synthesize tabBar;
-@synthesize useAcousticDistance;
+@synthesize distanceMetric;
 @synthesize map;
 
 // CONSTANTS
@@ -98,12 +98,17 @@ static const int numCandidates = 10;
 							image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"mic" 
 																								   ofType:@"png"]] 
 							  tag:0];	
+	UITabBarItem* combinedButton = [[UITabBarItem alloc] autorelease];
+	[combinedButton initWithTitle:@"Combined"
+							image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"combined" 
+																								   ofType:@"png"]]  
+							  tag:1];
 	UITabBarItem* wifiButton = [[UITabBarItem alloc] autorelease];
 	[wifiButton initWithTitle:@"GPS/Wifi"
 						image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"bullseye" 
 																							   ofType:@"png"]]  
-						  tag:0];
-	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,wifiButton,nil];
+						  tag:2];
+	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,combinedButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
 	self.tabBar.selectedItem=[tabBar.items objectAtIndex:0]; // default tabBar choice
 	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:0]]; 
@@ -171,7 +176,7 @@ static const int numCandidates = 10;
 	// query for matches
 	matches.clear(); // clear previous results
 	app.database->queryMatches( matches, self.newFingerprint, numCandidates, 
-							    [app getLocation], useAcousticDistance );
+							    [app getLocation], distanceMetric );
 	// update table
 	[matchTable reloadData];
 	
@@ -202,17 +207,22 @@ static const int numCandidates = 10;
 #pragma mark UITabBarDelegate
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
 	// change distance metric accordingly
-	useAcousticDistance = [item.title isEqualToString:@"Acoustic"];
-	// reload table
-	[self query];
-	// switch between plot/map
-	if( useAcousticDistance ){
+	// and switch between plot/map
+	if( item.tag == 0 ){ // Acoustic
+		distanceMetric = DistanceMetricAcoustic;
 		[plot setHidden:NO];
 		[map setHidden:YES];
-	}else{
+	}else if( item.tag == 2 ){ // GPS/Wifi
+		distanceMetric = DistanceMetricPhysical;
 		[map setHidden:NO];
 		[plot setHidden:YES];
+	}else if( item.tag == 1 ){ //  Combined
+		distanceMetric = DistanceMetricCombined;
+		[map setHidden:YES];
+		[plot setHidden:NO];
 	}
+	// reload table
+	[self query];
 }
 
 
@@ -224,7 +234,12 @@ static const int numCandidates = 10;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	return @"Closest tags";
+	if( distanceMetric == DistanceMetricCombined ){
+		return [NSString stringWithFormat:@"Closest tags within %.0f meters",
+											FingerprintDB::neighborhoodRadius];
+	}else{
+		return @"Closest tags";
+	}
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
@@ -247,7 +262,7 @@ static const int numCandidates = 10;
 						entry->building, entry->room ] autorelease];
 	// secondary label depends on the distance metric
 	NSString* detailText;
-	if( useAcousticDistance ){
+	if( distanceMetric != DistanceMetricPhysical ){
 		detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
 											matches[indexPath.row].distance];		
 	}else{

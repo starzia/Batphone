@@ -42,6 +42,13 @@ typedef struct {
 /* Query result is a list of matches.  These are sorted by descending confidence level */
 typedef std::vector<Match> QueryResult;
 
+// types of distance metric used in database queries
+typedef enum{
+	DistanceMetricAcoustic,
+	DistanceMetricPhysical,
+	DistanceMetricCombined
+} DistanceMetric;
+
 
 // Database class
 class FingerprintDB{
@@ -56,7 +63,7 @@ public:
 							   const float observation[],  /* observed Fingerprint we want to match */
 							   const unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 							   const GPSLocation location=NULL_GPS, /* optional estimate of the current GPS location */
-							   const bool useAcousticDistance=true ); /* use acoustic or physical distance		
+							   const DistanceMetric distance=DistanceMetricAcoustic ); /* use acoustic or physical distance		
 
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
 	 * @return the uid for the new room. */
@@ -92,6 +99,8 @@ public:
 	
 	/* get filename for persistent storage */
 	NSString* getDBFilename();	
+
+	static const float neighborhoodRadius; // the maximum distance of a fingerprint returned from a query when DistanceMetricCombined is used.
 private:
 	/* calculates the distance between two Fingerprints */
 	float signal_distance( const float A[], const float B[] );
