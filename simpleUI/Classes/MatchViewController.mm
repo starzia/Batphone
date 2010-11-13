@@ -110,8 +110,8 @@ static const int numCandidates = 10;
 						  tag:2];
 	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,combinedButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
-	self.tabBar.selectedItem=[tabBar.items objectAtIndex:0]; // default tabBar choice
-	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:0]]; 
+	self.tabBar.selectedItem=[tabBar.items objectAtIndex:1]; // default tabBar choice
+	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:1]]; 
 	[self.view addSubview:tabBar];
 	
 	// create timer to update the plot
