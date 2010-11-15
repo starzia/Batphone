@@ -41,7 +41,7 @@ private:
 	inline void swap( unsigned int pos1, unsigned int pos2 );
 	
 	/* members */
-	float* vals;
+	float* vals; // the main heap array
 	/* The following arrays maintain the mapping back and forth between indices and positions.
 	 *   This allows elements to be removed from the heap
 	 *   by specifying their position.  In other words this array maps an index

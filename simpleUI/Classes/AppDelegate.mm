@@ -176,7 +176,10 @@ using namespace std;
 #pragma mark -
 #pragma mark Application lifecycle
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+	// Turn off the idle timer, since this app doesn't rely on constant touch input
+	application.idleTimerDisabled = YES;
+	
 	window.backgroundColor = [UIColor groupTableViewBackgroundColor]; // set striped BG
 	
 	// set up fingerprinter
@@ -191,6 +194,7 @@ using namespace std;
 	locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
 	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
 	locationManager.headingFilter = kCLHeadingFilterNone; // as above
+	locationManager.purpose = @"GPS/Wifi location information can be used to improve the location accuracy."; // to be displayed in system's user prompt
 	[self.locationManager startUpdatingLocation]; // start location service
 		
 	// initialize the first view controller

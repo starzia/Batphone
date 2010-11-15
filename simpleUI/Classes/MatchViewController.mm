@@ -114,18 +114,6 @@ static const int numCandidates = 10;
 	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:1]]; 
 	[self.view addSubview:tabBar];
 	
-	// create timer to update the plot
-	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
-													  target:self
-													selector:@selector(updatePlot)
-													userInfo:nil
-													 repeats:YES];
-	// create timer to continuously query
-	self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:2
-													  target:self
-													selector:@selector(query)
-													userInfo:nil
-													 repeats:YES];
 	// alert user that fingerprint is not yet ready
 	alert = [[UIAlertView alloc] initWithTitle:@"Please wait" 
 									   message:@"Ten seconds of audio is needed to compute a room fingerprint." 
@@ -155,19 +143,36 @@ static const int numCandidates = 10;
  */
 
 
-/*
- NOTE we don't actually disable timers.  This means that as long as the app
- is running, plotting and querying continue.  If the app moves into the
- background, then the OS ignores these timers.
- 
 // restart timers for plotting and querying
 -(void) viewWillAppear:(BOOL)animated{
+	if( !plotTimer ){
+		// create timer to update the plot
+		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+														  target:self
+														selector:@selector(updatePlot)
+														userInfo:nil
+														 repeats:YES];
+	}
+	if( !queryTimer ){
+		// create timer to continuously query
+		self.queryTimer = [NSTimer scheduledTimerWithTimeInterval:2
+														   target:self
+														 selector:@selector(query)
+														 userInfo:nil
+														  repeats:YES];
+	}
 }
 
 // pause timers for plotting and querying
 -(void) viewDidDissapear:(BOOL)animated{
+	[plotTimer invalidate];
+	[plotTimer release];
+	plotTimer = nil;
+	[queryTimer invalidate];
+	[queryTimer release];
+	queryTimer = nil;
 }
- */
+
 
 #pragma mark -
 #pragma mark app events
@@ -303,6 +308,7 @@ static const int numCandidates = 10;
 - (void)dealloc {
 	[plot release];
 	[plotTimer release];
+	[queryTimer release];
 	delete[] newFingerprint;
 	[matchTable release];
 	[alert release];
