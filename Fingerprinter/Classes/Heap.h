@@ -38,7 +38,7 @@ private:
 	/* sift value at position down tree, if needed to maintain heap property */
 	void siftDown( unsigned int position );
 	/* swap contents of two positions */
-	void swap( unsigned int pos1, unsigned int pos2 );
+	inline void swap( unsigned int pos1, unsigned int pos2 );
 	
 	/* members */
 	float* vals;

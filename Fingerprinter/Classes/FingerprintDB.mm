@@ -25,7 +25,7 @@ using std::sort;
 
 
 const NSString* DBFilename = @"db.txt";
-const float FingerprintDB::neighborhoodRadius = 50; // meters
+const float FingerprintDB::neighborhoodRadius = 20; // meters
 
 
 FingerprintDB::FingerprintDB( unsigned int fpLength ): len(fpLength), maxUid(-1) {

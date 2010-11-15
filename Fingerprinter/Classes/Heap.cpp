@@ -47,55 +47,82 @@ void Heap::correct( unsigned int position ){
 	siftDown( position );
 }
 
+
 // binary heap index arithmetic
 #define PARENT(x) (((int)x-1)/2)
 #define LEFTCHILD(x) ((2*x)+1)
 #define RIGHTCHILD(x) ((2*x)+2)
 
 void Heap::siftUp( unsigned int position ){
-	int parent_pos = PARENT(position);
-	if( parent_pos < 0 ) return; // already at top
-	bool doSwap = false;
+	int parent_pos;
+	
 	if( isMaxHeap ){
-		// parent should be larger
-		if( vals[parent_pos] < vals[position] ){
-			doSwap = true;
+		// sift up until heap property is satisfied
+		while( position > 0 /* if at root, can't siftUp any further */
+			   /* should continue sifting up if heap property is not satisfied */
+			   && vals[(parent_pos=PARENT(position))] < vals[position] ){
+			swap( position, parent_pos );
+			position = parent_pos;
 		}
 	}else{
-		// parent should be smaller
-		if( vals[parent_pos] > vals[position] ){
-			doSwap = true;
+		while( position > 0 /* if at root, can't siftUp any further */
+			   /* should continue sifting up if heap property is not satisfied */
+			   && vals[(parent_pos=PARENT(position))] > vals[position] ){
+			swap( position, parent_pos );
+			position = parent_pos;
 		}
-	}
-	if( doSwap ){
-		swap( position, parent_pos );
-		siftUp(parent_pos);
 	}
 }
 
 void Heap::siftDown( unsigned int position ){
-	for( unsigned int child = LEFTCHILD(position); child<=RIGHTCHILD(position); child++ ){
-		if( child >= size ) return;  // already at bottom;
-		bool doSwap = false;
-		if( isMaxHeap ){
-			// child should be smaller
-			if( vals[child] > vals[position] ){
-				doSwap = true;
-			}
-		}else{
-			// child should be larger
-			if( vals[child] < vals[position] ){
-				doSwap = true;
+	int left_child_pos, right_child_pos;
+	
+	if( isMaxHeap ){
+		// sift down until heap property is satisfied
+		while( (left_child_pos=LEFTCHILD(position)) < size ){ // if no left-child, then there is nowhere to move down
+			right_child_pos=RIGHTCHILD(position); 
+			if( vals[left_child_pos] > vals[position] 
+			    || (right_child_pos < size) && vals[right_child_pos] > vals[position] ){ // violated heap property
+				if( right_child_pos >= size // if no right child
+				    || vals[left_child_pos] > vals[right_child_pos] ){ // or left child is larger
+					// swap with left child
+					swap( position, left_child_pos );
+					position = left_child_pos;
+				}else{ 
+					// swap with right child
+					swap( position, right_child_pos );
+					position = right_child_pos;
+				}
+			}else{
+				// if heap property is not violated here, then assume it exists elsewhere
+				break;
 			}
 		}
-		if( doSwap ){
-			swap( position, child );
-			siftDown(child);
+	}else{
+		// sift down until heap property is satisfied
+		while( (left_child_pos=LEFTCHILD(position)) < size ){ // if no left-child, then there is nowhere to move down
+			right_child_pos=RIGHTCHILD(position); 
+			if( vals[left_child_pos] < vals[position] 
+			   || (right_child_pos < size) && vals[right_child_pos] < vals[position] ){ // violated heap property
+				if( right_child_pos >= size // if no right child
+				   || vals[left_child_pos] < vals[right_child_pos] ){ // or left child is larger
+					// swap with left child
+					swap( position, left_child_pos );
+					position = left_child_pos;
+				}else{ 
+					// swap with right child
+					swap( position, right_child_pos );
+					position = right_child_pos;
+				}
+			}else{
+				// if heap property is not violated here, then assume it exists elsewhere
+				break;
+			}
 		}
 	}
 }
 
-void Heap::swap( unsigned int pos1, unsigned int pos2 ){
+inline void Heap::swap( unsigned int pos1, unsigned int pos2 ){
     /* maintain the position <-> index mappings */
 	
 	// record current state
