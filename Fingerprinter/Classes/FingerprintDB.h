@@ -10,17 +10,9 @@
 #import <vector>
 #import <string>
 #import <Foundation/Foundation.h>
+#import <CoreLocation/CoreLocation.h> // for CLLocation and physical_distance
 
 using std::vector;
-
-// GPS location
-typedef struct{
-	double latitude;
-	double longitude;
-	double altitude;
-} GPSLocation;
-// NULL GPSLocation for cases when GPS location is unavailable
-static const GPSLocation NULL_GPS = {NAN, NAN, NAN};
 
 // Database entry
 typedef struct{
@@ -29,7 +21,7 @@ typedef struct{
 	NSString* building;
 	NSString* room;
 	float* fingerprint;
-	GPSLocation location; // estimated GPS location of this observed fingerprint
+	CLLocation* location; // estimated GPS location of this observed fingerprint
 } DBEntry;
 
 /* Candidates room matches are returned when querying the DB */
@@ -62,7 +54,7 @@ public:
 	unsigned int queryMatches( QueryResult & result, /* the output */
 							   const float observation[],  /* observed Fingerprint we want to match */
 							   const unsigned int numMatches, /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-							   const GPSLocation location=NULL_GPS, /* optional estimate of the current GPS location */
+							   const CLLocation* location=NULL, /* optional estimate of the current GPS location */
 							   const DistanceMetric distance=DistanceMetricAcoustic ); /* use acoustic or physical distance		
 
 	/* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
@@ -70,7 +62,7 @@ public:
 	unsigned int insertFingerprint( const float observation[], /* the new Fingerprint */
 								    const NSString* building,  /* name of building */
 								    const NSString* room,      /* name for the new room */
-								    const GPSLocation location=NULL_GPS ); /* optional estimate of the observation's GPS location */
+								    const CLLocation* location=NULL ); /* optional estimate of the observation's GPS location */
 	
 	/* Query the DB for a list of names of all buildings.  Names are pushed onto result */
 	bool getAllBuildings( vector<NSString*> & result );
@@ -104,9 +96,6 @@ public:
 private:
 	/* calculates the distance between two Fingerprints */
 	float signal_distance( const float A[], const float B[] );
-	/* calculates the distance "as the bird flies" between two locations.
-	 * Technically, this is the orthodromic distance. */
-	float physical_distance( const GPSLocation B, const GPSLocation b );
 	
 	void makeRandomFingerprint( float outBuf[] );
 

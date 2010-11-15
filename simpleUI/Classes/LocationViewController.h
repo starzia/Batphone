@@ -43,7 +43,7 @@
 
 // add placemark to map
 +(void)annotateMap:(MKMapView*)map 
-		  location:(GPSLocation)location
+		  location:(CLLocation*)location
 			 title:(NSString*)title; // title can be nil
 +(void)zoomToFitMapAnnotations:(MKMapView*)mapView;
 

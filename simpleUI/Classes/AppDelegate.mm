@@ -39,14 +39,8 @@ using namespace std;
 	cout << endl;
 }
 
--(GPSLocation)getLocation{
-	// get location
-	GPSLocation currentLocation;
-	CLLocation *loc = locationManager.location;
-	currentLocation.latitude = loc.coordinate.latitude;
-	currentLocation.longitude = loc.coordinate.longitude;
-	currentLocation.altitude = loc.altitude;
-	return currentLocation;
+-(CLLocation*)getLocation{
+	return locationManager.location;
 }
 
 
@@ -194,7 +188,7 @@ using namespace std;
 	locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
 	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
 	locationManager.headingFilter = kCLHeadingFilterNone; // as above
-	locationManager.purpose = @"GPS/Wifi location information can be used to improve the location accuracy."; // to be displayed in system's user prompt
+	locationManager.purpose = @"GPS/wifi location information can be used to improve the location accuracy."; // to be displayed in system's user prompt
 	[self.locationManager startUpdatingLocation]; // start location service
 		
 	// initialize the first view controller

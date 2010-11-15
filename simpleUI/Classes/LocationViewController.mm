@@ -110,13 +110,10 @@
 
 
 +(void)annotateMap:(MKMapView*)map 
-		  location:(GPSLocation)location
+		  location:(CLLocation*)location
 			 title:(NSString*)title{
 	MKPointAnnotation *mPlacemark = [[MKPointAnnotation alloc] init];
-	CLLocationCoordinate2D coord;
-	coord.latitude = location.latitude;
-	coord.longitude = location.longitude;
-	mPlacemark.coordinate = coord;
+	mPlacemark.coordinate = location.coordinate;
 	mPlacemark.title = title;
 	[map addAnnotation:mPlacemark];
 	[mPlacemark release];

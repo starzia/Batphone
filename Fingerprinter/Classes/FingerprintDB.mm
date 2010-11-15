@@ -12,7 +12,6 @@
 #include <stdlib.h> // for random()
 #import <algorithm> // for partial_sort
 #import <utility> // for pair
-#import <CoreLocation/CoreLocation.h> // for physical_distance
 
 #include <iostream>
 #include <fstream>
@@ -45,6 +44,7 @@ FingerprintDB::~FingerprintDB(){
 		delete[] entries[i].fingerprint;
 		[entries[i].building release];
 		[entries[i].room release];
+		[entries[i].location release];
 	}
 }
 
@@ -58,7 +58,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 unsigned int FingerprintDB::queryMatches( QueryResult & result, 
 										  const float observation[],  
 										  unsigned int numMatches,
-										  GPSLocation location,
+										  const CLLocation* location,
 										  const DistanceMetric distanceMetric ){
 	// TODO: range query using GPSLocation
 	
@@ -70,7 +70,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			distances[i] = make_pair( signal_distance( observation, entries[i].fingerprint ), i );
 
 		}else{ // use physical distance
-			distances[i] = make_pair( physical_distance( location, entries[i].location ), i );			
+			distances[i] = make_pair( [location distanceFromLocation:entries[i].location], i );			
 		}
 	}
 	// sort distances
@@ -95,7 +95,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			
 			// exclude this result if using combined criterion and physical distance is too far
 			if( distanceMetric != DistanceMetricCombined
-			   || physical_distance(location, m.entry.location) < FingerprintDB::neighborhoodRadius ){
+			   || [location distanceFromLocation:m.entry.location] < FingerprintDB::neighborhoodRadius ){
 				// add this result
 				result.push_back( m );
 				if( ++k >= numMatches ){
@@ -111,7 +111,7 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 unsigned int FingerprintDB::insertFingerprint( const float observation[],
 											   const NSString* newBuilding,
 											   const NSString* newRoom,
-											   const GPSLocation location){
+											   const CLLocation* location){
 	// create new DB entry
 	DBEntry newEntry;
 	NSDate *now = [NSDate date];
@@ -122,7 +122,7 @@ unsigned int FingerprintDB::insertFingerprint( const float observation[],
 	[newEntry.building retain];
 	newEntry.uid = ++(this->maxUid); // increment and assign uid
 	newEntry.fingerprint = new float[len];
-	newEntry.location = location;
+	newEntry.location = [[location copy] retain];
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
 	
 	// add it to the DB
@@ -162,17 +162,6 @@ float FingerprintDB::signal_distance( const float A[], const float B[] ){
 	return sqrt(result);
 }
 
-float FingerprintDB::physical_distance( const GPSLocation a, GPSLocation b ){
-	CLLocation* aLoc = [[CLLocation alloc] initWithLatitude:a.latitude
-												  longitude:a.longitude];
-	CLLocation* bLoc = [[CLLocation alloc] initWithLatitude:b.latitude
-												  longitude:b.longitude];
-	double distance = [aLoc distanceFromLocation:bLoc];
-	[aLoc release];
-	[bLoc release];
-	return distance;
-}
-
 
 void FingerprintDB::makeRandomFingerprint( float outBuf[] ){
 	outBuf[0] = 0.0;
@@ -197,10 +186,12 @@ void FingerprintDB::appendEntryString( NSMutableString* outputBuffer,
 	[outputBuffer appendFormat:@"%d\t%lld\t", 
 	 entry.uid,
 	 entry.timestamp];
-	[outputBuffer appendFormat:@"%.7f\t%.7f\t%.7f\t", /* 7 digit decimals should give ~1cm precision */
-	 entry.location.latitude,
-	 entry.location.longitude,
-	 entry.location.altitude ];
+	[outputBuffer appendFormat:@"%.7f\t%.7f\t%.2f\t%.2f\t%.2f\t", /* 7 digit decimals should give ~1cm precision */
+	 entry.location.coordinate.latitude,
+	 entry.location.coordinate.longitude,
+	 entry.location.altitude,
+	 entry.location.horizontalAccuracy,
+	 entry.location.verticalAccuracy];
 	[outputBuffer appendFormat:@"%@\t", entry.building ];
 	[outputBuffer appendFormat:@"%@", entry.room ];
 	// add each element of fingerprint
@@ -209,7 +200,7 @@ void FingerprintDB::appendEntryString( NSMutableString* outputBuffer,
 		if( entry.fingerprint[j] != entry.fingerprint[j] /* test for NaN */ ){
 			[outputBuffer appendFormat:@"\t0" ];
 		}else{
-			[outputBuffer appendFormat:@"\t%f", entry.fingerprint[j] ];
+			[outputBuffer appendFormat:@"\t%.4g", entry.fingerprint[j] ];
 		}
 	}
 	// newline at end
@@ -244,7 +235,7 @@ bool FingerprintDB::load(){
 	if( [[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
 		DBFilename = [this->getDBFilename() retain];
 	}else{
-		// if there is no database.txt in the documents folder, then load the 
+		// if there is no db.txt in the documents folder, then load the 
 		// default database from the resources bundle
 		DBFilename = [[[NSBundle mainBundle] pathForResource:@"database" 
 													  ofType:@"txt"] retain];
@@ -275,10 +266,19 @@ bool FingerprintDB::loadFromString( NSString* content ){
 		[scanner scanInt:&theUid];
 		newEntry.uid = theUid;
 		[scanner scanLongLong:&newEntry.timestamp];
-		[scanner scanDouble:&newEntry.location.latitude];
-		[scanner scanDouble:&newEntry.location.longitude];
-		[scanner scanDouble:&newEntry.location.altitude];
-		[scanner scanUpToString:@"\t" intoString:&(newEntry.building)];
+		double latitude, longitude, altitude, horiz_accuracy, vert_accuracy;
+		[scanner scanDouble:&latitude];
+		[scanner scanDouble:&longitude];
+		[scanner scanDouble:&altitude];
+		[scanner scanDouble:&horiz_accuracy];
+		[scanner scanDouble:&vert_accuracy];
+		newEntry.location = [[CLLocation alloc] 
+							 initWithCoordinate:CLLocationCoordinate2DMake(latitude, longitude) 
+							 altitude:altitude horizontalAccuracy:horiz_accuracy
+							 verticalAccuracy:vert_accuracy timestamp:0];
+		[newEntry.location retain];
+
+		 [scanner scanUpToString:@"\t" intoString:&(newEntry.building)];
 		[newEntry.building retain];
 		[scanner scanUpToString:@"\t" intoString:&(newEntry.room)];
 		[newEntry.room retain];
@@ -312,6 +312,7 @@ void FingerprintDB::clear(){
 		delete[] entries[i].fingerprint;
 		[entries[i].building release];
 		[entries[i].room release];
+		[entries[i].location release];
 		entries.pop_back();
 	}
 

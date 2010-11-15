@@ -110,9 +110,12 @@ static const int numCandidates = 10;
 						  tag:2];
 	NSArray* barItems = [NSArray arrayWithObjects:acousticButton,combinedButton,wifiButton,nil];
 	[self.tabBar setItems:barItems animated:NO];
-	self.tabBar.selectedItem=[tabBar.items objectAtIndex:1]; // default tabBar choice
-	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:1]]; 
 	[self.view addSubview:tabBar];
+	
+	// decide which tab should be used by default.
+	int defaultTab = 1;
+	self.tabBar.selectedItem=[tabBar.items objectAtIndex:defaultTab];
+	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:defaultTab]]; 
 	
 	// alert user that fingerprint is not yet ready
 	alert = [[UIAlertView alloc] initWithTitle:@"Please wait" 
@@ -242,6 +245,9 @@ static const int numCandidates = 10;
 	if( distanceMetric == DistanceMetricCombined ){
 		return [NSString stringWithFormat:@"Closest tags within %.0f meters",
 											FingerprintDB::neighborhoodRadius];
+	}else if( distanceMetric == DistanceMetricPhysical ){
+		return [NSString stringWithFormat:@"Closest tags (~%.0f meter accuracy)",
+				app.getLocation.horizontalAccuracy];
 	}else{
 		return @"Closest tags";
 	}
