@@ -246,7 +246,7 @@ static const int numCandidates = 10;
 		return [NSString stringWithFormat:@"Closest tags within %.0f meters",
 											FingerprintDB::neighborhoodRadius];
 	}else if( distanceMetric == DistanceMetricPhysical ){
-		return [NSString stringWithFormat:@"Closest tags (~%.0f meter accuracy)",
+		return [NSString stringWithFormat:@"Closest tags (%.0f meter accuracy)",
 				app.getLocation.horizontalAccuracy];
 	}else{
 		return @"Closest tags";

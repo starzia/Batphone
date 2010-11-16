@@ -9,6 +9,12 @@
 
 #include "Heap.h"
 
+//#define DEBUG_HEAP
+#ifdef DEBUG_HEAP
+#include <iostream>
+unsigned int debug_heap_update_count = 0;
+#endif
+
 Heap::Heap(unsigned int size, float initialVals, bool isMaxHeap ) : 
 size(size), isMaxHeap(isMaxHeap) {
 	vals = new float[size];
@@ -32,6 +38,16 @@ void Heap::replace( unsigned int index, float val ){
 	unsigned int pos = keyToPosition[index];
 	vals[pos] = val;
 	correct( pos );
+#ifdef DEBUG_HEAP
+	// after 100003 updates (a prime number), check for heap property
+	if( debug_heap_update_count++ % 100003 == 0){
+		if( !debugHeap() ){
+			std::cerr << "ERROR in heap!\n";
+		}else{
+			std::cerr << "heap OK\n";
+		}
+	}
+#endif
 }
 
 float Heap::rootVal(){
@@ -139,3 +155,28 @@ inline void Heap::swap( unsigned int pos1, unsigned int pos2 ){
 	keyToPosition[key1] = pos2;
 	keyToPosition[key2] = pos1;
 }
+
+#ifdef DEBUG_HEAP
+bool Heap::debugHeap(){
+	// pop all elements from Heap and made sure that they come out in order
+	float buffer[size];
+	for( int i=0; i<size; i++ ){
+		buffer[i] = rootVal();
+		std::cerr << buffer[i] <<'\t';
+		if( i>0 ){
+			if( ( isMaxHeap && buffer[i] > buffer[i-1] ) 
+				|| (!isMaxHeap && buffer[i] < buffer[i-1] ) ){
+				return false;
+			}
+		}
+		if( isMaxHeap ){
+			vals[0] = -1e20;
+		}else{
+			vals[0] = 1e20;
+		}
+		correct(0);
+	}
+	std::cerr << '\n';
+	return true;
+}
+#endif

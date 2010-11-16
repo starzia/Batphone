@@ -39,6 +39,8 @@ private:
 	void siftDown( unsigned int position );
 	/* swap contents of two positions */
 	inline void swap( unsigned int pos1, unsigned int pos2 );
+	/* debug function which empties the heap checking for errors */
+	bool debugHeap();
 	
 	/* members */
 	float* vals; // the main heap array

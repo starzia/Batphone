@@ -10,6 +10,7 @@
 #import "SlidingWindow.h"
 #include <pthread.h> // for mutex
 
+// Sliding window spectrogram, with our new summary vector function
 class Spectrogram{
 public:
 	/* constructor */
