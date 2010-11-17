@@ -5,6 +5,8 @@
 //  Created by Stephen Tarzia on 10/28/10.
 //  Copyright 2010 Northwestern University. All rights reserved.
 //
+// Note that bat image is from http://commons.wikimedia.org/wiki/File:Bat_(PSF).jpg
+// By Pearson Scott Foresman [Public domain], via Wikimedia Commons
 
 #import "MatchViewController.h"
 #import "LocationViewController.h" // for map functions
@@ -64,6 +66,14 @@ static const int numCandidates = 10;
 	imageView.center = CGPointMake(160, 60);
 	[self.view addSubview:imageView];
 	[imageView release];
+	
+	// add bat image to window
+	UIImage* batImage = [UIImage imageNamed:@"bat.png"];
+	UIImageView* imageView2 = [[UIImageView alloc] initWithImage:batImage];
+	imageView2.alpha = 0.2;
+	imageView2.center = CGPointMake(160, 230);
+	[self.view addSubview:imageView2];
+	[imageView2 release];
 	
 	// Add plot to window
 	CGRect rect = CGRectMake(10, 10, 300.0f, 100.0f);

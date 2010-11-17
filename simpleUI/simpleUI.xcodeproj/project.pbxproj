@@ -43,6 +43,9 @@
 		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
 		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
 		AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */; };
+		AADB837712935120009422E6 /* bat.png in Resources */ = {isa = PBXBuildFile; fileRef = AADB837512935120009422E6 /* bat.png */; };
+		AADB837812935120009422E6 /* bat@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AADB837612935120009422E6 /* bat@2x.png */; };
+		AADB838E12937314009422E6 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = AADB838D12937314009422E6 /* Icon.png */; };
 		AAFD8C3E1262B53A0081B913 /* FingerprintDB.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAFD8C3D1262B53A0081B913 /* FingerprintDB.mm */; };
 /* End PBXBuildFile section */
 
@@ -100,6 +103,9 @@
 		AAD14E8A125C097A0066A446 /* Spectrogram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Spectrogram.h; path = ../Fingerprinter/Classes/Spectrogram.h; sourceTree = SOURCE_ROOT; };
 		AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SlidingWindow.cpp; path = ../Fingerprinter/Classes/SlidingWindow.cpp; sourceTree = SOURCE_ROOT; };
 		AAD14EC2125C0F6A0066A446 /* Spectrogram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Spectrogram.cpp; path = ../Fingerprinter/Classes/Spectrogram.cpp; sourceTree = SOURCE_ROOT; };
+		AADB837512935120009422E6 /* bat.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bat.png; sourceTree = "<group>"; };
+		AADB837612935120009422E6 /* bat@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "bat@2x.png"; sourceTree = "<group>"; };
+		AADB838D12937314009422E6 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
 		AAFD8965125E9D150081B913 /* FingerprintDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FingerprintDB.h; path = ../Fingerprinter/Classes/FingerprintDB.h; sourceTree = SOURCE_ROOT; };
 		AAFD8C3D1262B53A0081B913 /* FingerprintDB.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = FingerprintDB.mm; path = ../Fingerprinter/Classes/FingerprintDB.mm; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -177,6 +183,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AADB838D12937314009422E6 /* Icon.png */,
+				AADB837512935120009422E6 /* bat.png */,
+				AADB837612935120009422E6 /* bat@2x.png */,
 				AA91A35F128E04DB007C27A4 /* combined.png */,
 				AA1E5752128913B4001A12E3 /* grid.png */,
 				AA1E5753128913B4001A12E3 /* grid@2x.png */,
@@ -308,6 +317,9 @@
 				AA1E5754128913B4001A12E3 /* grid.png in Resources */,
 				AA1E5755128913B4001A12E3 /* grid@2x.png in Resources */,
 				AA91A360128E04DB007C27A4 /* combined.png in Resources */,
+				AADB837712935120009422E6 /* bat.png in Resources */,
+				AADB837812935120009422E6 /* bat@2x.png in Resources */,
+				AADB838E12937314009422E6 /* Icon.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
