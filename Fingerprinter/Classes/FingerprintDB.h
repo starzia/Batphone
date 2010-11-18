@@ -96,6 +96,10 @@ public:
 private:
 	/* calculates the distance between two Fingerprints */
 	float signal_distance( const float A[], const float B[] );
+	// distance using linear combination of signal and physical (GPS) distance
+	// note that this metric is not symmetrical, ie dist(a,b)!=dist(b,a)
+	float combined_distance(float A[], const CLLocation* locA,
+							const float B[], const CLLocation* locB );
 	
 	void makeRandomFingerprint( float outBuf[] );
 

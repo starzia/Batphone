@@ -66,11 +66,13 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 	pair<float,int> distances[entries.size()]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<entries.size(); ++i ){
 		// if using acoustic or combined criterion then acoustic distance is primary sorting key
-		if( distanceMetric != DistanceMetricPhysical ){
+		if( distanceMetric == DistanceMetricAcoustic ){
 			distances[i] = make_pair( signal_distance( observation, entries[i].fingerprint ), i );
-
-		}else{ // use physical distance
+		}else if( distanceMetric == DistanceMetricPhysical ){ // use physical distance
 			distances[i] = make_pair( [location distanceFromLocation:entries[i].location], i );			
+		}else{ // distanceMetric == DistanceMetricCombined
+			distances[i] = make_pair( combined_distance( entries[i].fingerprint, 
+						entries[i].location, observation, location ), i );			
 		}
 	}
 	// sort distances
@@ -92,15 +94,9 @@ unsigned int FingerprintDB::queryMatches( QueryResult & result,
 			m.entry = entries[distances[i].second];
 			m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
 			m.distance = distances[i].first;
-			
-			// exclude this result if using combined criterion and physical distance is too far
-			if( distanceMetric != DistanceMetricCombined
-			   || [location distanceFromLocation:m.entry.location] < FingerprintDB::neighborhoodRadius ){
-				// add this result
-				result.push_back( m );
-				if( ++k >= numMatches ){
-					return k;
-				}
+			result.push_back( m );
+			if( ++k >= numMatches ){
+				return k;
 			}
 		}
 	}
@@ -160,6 +156,28 @@ float FingerprintDB::signal_distance( const float A[], const float B[] ){
 	vDSP_sve( buf1, 1, &result, len );
 	
 	return sqrt(result);
+}
+
+
+float FingerprintDB::combined_distance( float A[], const CLLocation* locA,
+									    const float B[], const CLLocation* locB ){
+	float sigDist = this->signal_distance( A, B );
+	float physDist = [locA distanceFromLocation:locB];
+	// constants for linear combination
+	const float K=0.75; // metric combination factor
+	// we also use the min/max expected distance between tags from same room
+	// these constants were determined experimentally
+	const float maxPhysDist=93; 
+	const float minPhysDist=0;
+	// find the normalization constant for acoustic distances
+	//  As shortcut, just use 0 and 3*min(A)
+	float minSigDist=0;
+	float maxSigDist;
+	vDSP_minv( A, 1, &maxSigDist, len );
+	maxSigDist *= 3;
+
+	return K * (sigDist-minSigDist)/(maxSigDist-minSigDist) +
+			(1-K) * (physDist-minPhysDist)/(maxPhysDist-minPhysDist);
 }
 
 

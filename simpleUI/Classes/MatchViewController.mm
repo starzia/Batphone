@@ -26,7 +26,7 @@
 @synthesize map;
 
 // CONSTANTS
-static const int numCandidates = 10;
+static const int numCandidates = 100;
 
 #pragma mark -
 #pragma mark UIViewController inherited
@@ -253,7 +253,7 @@ static const int numCandidates = 10;
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
 	if( distanceMetric == DistanceMetricCombined ){
-		return [NSString stringWithFormat:@"Closest tags within %.0f meters",
+		return [NSString stringWithFormat:@"Closest tags",
 											FingerprintDB::neighborhoodRadius];
 	}else if( distanceMetric == DistanceMetricPhysical ){
 		return [NSString stringWithFormat:@"Closest tags (%.0f meter accuracy)",
@@ -283,12 +283,15 @@ static const int numCandidates = 10;
 						entry->building, entry->room ] autorelease];
 	// secondary label depends on the distance metric
 	NSString* detailText;
-	if( distanceMetric != DistanceMetricPhysical ){
+	if( distanceMetric == DistanceMetricAcoustic ){
 		detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
 											matches[indexPath.row].distance];		
-	}else{
-		detailText = [[NSString alloc] initWithFormat:@"estimated GPS distance: %.0f meters", 
+	}else if( distanceMetric == DistanceMetricPhysical ){
+		detailText = [[NSString alloc] initWithFormat:@"estimated physical distance: %.0f meters", 
 											matches[indexPath.row].distance];
+	}else{ // DistanceMetricCombined
+		detailText = [[NSString alloc] initWithFormat:@"acoustic+physical distance: %.3f", 
+					  matches[indexPath.row].distance];		
 	}
 	cell.detailTextLabel.text = detailText;
 	[detailText release];
