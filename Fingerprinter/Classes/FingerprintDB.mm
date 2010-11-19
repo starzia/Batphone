@@ -261,7 +261,7 @@ bool FingerprintDB::load(){
 	}
 	
 	// read contents of file
-	NSString *content = [[NSString alloc] initWithContentsOfFile:DBFilename
+	NSString *content = [[NSString alloc] initWithContentsOfFile:filename
 													usedEncoding:nil
 														   error:nil];
 	[filename release];

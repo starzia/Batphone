@@ -129,7 +129,7 @@ static const int numCandidates = 10;
 	
 	// alert user that fingerprint is not yet ready
 	alert = [[UIAlertView alloc] initWithTitle:@"Please wait" 
-									   message:@"Ten seconds of audio is needed to compute a room fingerprint." 
+									   message:@"Ten seconds of audio are needed to compute a room fingerprint." 
 									  delegate:nil 
 							 cancelButtonTitle:nil 
 							 otherButtonTitles:nil];
@@ -137,11 +137,10 @@ static const int numCandidates = 10;
 	// add spinning activity indicator
 	UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]  
 										  initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];  
-	indicator.center = CGPointMake(alert.bounds.size.width / 2,   
-								   alert.bounds.size.height - 45);  
+	indicator.center = CGPointMake(140, 110);  
 	[indicator startAnimating];  
 	[alert addSubview:indicator];  
-	[indicator release];  
+	[indicator release];  	
 	
     [super viewDidLoad];
 }
