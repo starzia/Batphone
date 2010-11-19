@@ -39,6 +39,9 @@
 		AAAF2D6412639F36003C20EB /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D6312639F36003C20EB /* Icon-72.png */; };
 		AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAAF2D691263A03E003C20EB /* Icon@2x.png */; };
 		AAC415D31254EFF0008DA27C /* plotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.mm */; };
+		AAC5090612962DDA00A9885D /* bullseye@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAC5090312962DDA00A9885D /* bullseye@2x.png */; };
+		AAC5090712962DDA00A9885D /* combined@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAC5090412962DDA00A9885D /* combined@2x.png */; };
+		AAC5090812962DDA00A9885D /* mic@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAC5090512962DDA00A9885D /* mic@2x.png */; };
 		AACB4B361281022E00E6F3EA /* database.txt in Resources */ = {isa = PBXBuildFile; fileRef = AACB4B351281022E00E6F3EA /* database.txt */; };
 		AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E85125C097A0066A446 /* Heap.cpp */; };
 		AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD14E8E125C09F70066A446 /* SlidingWindow.cpp */; };
@@ -96,6 +99,9 @@
 		AAAF2D691263A03E003C20EB /* Icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon@2x.png"; sourceTree = "<group>"; };
 		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
 		AAC415D21254EFF0008DA27C /* plotView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = plotView.mm; sourceTree = "<group>"; };
+		AAC5090312962DDA00A9885D /* bullseye@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "bullseye@2x.png"; sourceTree = "<group>"; };
+		AAC5090412962DDA00A9885D /* combined@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "combined@2x.png"; sourceTree = "<group>"; };
+		AAC5090512962DDA00A9885D /* mic@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mic@2x.png"; sourceTree = "<group>"; };
 		AACB4B351281022E00E6F3EA /* database.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = database.txt; sourceTree = "<group>"; };
 		AAD14E85125C097A0066A446 /* Heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Heap.cpp; path = ../Fingerprinter/Classes/Heap.cpp; sourceTree = SOURCE_ROOT; };
 		AAD14E86125C097A0066A446 /* Heap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Heap.h; path = ../Fingerprinter/Classes/Heap.h; sourceTree = SOURCE_ROOT; };
@@ -183,6 +189,9 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AAC5090312962DDA00A9885D /* bullseye@2x.png */,
+				AAC5090412962DDA00A9885D /* combined@2x.png */,
+				AAC5090512962DDA00A9885D /* mic@2x.png */,
 				AADB838D12937314009422E6 /* Icon.png */,
 				AADB837512935120009422E6 /* bat.png */,
 				AADB837612935120009422E6 /* bat@2x.png */,
@@ -320,6 +329,9 @@
 				AADB837712935120009422E6 /* bat.png in Resources */,
 				AADB837812935120009422E6 /* bat@2x.png in Resources */,
 				AADB838E12937314009422E6 /* Icon.png in Resources */,
+				AAC5090612962DDA00A9885D /* bullseye@2x.png in Resources */,
+				AAC5090712962DDA00A9885D /* combined@2x.png in Resources */,
+				AAC5090812962DDA00A9885D /* mic@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
