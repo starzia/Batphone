@@ -26,7 +26,7 @@
 @synthesize map;
 
 // CONSTANTS
-static const int numCandidates = 100;
+static const int numCandidates = 10;
 
 #pragma mark -
 #pragma mark UIViewController inherited
@@ -114,7 +114,7 @@ static const int numCandidates = 100;
 																								   ofType:@"png"]]  
 							  tag:1];
 	UITabBarItem* wifiButton = [[UITabBarItem alloc] autorelease];
-	[wifiButton initWithTitle:@"GPS/Wifi"
+	[wifiButton initWithTitle:@"Radio"
 						image:[UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"bullseye" 
 																							   ofType:@"png"]]  
 						  tag:2];
@@ -202,7 +202,7 @@ static const int numCandidates = 100;
 	[map removeAnnotations:map.annotations];
 	[LocationViewController annotateMap:map 
 							   location:[self.app getLocation]
-								  title:@"approximate GPS location"];
+								  title:@"approximate location"];
 	[LocationViewController zoomToFitMapAnnotations:map];
 }
 
@@ -230,7 +230,7 @@ static const int numCandidates = 100;
 		distanceMetric = DistanceMetricAcoustic;
 		[plot setHidden:NO];
 		[map setHidden:YES];
-	}else if( item.tag == 2 ){ // GPS/Wifi
+	}else if( item.tag == 2 ){ // Radio
 		distanceMetric = DistanceMetricPhysical;
 		[map setHidden:NO];
 		[plot setHidden:YES];

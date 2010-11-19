@@ -188,7 +188,7 @@ using namespace std;
 	locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
 	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
 	locationManager.headingFilter = kCLHeadingFilterNone; // as above
-	locationManager.purpose = @"GPS/wifi location information can be used to improve the location accuracy."; // to be displayed in system's user prompt
+	locationManager.purpose = @"Location information from the device's radios can be used to improve accuracy."; // to be displayed in system's user prompt
 	[self.locationManager startUpdatingLocation]; // start location service
 		
 	// initialize the first view controller
