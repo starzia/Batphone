@@ -10,8 +10,8 @@
 #include "SlidingWindow.h"
 #include <cmath>
 
-SlidingWindow::SlidingWindow( unsigned int size, float percentile, float initVal ):
-size(size), percentile(percentile){
+SlidingWindow::SlidingWindow( unsigned int mySize, float myPercentile, float initVal ):
+size(mySize), percentile(myPercentile){
 	maxHeapSize = ceil( (percentile)*size );
     minHeapSize = floor( (1-percentile)*size );
     maxHeap = new Heap( this->maxHeapSize, initVal, true );

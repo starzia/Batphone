@@ -15,8 +15,8 @@
 unsigned int debug_heap_update_count = 0;
 #endif
 
-Heap::Heap(unsigned int size, float initialVals, bool isMaxHeap ) : 
-size(size), isMaxHeap(isMaxHeap) {
+Heap::Heap(unsigned int mySize, float initialVals, bool myIsMaxHeap ) : 
+size(mySize), isMaxHeap(myIsMaxHeap) {
 	vals = new float[size];
 	positionToKey = new unsigned int[size];
 	keyToPosition = new unsigned int[size];

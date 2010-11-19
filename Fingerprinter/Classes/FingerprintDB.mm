@@ -131,12 +131,12 @@ unsigned int FingerprintDB::insertFingerprint( const float observation[],
 		appendEntryString( content, newEntry );
 		
 		// open database file for appending
-		NSString* DBFilename = [this->getDBFilename() retain];
+		NSString* filename = [this->getDBFilename() retain];
 		std::ofstream dbFile;
-		dbFile.open([DBFilename UTF8String], std::ios::out | std::ios::app);
+		dbFile.open([filename UTF8String], std::ios::out | std::ios::app);
 		dbFile << [content UTF8String]; // append the new entry
 		dbFile.close();
-		[DBFilename release];
+		[filename release];
 		[content release];
 	}
 	
@@ -249,14 +249,14 @@ bool FingerprintDB::save(){
 bool FingerprintDB::load(){
 	// test that DB file exists
 	bool loadedDefault = false;
-	NSString* DBFilename;
+	NSString* filename;
 	if( [[NSFileManager defaultManager] fileExistsAtPath:this->getDBFilename()] ){
-		DBFilename = [this->getDBFilename() retain];
+		filename = [this->getDBFilename() retain];
 	}else{
 		// if there is no db.txt in the documents folder, then load the 
 		// default database from the resources bundle
-		DBFilename = [[[NSBundle mainBundle] pathForResource:@"database" 
-													  ofType:@"txt"] retain];
+		filename = [[[NSBundle mainBundle] pathForResource:@"database" 
+													ofType:@"txt"] retain];
 		loadedDefault = true;
 	}
 	
@@ -264,7 +264,7 @@ bool FingerprintDB::load(){
 	NSString *content = [[NSString alloc] initWithContentsOfFile:DBFilename
 													usedEncoding:nil
 														   error:nil];
-	[DBFilename release];
+	[filename release];
 	
 	// fill DB with content
 	bool loadSuccess = loadFromString( content );
