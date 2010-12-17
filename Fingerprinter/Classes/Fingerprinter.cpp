@@ -122,14 +122,6 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 
 	// use vDSP_zaspec to get power spectrum
 	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::fpLength );
-
-	/*
-	for( int i=0; i<Fingerprinter::fpLength; i++ ){
-		if( !( A[i] >= 0 ) || ( A[i] <= 0 ) ){
-			printf( "NaN at index %d\n", i );
-		}
-	}
-	*/
 	
 	// convert to dB
 	float reference=1.0f;
