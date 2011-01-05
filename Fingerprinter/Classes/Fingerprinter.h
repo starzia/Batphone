@@ -54,7 +54,9 @@ public:
 	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
 	static const float bufferSize; /* audio buffer size in seconds, also the size of time frames above */
 	static const float freqCutoff; /* lower fraction of the fingerprint to use.  Higher frequencies are discarded. */
-	
+	static const unsigned int overlaps; /* the number of overlapping windows to use in each frame.
+										 Setting this to 1 gives no overlap.  The time of the sliding
+										 window is then historyLength * bufferSize / overlaps */
 private:
 	int setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat);
 	

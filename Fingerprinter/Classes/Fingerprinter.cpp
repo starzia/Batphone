@@ -27,19 +27,19 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
+const unsigned int Fingerprinter::overlaps = 16; 
 #if TARGET_IPHONE_SIMULATOR
-// for some reasone, simulator doesn't like long buffers
+// for some reason, simulator doesn't like long buffers
 const unsigned int Fingerprinter::specRes = 128;
-const unsigned int Fingerprinter::historyLength = 800;
-const float Fingerprinter::bufferSize = 0.01;
+const unsigned int Fingerprinter::historyLength = Fingerprinter::overlaps*800;
+const float        Fingerprinter::bufferSize = 0.01;
 #else
 const unsigned int Fingerprinter::specRes = 1024;
-const unsigned int Fingerprinter::historyLength = 100;
-const float Fingerprinter::bufferSize = 0.1;
+const unsigned int Fingerprinter::historyLength = Fingerprinter::overlaps*100;
+const float        Fingerprinter::bufferSize = 0.1;
 #endif
-const float Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
+const float        Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
 const unsigned int Fingerprinter::fpLength = Fingerprinter::specRes * Fingerprinter::freqCutoff / 22050.0;
-
 #define kOutputBus 0
 #define kInputBus 1
 
@@ -56,7 +56,10 @@ typedef struct{
 	FFTSetup fftsetup;
 	pthread_mutex_t* lock; // fingerprint lock
 	// signal processing buffers
-	float* A __attribute__ ((aligned (16))); // aligned for SIMD
+	float* A __attribute__ ((aligned (16))); // scratch // aligned for SIMD
+	float* thisFrame __attribute__ ((aligned (16))); // aligned for SIMD
+	float* lastFrame __attribute__ ((aligned (16))); // aligned for SIMD
+	bool isFirstBuffer;
 	DSPSplitComplex compl_buf;	
 } CallbackData;
 
@@ -76,6 +79,11 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 							 UInt32 					inBusNumber, 
 							 UInt32 					inNumberFrames, 
 							 AudioBufferList 			*ioData ){
+	// TODO: fix buffer sizing, as noted below when lastFrame was allocated
+	if( inNumberFrames > 1<<13 ){
+		fprintf(stderr, "Error: buffer is too small.\n");		
+	}
+	
 	// cast our data structure
 	CallbackData* cd = (CallbackData*)inRefCon;
 	try{
@@ -103,45 +111,60 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	}
 	 */
 	
-	// convert integers to floats
-	vDSP_vflt32( (int*)data_ptr, 1, cd->A, 1, inNumberFrames );
-
-	// set output.  NOTE: if we don't set this to zero we'll get feedback.
+	// copy lastFrame into its buffer
+	memcpy(cd->lastFrame, cd->thisFrame, sizeof(float)*inNumberFrames);
+	
+	// convert integers to floats, while copying into currFrame
+	vDSP_vflt32( (int*)data_ptr, 1, cd->thisFrame, 1, inNumberFrames );
+	
+	// set output.  NOTE: if we don't set this to zero we'll get audio feedback.
 	int zero=0;
 	vDSP_vfilli( &zero, (int*)data_ptr, 1, inNumberFrames );
 	
-	// find RMS value (must do this before the in-place FFT)
-	float rms;
-	vDSP_rmsqv( cd->A, 1, &rms, inNumberFrames );
-	///printf( "RMS: %10.0f\tFFT: ", rms );
+	// if this is the first buffer, just store it and continue;
+	if( cd->isFirstBuffer ){
+		cd->isFirstBuffer = false;
+		return 0;
+	}	
 	
-	/*
-	// apply Hamming window
-	float window[Fingerprinter::specRes];
-	vDSP_hamm_window( window, Fingerprinter::specRes, 0 ); // create window
-	vDSP_vmul(cd->A, 1, window, 1, cd->A, 1, Fingerprinter::specRes); //apply
-	*/
-	
-	// take fft 	
-	// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
-	// see vDSP documentation for details.
-    vDSP_ctoz((COMPLEX*) cd->A, 2, &(cd->compl_buf), 1, inNumberFrames/2);
-	vDSP_fft_zip( cd->fftsetup, &(cd->compl_buf), 1, log2FFTLength, kFFTDirection_Forward );
-    ///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2); // convert back
-
-	// use vDSP_zaspec to get power spectrum
-	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::specRes );
-	
-	// convert to dB
-	float reference=1.0f;
-	vDSP_vdbcon( cd->A, 1, &reference, cd->A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
-
-	if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
-	// save in spectrogram
-	cd->spectrogram->update( cd->A );
-	// update fingerprint from spectrogram summary
-	cd->spectrogram->getSummary( cd->fingerprint );
-	pthread_mutex_unlock( cd->lock );
+	// loop over several overlapping windows.  This first window is mostly in the previous frame
+	// and the last window is entirely in the current frame.
+	int stepSize = inNumberFrames / Fingerprinter::overlaps;
+	for( int i=1; i<=Fingerprinter::overlaps; i++ ){
+		// copy the frame into buffer A
+		int frac1 = (Fingerprinter::overlaps-i)*stepSize;
+		int frac2 = i*stepSize;
+		memcpy( cd->A, cd->lastFrame+frac2, sizeof(float)*frac1 ); // copy tail of last frame
+		memcpy( cd->A+frac1, cd->thisFrame, sizeof(float)*frac2 ); // copy head of current frame
+		
+		/*
+		// apply Hamming window
+		float window[Fingerprinter::specRes];
+		vDSP_hamm_window( window, Fingerprinter::specRes, 0 ); // create window
+		vDSP_vmul(cd->A, 1, window, 1, cd->A, 1, Fingerprinter::specRes); //apply
+		*/
+		
+		// take fft 	
+		// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
+		// see vDSP documentation for details.
+		vDSP_ctoz((COMPLEX*) cd->A, 2, &(cd->compl_buf), 1, inNumberFrames/2);
+		vDSP_fft_zip( cd->fftsetup, &(cd->compl_buf), 1, log2FFTLength, kFFTDirection_Forward );
+		///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2); // convert back
+		
+		// use vDSP_zaspec to get power spectrum
+		vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::specRes );
+		
+		// convert to dB
+		float reference=1.0f;
+		vDSP_vdbcon( cd->A, 1, &reference, cd->A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
+		
+		if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
+		// save in spectrogram
+		cd->spectrogram->update( cd->A );
+		// update fingerprint from spectrogram summary
+		cd->spectrogram->getSummary( cd->fingerprint );
+		pthread_mutex_unlock( cd->lock );
+	}
 	
 	return 0;
 }	
@@ -265,8 +288,11 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		// allocate buffers for signal processing
 		unsigned int buf_size = 1<<13; // TODO: assign this more safely
 		callbackData->A = new float[buf_size];
+		callbackData->thisFrame = new float[buf_size];
+		callbackData->lastFrame = new float[buf_size];
 		callbackData->compl_buf.realp = new float[buf_size/2];
 		callbackData->compl_buf.imagp = new float[buf_size/2];
+		callbackData->isFirstBuffer = true;
 		
 		
 		// set the callback fcn
