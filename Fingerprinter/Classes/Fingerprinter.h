@@ -48,10 +48,12 @@ public:
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
-	
+
+	static const unsigned int specRes; /* frequency resolution for FFT */
 	static const unsigned int fpLength; /* number of elements in the fingerprint array */
 	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
 	static const float bufferSize; /* audio buffer size in seconds, also the size of time frames above */
+	static const float freqCutoff; /* lower fraction of the fingerprint to use.  Higher frequencies are discarded. */
 	
 private:
 	int setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat);

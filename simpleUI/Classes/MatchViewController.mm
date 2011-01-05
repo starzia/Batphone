@@ -159,7 +159,7 @@ static const int numCandidates = 10;
 -(void) viewWillAppear:(BOOL)animated{
 	if( !plotTimer ){
 		// create timer to update the plot
-		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:Fingerprinter::bufferSize
 														  target:self
 														selector:@selector(updatePlot)
 														userInfo:nil

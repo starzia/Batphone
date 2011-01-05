@@ -167,7 +167,7 @@
 	NSString* dateString = [[NSDate dateWithTimeIntervalSince1970:fingerprints[plotIndex].timestamp] 
 							descriptionWithLocale:[NSLocale currentLocale]];
 	[self.label setText:dateString];
-	[self.plot setNeedsDisplay];
+	[self.plot autoRange]; // implicitly calls setNeedsDisplay
 }
 
 /*

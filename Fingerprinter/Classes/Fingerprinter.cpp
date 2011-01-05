@@ -29,14 +29,16 @@ using namespace std;
 // CONSTANTS
 #if TARGET_IPHONE_SIMULATOR
 // for some reasone, simulator doesn't like long buffers
-const unsigned int Fingerprinter::fpLength = 128;
+const unsigned int Fingerprinter::specRes = 128;
 const unsigned int Fingerprinter::historyLength = 800;
 const float Fingerprinter::bufferSize = 0.01;
 #else
-const unsigned int Fingerprinter::fpLength = 1024;
+const unsigned int Fingerprinter::specRes = 1024;
 const unsigned int Fingerprinter::historyLength = 100;
 const float Fingerprinter::bufferSize = 0.1;
 #endif
+const float Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
+const unsigned int Fingerprinter::fpLength = Fingerprinter::specRes * Fingerprinter::freqCutoff / 22050.0;
 
 #define kOutputBus 0
 #define kInputBus 1
@@ -66,7 +68,7 @@ typedef struct{
  * newly-captured audio buffers.
  * TODO: add buffering so that:
  *  A) callback returns immediately after copying data, thus not stalling pipeline
- *  B) if inNumberFrames is small (ie <= fpLength) then we don't produce NaNs
+ *  B) if inNumberFrames is small (ie <= specRes) then we don't produce NaNs
  */
 static OSStatus callback( 	 void						*inRefCon, /* the user-specified state data structure */
 							 AudioUnitRenderActionFlags *ioActionFlags, 
@@ -89,8 +91,8 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	//printf( "%d  ", data_ptr[0]>>8 );
 	
 	// setup FFT
-	// Below, we need twice as many FFT points as the fpLength because of FFT "folding"
-	UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
+	// Below, we need twice as many FFT points as the specRes because of FFT "folding"
+	UInt32 log2FFTLength = log2f( 2*Fingerprinter::specRes );
 	
 	/*
 	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
@@ -112,7 +114,14 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	float rms;
 	vDSP_rmsqv( cd->A, 1, &rms, inNumberFrames );
 	///printf( "RMS: %10.0f\tFFT: ", rms );
-		
+	
+	/*
+	// apply Hamming window
+	float window[Fingerprinter::specRes];
+	vDSP_hamm_window( window, Fingerprinter::specRes, 0 ); // create window
+	vDSP_vmul(cd->A, 1, window, 1, cd->A, 1, Fingerprinter::specRes); //apply
+	*/
+	
 	// take fft 	
 	// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
 	// see vDSP documentation for details.
@@ -121,7 +130,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
     ///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2); // convert back
 
 	// use vDSP_zaspec to get power spectrum
-	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::fpLength );
+	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::specRes );
 	
 	// convert to dB
 	float reference=1.0f;
