@@ -79,7 +79,7 @@ static const int numCandidates = 10;
 	CGRect rect = CGRectMake(10, 10, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
-	// make line red
+	// make line green
 	self.plot.lineColor[0] = 0.5; //R
 	self.plot.lineColor[1] = 1; //G
 	self.plot.lineColor[2] = 0.2; //B
