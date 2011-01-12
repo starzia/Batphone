@@ -27,7 +27,7 @@ using namespace std;
 
 // -----------------------------------------------------------------------------
 // CONSTANTS
-const unsigned int Fingerprinter::overlaps = 16; 
+const unsigned int Fingerprinter::overlaps = 4; 
 #if TARGET_IPHONE_SIMULATOR
 // for some reason, simulator doesn't like long buffers
 const unsigned int Fingerprinter::specRes = 128;
@@ -137,12 +137,10 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		memcpy( cd->A, cd->lastFrame+frac2, sizeof(float)*frac1 ); // copy tail of last frame
 		memcpy( cd->A+frac1, cd->thisFrame, sizeof(float)*frac2 ); // copy head of current frame
 		
-		/*
 		// apply Hamming window
 		float window[Fingerprinter::specRes];
 		vDSP_hamm_window( window, Fingerprinter::specRes, 0 ); // create window
 		vDSP_vmul(cd->A, 1, window, 1, cd->A, 1, Fingerprinter::specRes); //apply
-		*/
 		
 		// take fft 	
 		// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
