@@ -179,7 +179,6 @@ using namespace std;
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
 	self.database = [[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength];
-	[self.database loadCache]; // load the database.
 	
 	// set up Core Location
 	self.locationManager = [[[CLLocationManager alloc] init] autorelease];
