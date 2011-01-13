@@ -14,6 +14,8 @@
 
 using std::vector;
 
+#pragma mark -
+#pragma mark helper classes
 // Database entry
 typedef struct{
 	NSString* uuid;
@@ -42,6 +44,8 @@ typedef enum{
 } DistanceMetric;
 
 
+#pragma mark -
+#pragma mark FingerprintDB
 // Database class
 @interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
@@ -50,25 +54,34 @@ typedef enum{
 	// buffers for intermediate values, so that we don't have to allocate in functions.
 	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
 	// for HTTP
-	NSMutableData* receivedData;
-
+	// see http://stackoverflow.com/questions/332276/managing-multiple-asynchronous-nsurlconnection-connections
+	NSMutableDictionary* httpConnectionData; // maps connections to their info, which is another dictionary containing the connection type and the NSMutableData
+	// for some reason NSMutableDictionary doesn't like using connections directly as keys so we use their string description.
 };
 
 @property (nonatomic) unsigned int len;
 @property std::vector<DBEntry> cache;
 @property (nonatomic) float* buf1;
-@property (retain) NSMutableData* receivedData;
+@property (retain) NSMutableDictionary* httpConnectionData; 
 
 -(id) initWithFPLength:(unsigned int) fpLength;
 	
+/* Starts an asynchronous query.  When result is ready, call [target selector:(QueryResult&)result] */
+-(void) startQueryWithObservation:(const float[])observation  /* observed Fingerprint we want to match */
+					   numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+						 location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+				   distanceMetric:(DistanceMetric)distance
+					 resultTarget:(id) target
+						 selector:(SEL) selector;
+
 /* Query the DB for a list of closest-matching rooms 
  * returns the number of matches.
- * NOTE: later versions of this function will require other context info, eg. the last-observed GPS location. */
--(unsigned int) queryMatches:(QueryResult&)result /* the output */
-				 observation:(const float[])observation  /* observed Fingerprint we want to match */
-				  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-					location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
-			  distanceMetric:(DistanceMetric)distance;
+ */
+-(unsigned int) queryCacheForMatches:(QueryResult&)result /* the output */
+						 observation:(const float[])observation  /* observed Fingerprint we want to match */
+						  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+							location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+					  distanceMetric:(DistanceMetric)distance;
 
 /* Add a given Fingerprint to the DB.  We do this when the returned matches are poor (or if there are no matches).
  * @return the uuid string for the new room. */
@@ -95,6 +108,7 @@ typedef enum{
 -(bool) loadCacheFromString:( const NSString* )content;
 -(bool) saveCache;
 -(void) clearCache;
+
 
 #pragma mark private methods
 	

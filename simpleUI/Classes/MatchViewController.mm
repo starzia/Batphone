@@ -192,7 +192,7 @@ static const int numCandidates = 10;
 -(void) query{
 	// query for matches
 	matches.clear(); // clear previous results
-	[app.database queryMatches:matches
+	[app.database queryCacheForMatches:matches
 				   observation:self.newFingerprint
 					numMatches:numCandidates
 					  location:[app getLocation]
@@ -200,7 +200,8 @@ static const int numCandidates = 10;
 	// update table
 	[matchTable reloadData];
 	
-	// update map
+	// UNRELATED TO QUERY...
+	// update map with current skyhook location
 	[map removeAnnotations:map.annotations];
 	[LocationViewController annotateMap:map 
 							   location:[self.app getLocation]
