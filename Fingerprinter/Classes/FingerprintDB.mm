@@ -31,19 +31,27 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 @synthesize len;
 @synthesize cache;
 @synthesize buf1;
-@synthesize receivedData;
+@synthesize httpConnectionData;
 
 -(id) initWithFPLength:(unsigned int) fpLength{
 	[super init];
 	len = fpLength;
 	buf1 = new float[fpLength];
 	[self loadCache];
-	return self;
+	httpConnectionData = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
+	/*
+	httpConnectionData = CFDictionaryCreateMutable( kCFAllocatorDefault,
+											0,
+											&kCFTypeDictionaryKeyCallBacks,
+											&kCFTypeDictionaryValueCallBacks);
+	 */
+	 return self;
 }
 
 
 -(void)dealloc{
 	delete[] buf1;
+	[httpConnectionData release];
 	
 	// clear database
 	for( unsigned int i=0; i<cache.size(); ++i ){
@@ -63,11 +71,21 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(unsigned int) queryMatches:(QueryResult&)result /* the output */
-				 observation:(const float[])observation  /* observed Fingerprint we want to match */
-				  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-					location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
-			  distanceMetric:(DistanceMetric)distanceMetric{
+-(void) startQueryWithObservation:(const float[])observation  /* observed Fingerprint we want to match */
+					   numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+						 location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+				   distanceMetric:(DistanceMetric)distance
+					 resultTarget:(id) target
+						 selector:(SEL) selector{
+	//............
+	
+}
+
+-(unsigned int) queryCacheForMatches:(QueryResult&)result /* the output */
+						 observation:(const float[])observation  /* observed Fingerprint we want to match */
+						  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+							location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+					  distanceMetric:(DistanceMetric)distanceMetric{
 	// calculate distances to all entries in DB cache
 	pair<float,int> distances[cache.size()]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<cache.size(); ++i ){
@@ -183,9 +201,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
     
 	NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (theConnection) {
-		// Create the NSMutableData to hold the received data.
-		// receivedData is an instance variable declared elsewhere.
-		receivedData = [[NSMutableData alloc] initWithLength:0];
+		// create record for this connection
+		NSMutableDictionary *connectionInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
+											   [[NSMutableData alloc] initWithLength:0], @"receivedData", @"insert", @"type",nil];
+		[httpConnectionData setObject:connectionInfo forKey:[theConnection description]];
 	} else {
 		// Inform the user that the connection failed.
 	}
@@ -470,42 +489,54 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	
     // It can be called multiple times, for example in the case of a
     // redirect, so each time we reset the data.
+
+	// retreive reference to data for this connection
+	NSMutableDictionary *connectionInfo = [httpConnectionData objectForKey:[connection description]];
+    NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
 	
-    // receivedData is an instance variable declared elsewhere.
-    [receivedData setLength:0];
+    [connectionData setLength:0];
 	NSLog(@"Got HTTP response");
 }
 
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data{
-    // Append the new data to receivedData.
-    // receivedData is an instance variable declared elsewhere.
-    [receivedData appendData:data];
+	// retreive reference to data for this connection
+	NSMutableDictionary *connectionInfo = [httpConnectionData objectForKey:[connection description]];
+    NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
 	
-	NSLog(@"Received %d bytes of data",[receivedData length]);  
-    NSString *aStr = [[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding];  
+	// Append the new data to receivedData.
+	[connectionData appendData:data];
+	
+	NSLog(@"Received %d bytes of data",[connectionData length]);  
+    NSString *aStr = [[NSString alloc] initWithData:connectionData encoding:NSASCIIStringEncoding];  
     NSLog(@"%@",aStr); 
 	[aStr release];
 }
 
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection{
+	// retreive reference to data for this connection
+	NSMutableDictionary *connectionInfo = [httpConnectionData objectForKey:[connection description]];
+    NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
+
     // do something with the data
-    // receivedData is declared as a method instance elsewhere
-    NSLog(@"Succeeded! Received %d bytes of data",[receivedData length]);
+    NSLog(@"Succeeded! Received %d bytes of data",[connectionData length]);
 	
-    // release the connection, and the data object
+	// remove record of this connection
+	[httpConnectionData removeObjectForKey:[connection description]];
+
+    // release the connection
     [connection release];
-    [receivedData release];
 }
 
 
 - (void)connection:(NSURLConnection *)connection
   didFailWithError:(NSError *)error{
-    // release the connection, and the data object
-    [connection release];	
-    // receivedData is declared as a method instance elsewhere
-	[receivedData release];
+	// remove record of this connection
+	[httpConnectionData removeObjectForKey:[connection description]];
+
+    // release the connection
+    [connection release];
 	
     // inform the user
     NSLog(@"Connection failed! Error - %@",
