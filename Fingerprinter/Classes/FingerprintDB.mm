@@ -145,6 +145,11 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	// send the request to the remote database
 	[self addToRemoteDB:newEntry];
 	
+	/* NOTE after transitioning to the remote DB, we can no longer record these 
+	   new entries in the cache because we don't have the correct uuid yet.  New
+	   entries should be returned in the next query (including the assigned uuid)
+	   and at that time they will be added to the cache
+	 
 	// add it to the cache DB
 	[self addToCache:newEntry];
 	
@@ -162,7 +167,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		dbFile.close();
 		[filename release];
 		[content release];
-	}	
+	}
+	 */
 	return newEntry.uuid;
 }
 
@@ -608,6 +614,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 				// TODO: in future, remote DB should provide fingerprint, for now just init a blank one
 				m.entry.fingerprint = new float[len];
 				memset( m.entry.fingerprint, 0.0, sizeof(float)*len );
+				
 				matches.push_back(m);
 				
 				// add this match to the cache for future reference
