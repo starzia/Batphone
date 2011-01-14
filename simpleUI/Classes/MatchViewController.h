@@ -46,5 +46,6 @@ using std::vector;
 
 -(void) query;
 -(void) updatePlot;
+-(void) updateMatches;
 
 @end
