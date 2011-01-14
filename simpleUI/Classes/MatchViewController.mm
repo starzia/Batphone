@@ -192,14 +192,13 @@ static const int numCandidates = 10;
 -(void) query{
 	// query for matches
 	matches.clear(); // clear previous results
-	[app.database queryCacheForMatches:matches
-				   observation:self.newFingerprint
-					numMatches:numCandidates
-					  location:[app getLocation]
-				distanceMetric:distanceMetric ];
-	// update table
-	[matchTable reloadData];
-	
+	[app.database startQueryWithObservation:self.newFingerprint
+								 numMatches:numCandidates
+								   location:[app getLocation]
+							 distanceMetric:distanceMetric
+							   resultTarget:self
+								   selector:@selector(updateMatches)];
+
 	// UNRELATED TO QUERY...
 	// update map with current skyhook location
 	[map removeAnnotations:map.annotations];
@@ -207,6 +206,14 @@ static const int numCandidates = 10;
 							   location:[self.app getLocation]
 								  title:@"approximate location"];
 	[LocationViewController zoomToFitMapAnnotations:map];
+}
+
+/* called by FingerprintDB query callback */
+-(void) updateMatches{
+	// load in the new results
+	matches.clear();
+	matches = app.database.lastMatches;
+	[matchTable reloadData];
 }
 
 /* called by timer */

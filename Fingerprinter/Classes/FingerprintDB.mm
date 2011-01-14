@@ -30,8 +30,11 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 
 @synthesize len;
 @synthesize cache;
+@synthesize lastMatches;
 @synthesize buf1;
 @synthesize httpConnectionData;
+@synthesize callbackTarget;
+@synthesize callbackSelector;
 
 -(id) initWithFPLength:(unsigned int) fpLength{
 	[super init];
@@ -70,16 +73,6 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	return ( A.first < B.first );
 }
 
-
--(void) startQueryWithObservation:(const float[])observation  /* observed Fingerprint we want to match */
-					   numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
-						 location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
-				   distanceMetric:(DistanceMetric)distance
-					 resultTarget:(id) target
-						 selector:(SEL) selector{
-	//............
-	
-}
 
 -(unsigned int) queryCacheForMatches:(QueryResult&)result /* the output */
 						 observation:(const float[])observation  /* observed Fingerprint we want to match */
@@ -131,9 +124,9 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 
 -(NSString*) insertFingerprint:(const float[])observation
-						 building:(NSString*)newBuilding      
-							 room:(NSString*)newRoom /* name for the new room */
-						 location:(CLLocation*)location{
+					  building:(NSString*)newBuilding      
+						  room:(NSString*)newRoom /* name for the new room */
+					  location:(CLLocation*)location{
 	// create new DB entry
 	DBEntry newEntry;
 	NSDate *now = [NSDate date];
@@ -173,22 +166,29 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(void) addToRemoteDB:(DBEntry&)newEntry{
+-(void) httpPostWithString:(NSString*)postExtra
+					  type:(NSString*)type
+			   observation:(const float[])obs
+				  location:(CLLocation*)location{
+	// standard post data
 	NSMutableString *post = [[NSMutableString alloc] init];
-	[post appendFormat:@"type=insert&fingerprint_length=%d",len];
-	[post appendFormat:@"&fingerprint=%f",newEntry.fingerprint[0]];
+	[post appendFormat:@"type=%@",type];
+	[post appendFormat:@"&fingerprint_length=%d",len];
+	[post appendFormat:@"&fingerprint=%f",obs[0]];
 	for( int i=1; i<len; i++ ){
-		[post appendFormat:@"_%f",newEntry.fingerprint[i]];
+		[post appendFormat:@"_%f",obs[i]];
 	}
-	if( newEntry.location.coordinate.latitude != NAN ){
+	if( location.coordinate.latitude != NAN ){
 		[post appendFormat:@"&latitude=%f&longitude=%f&altitude=%f",
-		 newEntry.location.coordinate.latitude, newEntry.location.coordinate.longitude, newEntry.location.altitude ];
+		 location.coordinate.latitude, location.coordinate.longitude, location.altitude ];
 	}
 	[post appendFormat:@"&user_id=Steve"];
-	[post appendFormat:@"&building=%@",newEntry.building];
-	[post appendFormat:@"&room=%@",newEntry.room];
-	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
 	
+	// additional request-specific post data
+	[post appendFormat:@"%@",postExtra];
+	//NSLog(@"%@",post);
+
+	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
 	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
 	
 	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
@@ -203,11 +203,37 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	if (theConnection) {
 		// create record for this connection
 		NSMutableDictionary *connectionInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
-											   [[NSMutableData alloc] initWithLength:0], @"receivedData", @"insert", @"type",nil];
+											   [[NSMutableData alloc] initWithLength:0], @"receivedData", type, @"type",nil];
 		[httpConnectionData setObject:connectionInfo forKey:[theConnection description]];
 	} else {
 		// Inform the user that the connection failed.
 	}
+}
+
+
+-(void) addToRemoteDB:(DBEntry&)newEntry{
+	NSMutableString *post = [[NSMutableString alloc] init];
+	[post appendFormat:@"&building=%@",newEntry.building];
+	[post appendFormat:@"&room=%@",newEntry.room];
+	
+	[self httpPostWithString:post type:@"insert" observation:newEntry.fingerprint location:newEntry.location];
+}
+
+
+-(void) startQueryWithObservation:(const float[])obs  /* observed Fingerprint we want to match */
+					   numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
+						 location:(CLLocation*)loc /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
+				   distanceMetric:(DistanceMetric)distance
+					 resultTarget:(id) target
+						 selector:(SEL) selector{
+	// set up callback
+	self.callbackTarget = target;
+	self.callbackSelector = selector;
+	
+	NSMutableString *post = [[NSMutableString alloc] init];
+	[post appendFormat:@"&num_matches=%d",numMatches];
+	
+	[self httpPostWithString:post type:@"select" observation:obs location:loc];	
 }
 
 
@@ -506,11 +532,13 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	
 	// Append the new data to receivedData.
 	[connectionData appendData:data];
-	
+
+	/*
 	NSLog(@"Received %d bytes of data",[connectionData length]);  
     NSString *aStr = [[NSString alloc] initWithData:connectionData encoding:NSASCIIStringEncoding];  
     NSLog(@"%@",aStr); 
 	[aStr release];
+	 */
 }
 
 
@@ -520,7 +548,60 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
     NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
 
     // do something with the data
-    NSLog(@"Succeeded! Received %d bytes of data",[connectionData length]);
+    NSLog(@"Transfer complete! Received %d bytes of data",[connectionData length]);
+	
+	// if this was a select query, then we should do something in response
+	if( [(NSString*)[connectionInfo objectForKey:@"type"] isEqualToString:@"select"] ){
+		QueryResult matches;
+		
+		// parse the HTTP response
+		NSString *aStr = [[NSString alloc] initWithData:connectionData encoding:NSASCIIStringEncoding];  
+		NSScanner *scanner = [NSScanner scannerWithString:aStr];
+		if( ![scanner isAtEnd] ){
+			
+			// scan header
+			NSString* remainder;
+			[scanner scanUpToString:@"\n" intoString:&remainder];
+			NSScanner *scanner2 = [NSScanner scannerWithString:remainder];
+			int numMatches;
+			[scanner2 scanInt:&numMatches];
+			
+			// scan each result
+			for ( int i=0; i<numMatches; i++ ){
+				Match m;
+				[scanner scanUpToString:@"\t" intoString:&(m.entry.uuid)];
+				[m.entry.uuid retain];
+				[scanner scanFloat:&(m.confidence)];
+				[scanner scanUpToString:@"\t" intoString:&(m.entry.building)];
+				[m.entry.building retain];
+				[scanner scanUpToString:@"\t" intoString:&(m.entry.room)];
+				[m.entry.room retain];
+				
+				double latitude, longitude, altitude;
+				[scanner scanDouble:&latitude];
+				[scanner scanDouble:&longitude];
+				[scanner scanDouble:&altitude];
+				m.entry.location = [[CLLocation alloc] 
+									 initWithCoordinate:CLLocationCoordinate2DMake(latitude, longitude) 
+									 altitude:altitude horizontalAccuracy:0
+									 verticalAccuracy:0 timestamp:0];
+				[m.entry.location retain];
+				
+				[scanner scanUpToString:@"\n" intoString:&remainder]; // scan whatever junk remains on line
+				matches.push_back(m);
+			}
+			
+		}
+
+		// TODO: this should be done atomically
+		lastMatches.clear();
+		lastMatches = matches;
+		
+		// now notify client that matches are ready
+		[callbackTarget performSelector:callbackSelector];
+		
+		[aStr release];
+	}
 	
 	// remove record of this connection
 	[httpConnectionData removeObjectForKey:[connection description]];

@@ -50,6 +50,7 @@ typedef enum{
 @interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
 	std::vector<DBEntry> cache; // a list of recently seen fingerprints from the remote database
+	QueryResult lastMatches; // since we have only one set of matches, we cannot support overlapping concurrent queries
 	
 	// buffers for intermediate values, so that we don't have to allocate in functions.
 	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
@@ -57,12 +58,17 @@ typedef enum{
 	// see http://stackoverflow.com/questions/332276/managing-multiple-asynchronous-nsurlconnection-connections
 	NSMutableDictionary* httpConnectionData; // maps connections to their info, which is another dictionary containing the connection type and the NSMutableData
 	// for some reason NSMutableDictionary doesn't like using connections directly as keys so we use their string description.
+	id  callbackTarget;
+	SEL callbackSelector; // callback function for match query results
 };
 
 @property (nonatomic) unsigned int len;
 @property std::vector<DBEntry> cache;
+@property (nonatomic) QueryResult lastMatches;
 @property (nonatomic) float* buf1;
 @property (retain) NSMutableDictionary* httpConnectionData; 
+@property (retain) id callbackTarget;
+@property SEL callbackSelector;
 
 -(id) initWithFPLength:(unsigned int) fpLength;
 	
