@@ -146,4 +146,7 @@ typedef enum{
 /* starts network transaction to add a given entry to the remote database */
 -(void) addToRemoteDB:(DBEntry&)newEntry;
 
+/* adds the passed entry to the local cache, if it is not already present there */
+-(void) addToCache:(DBEntry&)newEntry;
+
 @end;

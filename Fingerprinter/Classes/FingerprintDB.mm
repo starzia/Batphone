@@ -123,6 +123,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
+
+
 -(NSString*) insertFingerprint:(const float[])observation
 					  building:(NSString*)newBuilding      
 						  room:(NSString*)newRoom /* name for the new room */
@@ -135,7 +137,6 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	[newEntry.room retain];
 	newEntry.building = newBuilding;
 	[newEntry.building retain];
-	newEntry.uuid = @"some_room"; // TODO: generate UUID
 	newEntry.fingerprint = new float[len];
 	newEntry.location = [[location copy] retain];
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
@@ -145,7 +146,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	[self addToRemoteDB:newEntry];
 	
 	// add it to the cache DB
-	cache.push_back( newEntry );
+	[self addToCache:newEntry];
 	
 	// save new line in DB file
 	{
@@ -217,6 +218,22 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	[post appendFormat:@"&room=%@",newEntry.room];
 	
 	[self httpPostWithString:post type:@"insert" observation:newEntry.fingerprint location:newEntry.location];
+}
+
+
+-(void) addToCache:(DBEntry&)newEntry{
+	// scan cache looking for a duplicate entry
+	// TODO: use index tree to speed this up
+	bool duplicate = false;
+	for( int i=0; i<cache.size(); i++ ){
+		if( [cache[i].uuid isEqualToString:newEntry.uuid] ){
+			duplicate = true;
+			break;
+		}
+	}
+	if( !duplicate ){
+		cache.push_back( newEntry );
+	}
 }
 
 
@@ -588,7 +605,13 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 				[m.entry.location retain];
 				
 				[scanner scanUpToString:@"\n" intoString:&remainder]; // scan whatever junk remains on line
+				// TODO: in future, remote DB should provide fingerprint, for now just init a blank one
+				m.entry.fingerprint = new float[len];
+				memset( m.entry.fingerprint, 0.0, sizeof(float)*len );
 				matches.push_back(m);
+				
+				// add this match to the cache for future reference
+				[self addToCache:m.entry];
 			}
 			
 		}
