@@ -75,6 +75,7 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 	len = fpLength;
 	buf1 = new float[fpLength];
 	[self loadCache];
+	cache = [[NSMutableArray alloc] init];
 	httpConnectionData = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
 	/*
 	httpConnectionData = CFDictionaryCreateMutable( kCFAllocatorDefault,
