@@ -17,24 +17,36 @@ using std::vector;
 #pragma mark -
 #pragma mark helper classes
 // Database entry
-typedef struct{
-	NSString* uuid;
+@interface DBEntry : NSObject{
+@public
 	long long timestamp;
+	NSString* uuid;
 	NSString* building;
 	NSString* room;
 	float* fingerprint;
 	CLLocation* location; // estimated GPS location of this observed fingerprint
-} DBEntry;
+};
+@property (nonatomic) long long timestamp;
+@property (nonatomic,retain) NSString* uuid;
+@property (nonatomic,retain) NSString* building;
+@property (nonatomic,retain) NSString* room;
+@property (nonatomic) float* fingerprint;
+@property (nonatomic,retain) CLLocation* location;
+@end
+
 
 /* Candidates room matches are returned when querying the DB */
-typedef struct {
-	DBEntry entry;    /* the candidate room */
+@interface Match : NSObject {
+@public
+	DBEntry* entry;    /* the candidate room */
 	float confidence; /* confidence level between 0-1 indicating how good of a match it is, 1 is closest */
 	float distance;
-} Match;
+};
+@property (nonatomic,retain) DBEntry* entry;
+@property (nonatomic) float confidence;
+@property (nonatomic) float distance;
+@end
 
-/* Query result is a list of matches.  These are sorted by descending confidence level */
-typedef std::vector<Match> QueryResult;
 
 // types of distance metric used in database queries
 typedef enum{
@@ -49,8 +61,7 @@ typedef enum{
 // Database class
 @interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
-	std::vector<DBEntry> cache; // a list of recently seen fingerprints from the remote database
-	QueryResult lastMatches; // since we have only one set of matches, we cannot support overlapping concurrent queries
+	NSMutableArray* cache; // NSMutableArray* of DBEntry* : a list of recently seen fingerprints from the remote database
 	
 	// buffers for intermediate values, so that we don't have to allocate in functions.
 	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
@@ -63,8 +74,7 @@ typedef enum{
 };
 
 @property (nonatomic) unsigned int len;
-@property std::vector<DBEntry> cache;
-@property (nonatomic) QueryResult lastMatches;
+@property (retain) NSMutableArray* cache;
 @property (nonatomic) float* buf1;
 @property (retain) NSMutableDictionary* httpConnectionData; 
 @property (retain) id callbackTarget;
@@ -72,7 +82,7 @@ typedef enum{
 
 -(id) initWithFPLength:(unsigned int) fpLength;
 	
-/* Starts an asynchronous query.  When result is ready, call [target selector:(QueryResult&)result] */
+/* Starts an asynchronous query.  When result is ready, call [target selector:(NSMutableArray*)result] */
 -(void) startQueryWithObservation:(const float[])observation  /* observed Fingerprint we want to match */
 					   numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 						 location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
@@ -83,7 +93,7 @@ typedef enum{
 /* Query the DB for a list of closest-matching rooms 
  * returns the number of matches.
  */
--(unsigned int) queryCacheForMatches:(QueryResult&)result /* the output */
+-(unsigned int) queryCacheForMatches:(NSMutableArray*)result /* the output */
 						 observation:(const float[])observation  /* observed Fingerprint we want to match */
 						  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 							location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
@@ -104,7 +114,7 @@ typedef enum{
 	  inBuilding:(const NSString*)building;        /* input */
 
 /* Query the DB for all fingerprints from a certain room. */
--(bool) getEntries:(vector<DBEntry>&) result /* the output */
+-(bool) getEntries:(vector<DBEntry*>&) result /* the output */
 		  fromRoom:(const NSString*)room
 		inBuilding:(const NSString*)building;
 				  
@@ -140,13 +150,13 @@ typedef enum{
 -(NSString*) getDBFilename;
 
 /* appends a string description of the database entry, used for persistent storage */
--(void) appendEntry:(const DBEntry&)entry
+-(void) appendEntry:(const DBEntry*)entry
 		   toString:(NSMutableString*)outputBuffer;
 
 /* starts network transaction to add a given entry to the remote database */
--(void) addToRemoteDB:(DBEntry&)newEntry;
+-(void) addToRemoteDB:(DBEntry*)newEntry;
 
 /* adds the passed entry to the local cache, if it is not already present there */
--(void) addToCache:(DBEntry&)newEntry;
+-(void) addToCache:(DBEntry*)newEntry;
 
 @end;
