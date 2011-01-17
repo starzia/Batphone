@@ -21,8 +21,8 @@ using std::vector;
 	Fingerprint newFingerprint;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	NSTimer  *queryTimer; // periodic timer to query the DB for matches
-	UITableView *matchTable; // table of DB matches
-	QueryResult matches;
+	UITableView *matchTable; // UI table of DB matches
+	NSMutableArray* matches; // array of query result matches
     DistanceMetric distanceMetric; // acoustic vs physical distance for DB match query
 	UIAlertView *alert; // popup explaining that there is not enough data yet
 	UITabBar* tabBar; // choose acoustic/CL localization
@@ -35,7 +35,7 @@ using std::vector;
 @property (nonatomic, retain) NSTimer  *plotTimer; // periodic timer to update the plot
 @property (nonatomic, retain) NSTimer  *queryTimer; // periodic timer to update the plot
 @property (nonatomic, retain) UITableView *matchTable;
-@property (nonatomic) QueryResult matches;
+@property (retain) NSMutableArray* matches;
 @property (nonatomic) DistanceMetric distanceMetric;
 @property (nonatomic, retain) UIAlertView *alert;
 @property (nonatomic, retain) UITabBar *tabBar;
@@ -46,6 +46,5 @@ using std::vector;
 
 -(void) query;
 -(void) updatePlot;
--(void) updateMatches;
 
 @end

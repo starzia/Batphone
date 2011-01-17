@@ -45,6 +45,7 @@ static const int numCandidates = 10;
 	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
 		self.app = theApp;
+		self.matches = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -191,13 +192,13 @@ static const int numCandidates = 10;
 
 -(void) query{
 	// query for matches
-	matches.clear(); // clear previous results
+	[matches removeAllObjects]; // clear previous results
 	[app.database startQueryWithObservation:self.newFingerprint
 								 numMatches:numCandidates
 								   location:[app getLocation]
 							 distanceMetric:distanceMetric
 							   resultTarget:self
-								   selector:@selector(updateMatches)];
+								   selector:@selector(updateMatches:)];
 
 	// UNRELATED TO QUERY...
 	// update map with current skyhook location
@@ -209,10 +210,11 @@ static const int numCandidates = 10;
 }
 
 /* called by FingerprintDB query callback */
--(void) updateMatches{
+-(void) updateMatches:(NSArray*) results{
 	// load in the new results
-	matches.clear();
-	matches = app.database.lastMatches;
+	if( results != nil ){
+		[matches setArray:results];
+	}
 	[matchTable reloadData];
 }
 
@@ -274,7 +276,7 @@ static const int numCandidates = 10;
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
-	return matches.size();
+	return [matches count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)table cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -286,25 +288,28 @@ static const int numCandidates = 10;
 									   reuseIdentifier:kMatchCellID] autorelease];
 		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	}
-	DBEntry* entry = &matches[indexPath.row].entry;
-	// main label is the room name
-	cell.textLabel.text = [[[NSString alloc] 
-		initWithFormat:@"%d) %@ : %@",indexPath.row+1,
-						entry->building, entry->room ] autorelease];
-	// secondary label depends on the distance metric
-	NSString* detailText;
-	if( distanceMetric == DistanceMetricAcoustic ){
-		detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
-											matches[indexPath.row].distance];		
-	}else if( distanceMetric == DistanceMetricPhysical ){
-		detailText = [[NSString alloc] initWithFormat:@"estimated physical distance: %.0f meters", 
-											matches[indexPath.row].distance];
-	}else{ // DistanceMetricCombined
-		detailText = [[NSString alloc] initWithFormat:@"acoustic+physical distance: %.3f", 
-					  matches[indexPath.row].distance];		
+	if( [matches count] > indexPath.row ){
+		Match* match = [matches objectAtIndex:indexPath.row];
+		DBEntry* entry =  match.entry;
+		// main label is the room name
+		cell.textLabel.text = [[[NSString alloc] 
+								initWithFormat:@"%d) %@ : %@",indexPath.row+1,
+								entry.building, entry.room ] autorelease];
+		// secondary label depends on the distance metric
+		NSString* detailText;
+		if( distanceMetric == DistanceMetricAcoustic ){
+			detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
+						  match.distance];		
+		}else if( distanceMetric == DistanceMetricPhysical ){
+			detailText = [[NSString alloc] initWithFormat:@"estimated physical distance: %.0f meters", 
+						  match.distance];
+		}else{ // DistanceMetricCombined
+			detailText = [[NSString alloc] initWithFormat:@"acoustic+physical distance: %.3f", 
+						  match.distance];		
+		}
+		cell.detailTextLabel.text = detailText;
+		[detailText release];
 	}
-	cell.detailTextLabel.text = detailText;
-	[detailText release];
     return cell;
 }
 
@@ -312,8 +317,9 @@ static const int numCandidates = 10;
 // will navigate to a new view controller displaying details about that location.
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-	DBEntry* entry = &matches[indexPath.row].entry;
-	[app showRoom:entry->room inBuilding:entry->building];
+	Match* match = [matches objectAtIndex:indexPath.row];
+	DBEntry* entry =  match.entry;
+	[app showRoom:entry.room inBuilding:entry.building];
 }
 
 

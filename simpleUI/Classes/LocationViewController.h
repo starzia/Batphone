@@ -15,7 +15,7 @@
 	AppDelegate *app;
 	NSString* room;
 	NSString* building;
-	vector<DBEntry> fingerprints;
+	vector<DBEntry*> fingerprints;
 	plotView *plot;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	int plotIndex; // index in fingerprints of currently-displayed plot
@@ -25,7 +25,7 @@
 @property (nonatomic, retain) AppDelegate* app;
 @property (nonatomic, retain) NSString* room;
 @property (nonatomic, retain) NSString* building;
-@property (nonatomic) vector<DBEntry> fingerprints;
+@property (nonatomic) vector<DBEntry*> fingerprints;
 @property (nonatomic, retain) plotView *plot;
 @property (nonatomic, retain) NSTimer  *plotTimer;
 @property (nonatomic) int plotIndex;

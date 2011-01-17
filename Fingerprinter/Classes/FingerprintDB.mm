@@ -16,6 +16,41 @@
 #include <iostream>
 #include <fstream>
 
+#import "Fingerprinter.h" // for fpLength
+@implementation DBEntry;
+@synthesize timestamp;
+@synthesize uuid;
+@synthesize building;
+@synthesize room;
+@synthesize fingerprint;
+@synthesize location;
+-(id) init{
+	self = [super init];
+	fingerprint = new float[Fingerprinter::fpLength];
+	memset( fingerprint, 0.0, sizeof(float)*Fingerprinter::fpLength );
+	return self;
+}
+-(void) dealloc{
+	delete [] fingerprint;
+	[super dealloc];
+}
+@end
+
+@implementation Match;
+@synthesize entry;
+@synthesize confidence;
+@synthesize distance;
+-(id) init{
+	self = [super init];
+	entry = [[DBEntry alloc] init];
+	return self;
+}
+-(void) dealloc{
+	[super dealloc];
+}
+@end
+
+
 using std::vector;
 using std::pair;
 using std::make_pair;
@@ -30,7 +65,6 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 
 @synthesize len;
 @synthesize cache;
-@synthesize lastMatches;
 @synthesize buf1;
 @synthesize httpConnectionData;
 @synthesize callbackTarget;
@@ -57,13 +91,8 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 	[httpConnectionData release];
 	
 	// clear database
-	for( unsigned int i=0; i<cache.size(); ++i ){
-		delete[] cache[i].fingerprint;
-		[cache[i].building release];
-		[cache[i].room release];
-		[cache[i].location release];
-		[cache[i].uuid release];
-	}
+	[cache release];
+
 	[super dealloc];
 }
 
@@ -74,46 +103,48 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(unsigned int) queryCacheForMatches:(QueryResult&)result /* the output */
+-(unsigned int) queryCacheForMatches:(NSMutableArray*)result /* the output */
 						 observation:(const float[])observation  /* observed Fingerprint we want to match */
 						  numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 							location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
 					  distanceMetric:(DistanceMetric)distanceMetric{
 	// calculate distances to all entries in DB cache
-	pair<float,int> distances[cache.size()]; // first element of pair is distance, second is index
-	for( unsigned int i=0; i<cache.size(); ++i ){
+	pair<float,int> distances[[cache count]]; // first element of pair is distance, second is index
+	for( unsigned int i=0; i<[cache count]; ++i ){
+		DBEntry* cacheI = (DBEntry*)[cache objectAtIndex:0];
 		// if using acoustic or combined criterion then acoustic distance is primary sorting key
 		if( distanceMetric == DistanceMetricAcoustic ){
-			distances[i] = make_pair( [self signalDistanceFrom:observation to:cache[i].fingerprint ], i );
+			distances[i] = make_pair( [self signalDistanceFrom:observation to:cacheI.fingerprint], i );
 		}else if( distanceMetric == DistanceMetricPhysical ){ // use physical distance
-			distances[i] = make_pair( [location distanceFromLocation:cache[i].location], i );			
+			distances[i] = make_pair( [location distanceFromLocation:cacheI.location], i );			
 		}else{ // distanceMetric == DistanceMetricCombined
-			distances[i] = make_pair( [self combinedDistanceFrom:cache[i].fingerprint 
-														 withLoc:cache[i].location 
+			distances[i] = make_pair( [self combinedDistanceFrom:cacheI.fingerprint 
+														 withLoc:cacheI.location 
 															  to:observation
 														 withLoc:location ], i );			
 		}
 	}
 	// sort distances
-	sort(distances+0, distances+cache.size(), smaller_by_first );
+	sort(distances+0, distances+[cache count], smaller_by_first );
 	int k=0;
-	for( unsigned int i=0; i<cache.size(); ++i ){
+	for( unsigned int i=0; i<[cache count]; ++i ){
 		// add only rooms which are not already represented in results
-		DBEntry* e = &cache[distances[i].second];
+		DBEntry* e = [cache objectAtIndex:distances[i].second];
 		bool unique=true;
-		for( int j=0; j<result.size(); j++ ){
-			if( [result[j].entry.building isEqualToString:e->building] && 
-			    [result[j].entry.room isEqualToString:e->room] ){
+		for( Match* oldMatch in result ){
+			if( [oldMatch.entry.building isEqualToString:e->building] && 
+			    [oldMatch.entry.room isEqualToString:e->room] ){
 				unique=false;
 				break;
 			}
 		}
 		if(unique){
-			Match m;
-			m.entry = cache[distances[i].second];
+			Match* m = [[Match alloc] init];
+			m.entry = [cache objectAtIndex:distances[i].second];
 			m.confidence = -(distances[i].first); //TODO: scale between 0 and 1
 			m.distance = distances[i].first;
-			result.push_back( m );
+			[result addObject:m];
+			[m release];
 			if( ++k >= numMatches ){
 				return k;
 			}
@@ -130,15 +161,13 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 						  room:(NSString*)newRoom /* name for the new room */
 					  location:(CLLocation*)location{
 	// create new DB entry
-	DBEntry newEntry;
+	DBEntry* newEntry = [[DBEntry alloc] init];
 	NSDate *now = [NSDate date];
 	newEntry.timestamp = [now timeIntervalSince1970];
 	newEntry.room = newRoom;
-	[newEntry.room retain];
 	newEntry.building = newBuilding;
-	[newEntry.building retain];
 	newEntry.fingerprint = new float[len];
-	newEntry.location = [[location copy] retain];
+	newEntry.location = [location copy];
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
 	newEntry.uuid = [[NSString alloc] initWithFormat:@"-1"]; // TODO generate UUID
 	
@@ -169,6 +198,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		[content release];
 	}
 	 */
+	[newEntry autorelease];
 	return newEntry.uuid;
 }
 
@@ -218,7 +248,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(void) addToRemoteDB:(DBEntry&)newEntry{
+-(void) addToRemoteDB:(DBEntry*)newEntry{
 	NSMutableString *post = [[NSMutableString alloc] init];
 	[post appendFormat:@"&building=%@",newEntry.building];
 	[post appendFormat:@"&room=%@",newEntry.room];
@@ -227,18 +257,18 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(void) addToCache:(DBEntry&)newEntry{
+-(void) addToCache:(DBEntry*)newEntry{
 	// scan cache looking for a duplicate entry
 	// TODO: use index tree to speed this up
 	bool duplicate = false;
-	for( int i=0; i<cache.size(); i++ ){
-		if( [cache[i].uuid isEqualToString:newEntry.uuid] ){
+	for( DBEntry* e in cache ){
+		if( [e.uuid isEqualToString:newEntry.uuid] ){
 			duplicate = true;
 			break;
 		}
 	}
 	if( !duplicate ){
-		cache.push_back( newEntry );
+		[cache addObject:newEntry];
 	}
 }
 
@@ -317,7 +347,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 }
 
 
--(void) appendEntry:(const DBEntry&)entry
+-(void) appendEntry:(const DBEntry*)entry
 		   toString:(NSMutableString*)outputBuffer{
 	[outputBuffer appendFormat:@"%@\t%lld\t", 
 	 entry.uuid,
@@ -349,8 +379,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	NSMutableString *content = [[NSMutableString alloc] init];
 
 	// loop through DB cache, appending to string
-	for( int i=0; i<cache.size(); i++ ){
-		[self appendEntry:cache[i] toString:content];
+	for( DBEntry* e in cache ){
+		[self appendEntry:e toString:content];
 	}
 	// save content to the file
 	[content writeToFile:[self getDBFilename] 
@@ -397,11 +427,14 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 -(bool) loadCacheFromString:( NSString* )content{
 	NSScanner *scanner = [NSScanner scannerWithString:content];
 	while( ![scanner isAtEnd] ){
-		DBEntry newEntry;
+		DBEntry* newEntry = [[DBEntry alloc] init];
+		NSString* tmpStr;
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
-								intoString:&(newEntry.uuid)];
-		[newEntry.uuid retain];
-		[scanner scanLongLong:&newEntry.timestamp];
+								intoString:&tmpStr];
+		newEntry.uuid = [NSString stringWithString:tmpStr];
+		long long tmpLL;
+		[scanner scanLongLong:&tmpLL];
+		newEntry.timestamp = tmpLL;
 		double latitude, longitude, altitude, horiz_accuracy, vert_accuracy;
 		[scanner scanDouble:&latitude];
 		[scanner scanDouble:&longitude];
@@ -412,12 +445,11 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 							 initWithCoordinate:CLLocationCoordinate2DMake(latitude, longitude) 
 							 altitude:altitude horizontalAccuracy:horiz_accuracy
 							 verticalAccuracy:vert_accuracy timestamp:0];
-		[newEntry.location retain];
 
-		 [scanner scanUpToString:@"\t" intoString:&(newEntry.building)];
-		[newEntry.building retain];
-		[scanner scanUpToString:@"\t" intoString:&(newEntry.room)];
-		[newEntry.room retain];
+		[scanner scanUpToString:@"\t" intoString:&tmpStr];
+		newEntry.building = [NSString stringWithString:tmpStr];
+		[scanner scanUpToString:@"\t" intoString:&tmpStr];
+		newEntry.room = [NSString stringWithString:tmpStr];
 		
 		// load remainder of line
 		//  we do this so that any junk at end of line (eg if fingerprint is too long)
@@ -433,23 +465,17 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		}
 		
 		// add it to the DB
-		cache.push_back( newEntry );
+		[cache addObject:newEntry];
+		[newEntry release];
 	}
-    NSLog(@"loaded %d database cache entries", cache.size());
+    NSLog(@"loaded %d database cache entries", [cache count]);
 	return true; // TODO: handle improper file format errors and return false
 }
 		
 
 -(void) clearCache{
 	// clear database
-	for( int i=cache.size()-1; i>=0; --i ){
-		delete[] cache[i].fingerprint;
-		[cache[i].building release];
-		[cache[i].room release];
-		[cache[i].location release];
-		[cache[i].uuid release];
-		cache.pop_back();
-	}
+	[cache removeAllObjects];
 
 	// erase the persistent store
 	[[NSFileManager defaultManager] removeItemAtPath:[self getDBFilename]
@@ -460,8 +486,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 -(bool) getAllBuildings:(vector<NSString*>&)result{
 	bool ret = false;
 	// TODO: keep a persistent list of buildings so we don't have to do this every time.
-	for( int i=0; i<cache.size(); i++ ){
-		NSString* currentBuilding = cache[i].building;
+	for( DBEntry* e in cache ){
+		NSString* currentBuilding = e.building;
 		// Note that we are not retaining this string b/c we assume that the 
 		// DB entry will not be erased while we are using the results
 		bool duplicate = false;
@@ -479,9 +505,9 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 -(bool) getRooms:(vector<NSString*>&)result /* output */
 	  inBuilding:(const NSString*)building{        /* input */
 	bool ret = false;
-	for( int i=0; i<cache.size(); i++ ){
-		if( [cache[i].building isEqualToString:building] ){
-			NSString* currentRoom = cache[i].room;
+	for( DBEntry* e in cache ){
+		if( [e.building isEqualToString:building] ){
+			NSString* currentRoom = e.room;
 			// Note that we are not retaining this string b/c we assume that the 
 			// DB entry will not be erased while we are using the results
 			bool duplicate = false;
@@ -497,14 +523,14 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	return ret;
 }
 
--(bool) getEntries:(vector<DBEntry>&) result /* the output */
+-(bool) getEntries:(vector<DBEntry*>&) result /* the output */
 		  fromRoom:(const NSString*)room
 		inBuilding:(const NSString*)building{
 	bool success = false;
-	for( int i=0; i<cache.size(); i++ ){
-		if( [cache[i].building isEqualToString:building] && 
-		   [cache[i].room isEqualToString:room] ){
-			result.push_back( cache[i] );
+	for( DBEntry* e in cache ){
+		if( [e.building isEqualToString:building] && 
+		   [e.room isEqualToString:room] ){
+			result.push_back( e );
 			success = true;
 		}
 	}
@@ -514,11 +540,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 -(void) deleteRoom:(const NSString*)room
 		inBuilding:(const NSString*)building{
 	bool didSomething = false;
-	for( int i=0; i<cache.size(); i++ ){
-		if( [cache[i].building isEqualToString:building] && 
-		   [cache[i].room isEqualToString:room] ){
-			cache.erase(cache.begin()+i); // erase this entry
-			i--; // decrement i because vector just contracted
+	for( DBEntry* e in cache ){
+		if( [e.building isEqualToString:building] && 
+		   [e.room isEqualToString:room] ){
+			[cache removeObject:e];
 			didSomething = true;
 		}
 	}
@@ -544,7 +569,6 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
     NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
 	
     [connectionData setLength:0];
-	NSLog(@"Got HTTP response");
 }
 
 
@@ -571,11 +595,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
     NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
 
     // do something with the data
-    NSLog(@"Transfer complete! Received %d bytes of data",[connectionData length]);
 	
 	// if this was a select query, then we should do something in response
 	if( [(NSString*)[connectionInfo objectForKey:@"type"] isEqualToString:@"select"] ){
-		QueryResult matches;
+		NSMutableArray* matches = [[NSMutableArray alloc] init];
 		
 		// parse the HTTP response
 		NSString *aStr = [[NSString alloc] initWithData:connectionData encoding:NSASCIIStringEncoding];  
@@ -591,14 +614,17 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 			
 			// scan each result
 			for ( int i=0; i<numMatches; i++ ){
-				Match m;
-				[scanner scanUpToString:@"\t" intoString:&(m.entry.uuid)];
-				[m.entry.uuid retain];
-				[scanner scanFloat:&(m.confidence)];
-				[scanner scanUpToString:@"\t" intoString:&(m.entry.building)];
-				[m.entry.building retain];
-				[scanner scanUpToString:@"\t" intoString:&(m.entry.room)];
-				[m.entry.room retain];
+				Match* m = [[Match alloc] init];
+				NSString* tmpStr;
+				[scanner scanUpToString:@"\t" intoString:&tmpStr];
+				m.entry.uuid = [NSString stringWithString:tmpStr];
+				float tmpFloat;
+				[scanner scanFloat:&tmpFloat];
+				m.confidence = tmpFloat;
+				[scanner scanUpToString:@"\t" intoString:&tmpStr];
+				m.entry.building = [NSString stringWithString:tmpStr];
+				[scanner scanUpToString:@"\t" intoString:&tmpStr];
+				m.entry.room = [NSString stringWithString:tmpStr ];
 				
 				double latitude, longitude, altitude;
 				[scanner scanDouble:&latitude];
@@ -608,27 +634,22 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 									 initWithCoordinate:CLLocationCoordinate2DMake(latitude, longitude) 
 									 altitude:altitude horizontalAccuracy:0
 									 verticalAccuracy:0 timestamp:0];
-				[m.entry.location retain];
 				
-				[scanner scanUpToString:@"\n" intoString:&remainder]; // scan whatever junk remains on line
-				// TODO: in future, remote DB should provide fingerprint, for now just init a blank one
-				m.entry.fingerprint = new float[len];
-				memset( m.entry.fingerprint, 0.0, sizeof(float)*len );
+				//[scanner scanUpToString:@"\n" intoString:nil]; // scan whatever junk remains on line
+				// TODO: in future, remote DB should provide fingerprint, for now just leave a blank one
 				
-				matches.push_back(m);
+				[matches addObject:m];
 				
 				// add this match to the cache for future reference
 				[self addToCache:m.entry];
+				
+				[m release];
 			}
 			
 		}
-
-		// TODO: this should be done atomically
-		lastMatches.clear();
-		lastMatches = matches;
 		
 		// now notify client that matches are ready
-		[callbackTarget performSelector:callbackSelector];
+		[callbackTarget performSelector:callbackSelector withObject:matches];
 		
 		[aStr release];
 	}
