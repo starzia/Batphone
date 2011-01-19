@@ -220,7 +220,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		[post appendFormat:@"&latitude=%f&longitude=%f&altitude=%f",
 		 location.coordinate.latitude, location.coordinate.longitude, location.altitude ];
 	}
-	[post appendFormat:@"&user_id=Steve"];
+	// use device id for user name
+	[post appendFormat:@"&user_id=%@", [[UIDevice currentDevice] uniqueIdentifier] ];
 	
 	// additional request-specific post data
 	[post appendFormat:@"%@",postExtra];
@@ -593,6 +594,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection{
 	// retreive reference to data for this connection
 	NSMutableDictionary *connectionInfo = [httpConnectionData objectForKey:[connection description]];
+	if( !connectionInfo ){
+		[connection release];
+		return;
+	}
     NSMutableData* connectionData = [connectionInfo objectForKey:@"receivedData"];
 
     // do something with the data
@@ -665,6 +670,13 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 - (void)connection:(NSURLConnection *)connection
   didFailWithError:(NSError *)error{
+	/*
+	// if this was a select query, then we should use the cache
+	if( [(NSString*)[connectionInfo objectForKey:@"type"] isEqualToString:@"select"] ){
+		// TODO query cache
+	}
+	 */
+	
 	// remove record of this connection
 	[httpConnectionData removeObjectForKey:[connection description]];
 
