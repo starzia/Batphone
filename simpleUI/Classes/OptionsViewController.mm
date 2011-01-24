@@ -101,7 +101,8 @@
 	if( section == 1 ){
 		return @"Advanced database options";
 	}else{
-		return @"Batphone version: 1.1";
+		return [NSString stringWithFormat:@"Batphone version: %@",
+				[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	}
 }
 
@@ -199,7 +200,8 @@
 			
 			if( indexPath.section == 1 ){
 				// email database
-				[mailer setSubject:@"[Batphone DB]"];
+				[mailer setSubject:[NSString stringWithFormat:@"[Batphone DB v%@]",
+				 [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
 				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[1023]\n" 
 								isHTML:NO];
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
@@ -207,7 +209,8 @@
 								 fileName:@"database.txt"];
 			}else{
 				// email feedback
-				[mailer setSubject:@"[Batphone feedback]"];
+				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
+									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
 				[mailer setMessageBody:@"" isHTML:NO];
 			}
 			[mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
