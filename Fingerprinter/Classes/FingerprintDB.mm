@@ -91,9 +91,6 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 	delete[] buf1;
 	[httpConnectionData release];
 	
-	// clear database
-	[cache release];
-
 	[super dealloc];
 }
 
@@ -228,9 +225,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	//NSLog(@"%@",post);
 
 	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+	[post release];
 	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
 	
-	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	[request setURL:[NSURL URLWithString:@"http://belmont.eecs.northwestern.edu/cgi-bin/fingerprint/interface.py"]];
 	[request setHTTPMethod:@"POST"];
 	[request setValue:postLength forHTTPHeaderField:@"Content-Length"];
@@ -242,11 +240,14 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	if (theConnection) {
 		// create record for this connection
 		NSMutableDictionary *connectionInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
-											   [[NSMutableData alloc] initWithLength:0], @"receivedData", type, @"type",nil];
+											   [NSMutableData dataWithLength:0], @"receivedData", type, @"type",nil];
 		[httpConnectionData setObject:connectionInfo forKey:[theConnection description]];
+		[connectionInfo release];
 	} else {
 		// Inform the user that the connection failed.
 	}
+	[request release];
+	[theConnection release];
 }
 
 
@@ -256,6 +257,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	[post appendFormat:@"&room=%@",newEntry.room];
 	
 	[self httpPostWithString:post type:@"insert" observation:newEntry.fingerprint location:newEntry.location];
+	[post release];
 }
 
 
@@ -289,6 +291,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	[post appendFormat:@"&num_matches=%d",numMatches];
 	
 	[self httpPostWithString:post type:@"select" observation:obs location:loc];	
+	[post release];
 }
 
 
@@ -657,14 +660,13 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		// now notify client that matches are ready
 		[callbackTarget performSelector:callbackSelector withObject:matches];
 		
+		[matches release];
 		[aStr release];
 	}
 	
 	// remove record of this connection
+	// note that doing so should automatically call [connection release]
 	[httpConnectionData removeObjectForKey:[connection description]];
-
-    // release the connection
-    [connection release];
 }
 
 
