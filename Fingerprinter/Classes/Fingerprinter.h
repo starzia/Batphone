@@ -48,19 +48,23 @@ public:
 	
 	/* Destructor.  Cleans up. */
 	~Fingerprinter();
-	
+
+	static const unsigned int sampleRate; /* audio hardware sampling rate, in Hz */
+	static const unsigned int specRes; /* frequency resolution for FFT */
 	static const unsigned int fpLength; /* number of elements in the fingerprint array */
-	static const unsigned int historyLength; /* number of time frames in the history (spectrogram) */
-	static const float bufferSize; /* audio buffer size in seconds, also the size of time frames above */
+	static const unsigned int historyLength; /* number of time windows in the history (spectrogram) */
+	static const float windowOffset; /* spacing of spectrogram time windows, in seconds */
+	static const float freqCutoff; /* lower fraction of the fingerprint to use.  Higher frequencies are discarded. */
 	
-private:
 	int setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat);
-	
+
+private:	
 	/* private data members */
 	Spectrogram			spectrogram;
 	Fingerprint			fingerprint;
 	pthread_mutex_t		lock; // for mutually exclusive access to fingerprint
 	
+public: // the following must be public for audio callback function to access them
 	AudioUnit					rioUnit;
 	bool						unitIsRunning;
 	AURenderCallbackStruct		inputProc;

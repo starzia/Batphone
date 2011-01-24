@@ -101,7 +101,7 @@
 	if( section == 1 ){
 		return @"Advanced database options";
 	}else{
-		return @"";
+		return @"Batphone version: 1.1";
 	}
 }
 
@@ -109,7 +109,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
 	if( section == 0 ){
-		return 1;
+		return 2;
 	}else{
 		return 3;
 	}
@@ -138,6 +138,8 @@
 	}else if( indexPath.section == 0){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Send us feedback";
+		}else if(indexPath.row == 1){
+			cell.textLabel.text = @"Visit the project website";
 		}
 	}
 	
@@ -221,6 +223,11 @@
 			[myAlert show];
 			[myAlert release];	
 		}
+	}
+	// visit website
+	else if( indexPath.section == 0 && indexPath.row == 1 ){
+		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
+		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
 	// delete
 	else if( indexPath.section == 1 && indexPath.row == 2 ){

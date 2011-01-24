@@ -23,21 +23,14 @@
 
 using namespace std;
 
-
-
 // -----------------------------------------------------------------------------
 // CONSTANTS
-#if TARGET_IPHONE_SIMULATOR
-// for some reasone, simulator doesn't like long buffers
-const unsigned int Fingerprinter::fpLength = 128;
-const unsigned int Fingerprinter::historyLength = 800;
-const float Fingerprinter::bufferSize = 0.01;
-#else
-const unsigned int Fingerprinter::fpLength = 1024;
-const unsigned int Fingerprinter::historyLength = 100;
-const float Fingerprinter::bufferSize = 0.1;
-#endif
-
+const unsigned int Fingerprinter::sampleRate = 44100;
+const unsigned int Fingerprinter::specRes = 1024;
+const float        Fingerprinter::windowOffset = 0.025;
+const unsigned int Fingerprinter::historyLength = 10 /* second duration */ / Fingerprinter::windowOffset;
+const float        Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
+const unsigned int Fingerprinter::fpLength = Fingerprinter::specRes * Fingerprinter::freqCutoff / 22050.0;
 #define kOutputBus 0
 #define kInputBus 1
 
@@ -54,7 +47,11 @@ typedef struct{
 	FFTSetup fftsetup;
 	pthread_mutex_t* lock; // fingerprint lock
 	// signal processing buffers
-	float* A __attribute__ ((aligned (16))); // aligned for SIMD
+	float* A __attribute__ ((aligned (16))); // scratch // aligned for SIMD
+	float* frameBuffer __attribute__ ((aligned (16))); // aligned for SIMD
+	int fbIndex; // index of next space to be filled in the frameBuffer
+	int startIndex; // index of next window to be analyzed
+	unsigned int fbLen; // number of frames (floats) in frameBuffer
 	DSPSplitComplex compl_buf;	
 } CallbackData;
 
@@ -66,18 +63,25 @@ typedef struct{
  * newly-captured audio buffers.
  * TODO: add buffering so that:
  *  A) callback returns immediately after copying data, thus not stalling pipeline
- *  B) if inNumberFrames is small (ie <= fpLength) then we don't produce NaNs
+ *  B) if inNumberFrames is small (ie <= specRes) then we don't produce NaNs
  */
 static OSStatus callback( 	 void						*inRefCon, /* the user-specified state data structure */
 							 AudioUnitRenderActionFlags *ioActionFlags, 
 							 const AudioTimeStamp 		*inTimeStamp, 
 							 UInt32 					inBusNumber, 
 							 UInt32 					inNumberFrames, 
-							 AudioBufferList 			*ioData ){
+							 AudioBufferList 			*ioData ){	
+	int windowFrames = Fingerprinter::specRes;
+	if( inNumberFrames > windowFrames ){
+		fprintf(stderr, "Error: buffer is too small.\n");		
+	}
+	
 	// cast our data structure
 	CallbackData* cd = (CallbackData*)inRefCon;
+	
 	try{
-		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, kInputBus, inNumberFrames, ioData), "Callback: AudioUnitRender" );
+		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, 
+									   kInputBus, inNumberFrames, ioData), "Callback: AudioUnitRender" );
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -89,8 +93,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	//printf( "%d  ", data_ptr[0]>>8 );
 	
 	// setup FFT
-	// Below, we need twice as many FFT points as the fpLength because of FFT "folding"
-	UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
+	UInt32 log2FFTLength = log2f( Fingerprinter::specRes );
 	
 	/*
 	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
@@ -100,46 +103,74 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		data_ptr[i] >>= 8;
 	}
 	 */
-	
-	// convert integers to floats
-	vDSP_vflt32( (int*)data_ptr, 1, cd->A, 1, inNumberFrames );
 
-	// set output.  NOTE: if we don't set this to zero we'll get feedback.
+	// If there is no space left in the buffer for the current frame, 
+	// left-shift the right-half of the buffer to overwrite the old data.
+	// After the new data is added there will be enough data left to
+	// build a full window.  Also, there will not be a full window of old data.
+	if( cd->fbIndex >= cd->fbLen - inNumberFrames ){
+		// left-shift right half of buffer
+		memcpy(cd->frameBuffer + cd->fbLen/2, cd->frameBuffer, sizeof(float)*cd->fbLen/2);
+		// adjust buffer index to reflect shift
+		cd->fbIndex -= cd->fbLen/2;
+		cd->startIndex -= cd->fbLen/2;
+	}
+	
+	// convert integers to floats, while copying into frameBuffer
+	vDSP_vflt32( (int*)data_ptr, 1, cd->frameBuffer + cd->fbIndex, 1, inNumberFrames );		
+	
+	
+	// increment frame buffer index
+	cd->fbIndex += inNumberFrames;
+	
+	// set output.  NOTE: if we don't set this to zero we'll get audio feedback.
 	int zero=0;
 	vDSP_vfilli( &zero, (int*)data_ptr, 1, inNumberFrames );
 	
-	// find RMS value (must do this before the in-place FFT)
-	float rms;
-	vDSP_rmsqv( cd->A, 1, &rms, inNumberFrames );
-	///printf( "RMS: %10.0f\tFFT: ", rms );
-		
-	// take fft 	
-	// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
-	// see vDSP documentation for details.
-    vDSP_ctoz((COMPLEX*) cd->A, 2, &(cd->compl_buf), 1, inNumberFrames/2);
-	vDSP_fft_zip( cd->fftsetup, &(cd->compl_buf), 1, log2FFTLength, kFFTDirection_Forward );
-    ///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2); // convert back
+	// if we don't yet have sufficient data, just return.
+	if( cd->fbIndex < windowFrames ) return 0;
 
-	// use vDSP_zaspec to get power spectrum
-	vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::fpLength );
+	// generate Hamming window
+	float window[Fingerprinter::specRes];
+	vDSP_hamm_window( window, Fingerprinter::specRes, 0 ); // create window
 	
-	// convert to dB
-	float reference=1.0f;
-	vDSP_vdbcon( cd->A, 1, &reference, cd->A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
-
-	if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
-	// save in spectrogram
-	cd->spectrogram->update( cd->A );
-	// update fingerprint from spectrogram summary
-	cd->spectrogram->getSummary( cd->fingerprint );
-	pthread_mutex_unlock( cd->lock );
+	// loop over as many overlapping windows as are present in the buffer.
+	int stepSize = floor(Fingerprinter::windowOffset * Fingerprinter::sampleRate);
+	for( ; cd->startIndex <= cd->fbIndex-windowFrames; cd->startIndex+=stepSize ){
+		// copy the window into buffer A, where signal processing will occur
+		memcpy( cd->A, cd->frameBuffer+cd->startIndex, sizeof(float)*Fingerprinter::specRes );
+		
+		// apply Hamming window
+		vDSP_vmul(cd->A, 1, window, 1, cd->A, 1, Fingerprinter::specRes); //apply
+		
+		// take fft 	
+		// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
+		// see vDSP documentation for details.
+		vDSP_ctoz((COMPLEX*) cd->A, 2, &(cd->compl_buf), 1, Fingerprinter::specRes);
+		vDSP_fft_zip( cd->fftsetup, &(cd->compl_buf), 1, log2FFTLength, kFFTDirection_Forward );
+		///vDSP_ztoc(&compl_buf, 1, (COMPLEX*) A, 2, inNumberFrames/2); // convert back
+		
+		// use vDSP_zaspec to get power spectrum
+		vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::specRes );
+		
+		// convert to dB
+		float reference=1.0f;
+		vDSP_vdbcon( cd->A, 1, &reference, cd->A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
+		
+		if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
+		
+		// save in spectrogram
+		cd->spectrogram->update( cd->A );
+		// update fingerprint from spectrogram summary
+		cd->spectrogram->getSummary( cd->fingerprint );
+		pthread_mutex_unlock( cd->lock );
+	}
 	
 	return 0;
 }	
 
 
 #pragma mark -Audio Session Interruption Listener
-#if TARGET_OS_IPHONE
 void rioInterruptionListener(void *inClientData, UInt32 inInterruption){
 	printf("Session interrupted! --- %s ---", inInterruption == kAudioSessionBeginInterruption ? "Begin Interruption" : "End Interruption");
 	
@@ -155,40 +186,42 @@ void rioInterruptionListener(void *inClientData, UInt32 inInterruption){
 		AudioOutputUnitStop(rioUnit);
     }
 }
-#endif
 
 
 #pragma mark -Audio Session Property Listener
-/*
 void propListener(void *                  inClientData,
 				  AudioSessionPropertyID  inID,
 				  UInt32                  inDataSize,
 				  const void *            inData){
 	
-	CallbackData* cd = (CallbackData*)inClientData;
+	
+	Fingerprinter* THIS = (Fingerprinter*)inClientData;
 	if (inID == kAudioSessionProperty_AudioRouteChange){
 		try {
 			// if there was a route change, we need to dispose the current rio unit and create a new one
-			XThrowIfError(AudioComponentInstanceDispose(cd->rioUnit), "couldn't dispose remote i/o unit");		
+			XThrowIfError(AudioComponentInstanceDispose(THIS->rioUnit), "couldn't dispose remote i/o unit");		
 			
-			SetupRemoteIO(cd->rioUnit, cd->inputProc, cd->thruFormat);
+			THIS->setupRemoteIO(THIS->inputProc, THIS->thruFormat);
 			
-			UInt32 size = sizeof(cd->hwSampleRate);
-			XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &size, &cd->hwSampleRate), "couldn't get new sample rate");
+			UInt32 size = sizeof(THIS->hwSampleRate);
+			XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, 
+												  &size, &THIS->hwSampleRate), "couldn't get new sample rate");
 			
-			XThrowIfError(AudioOutputUnitStart(cd->rioUnit), "couldn't start unit");
+			XThrowIfError(AudioOutputUnitStart(THIS->rioUnit), "couldn't start unit");
 			
-			if( 0 ){
-				// we can adapt for different input as follows
-				CFStringRef newRoute;
-				size = sizeof(CFStringRef);
-				XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &size, &newRoute), "couldn't get new audio route");
-				if (newRoute){	
-					CFShow(newRoute);
-					if (CFStringCompare(newRoute, CFSTR("Headset"), NULL) == kCFCompareEqualTo){} // headset plugged in
-					else if (CFStringCompare(newRoute, CFSTR("Receiver"), NULL) == kCFCompareEqualTo){} // headset plugged in
-					else{}
-				}
+			// we can adapt for different input as follows
+			CFStringRef newRoute;
+			size = sizeof(CFStringRef);
+			XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_AudioRoute, &size, &newRoute), "couldn't get new audio route");
+			if (newRoute){	
+				CFShow(newRoute);
+				if (CFStringCompare(newRoute, CFSTR("Headset"), NULL) == kCFCompareEqualTo){
+					printf("headset plugged in");
+				} // headset plugged in
+				else if (CFStringCompare(newRoute, CFSTR("Receiver"), NULL) == kCFCompareEqualTo){
+					printf("headset un-plugged");
+				} // headset plugged in
+				else{}
 			}
 		} catch (CAXException e) {
 			char buf[256];
@@ -197,21 +230,17 @@ void propListener(void *                  inClientData,
 		
 	}
 }
-*/
+
 
 /* Sets up audio.  This is called by Fingerprinter constructor and also whenever
- * audio needs to be reset, eg. when distrupted by some system event or state change.
+ * audio needs to be reset, eg. when disrupted by some system event or state change.
  */
 int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat){	
 	try {		
 		// create an output unit, ie a signal SOURCE (from the mic)
 		AudioComponentDescription desc;
 		desc.componentType = kAudioUnitType_Output;
-#if TARGET_OS_IPHONE
 		desc.componentSubType = kAudioUnitSubType_RemoteIO;
-#else
-		desc.componentSubType = kAudioUnitSubType_HALOutput;
-#endif
 		desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 		desc.componentFlags = 0;
 		desc.componentFlagsMask = 0;
@@ -230,34 +259,25 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		flag = 0;
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output,
 										   kOutputBus, &flag, sizeof(flag)), "couldn't disable output on the HAL unit");
-		 */
-#if !TARGET_OS_IPHONE
-		// Select the default input device
-		AudioDeviceID inputDeviceID = 0;
-		UInt32 theSize = sizeof(AudioDeviceID);
-		AudioObjectPropertyAddress theAddress = { kAudioHardwarePropertyDefaultInputDevice,
-												  kAudioObjectPropertyScopeGlobal,
-												  kAudioObjectPropertyElementMaster };
-		XThrowIfError(AudioObjectGetPropertyData(kAudioObjectSystemObject, &theAddress, 0, NULL, &theSize, &inputDeviceID ), 
-					  "get default device" );
-		// Set the current device to the default input unit.
-		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_CurrentDevice, kAudioUnitScope_Global, 
-										   kOutputBus, &inputDeviceID, sizeof(AudioDeviceID) ), "set device" );
-#endif	
+		 */	
 		
 		// first, collect all the data pointers the callback function will need
 		CallbackData* callbackData = new CallbackData;
 		callbackData->rioUnit = this->rioUnit;
 		callbackData->spectrogram = &(this->spectrogram);
 		callbackData->fingerprint = this->fingerprint;
-		UInt32 log2FFTLength = log2f( 2*Fingerprinter::fpLength );
+		UInt32 log2FFTLength = log2f( Fingerprinter::specRes );
 		callbackData->fftsetup = vDSP_create_fftsetup( log2FFTLength, kFFTRadix2 ); // this only needs to be created once
 		callbackData->lock = &(this->lock);
 		// allocate buffers for signal processing
-		unsigned int buf_size = 1<<13; // TODO: assign this more safely
-		callbackData->A = new float[buf_size];
-		callbackData->compl_buf.realp = new float[buf_size/2];
-		callbackData->compl_buf.imagp = new float[buf_size/2];
+		callbackData->A = new float[2*Fingerprinter::specRes];
+		unsigned int fbLenCandidate = 2 * ceil(Fingerprinter::windowOffset*Fingerprinter::sampleRate);
+		callbackData->fbLen = max(fbLenCandidate,2*Fingerprinter::specRes); // allow twice the space b/c it will be shifted
+		callbackData->frameBuffer = new float[callbackData->fbLen];
+		callbackData->compl_buf.realp = new float[Fingerprinter::specRes];
+		callbackData->compl_buf.imagp = new float[Fingerprinter::specRes];
+		callbackData->fbIndex = 0;
+		callbackData->startIndex = 0;
 		
 		
 		// set the callback fcn
@@ -268,7 +288,10 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		
 		// Implicitly describe format
         // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
+		memset(&outFormat, 0, sizeof(AudioStreamBasicDescription)); // clear format
+		outFormat.mSampleRate = Fingerprinter::sampleRate;
         outFormat.SetAUCanonical(1 /*numChannels*/, false /*interleaved*/);
+
 		
 		// set input format
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 
@@ -312,16 +335,17 @@ spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 	// INITIALIZE AUDIO
 	try {			
 		// Initialize and configure the audio session
-#if TARGET_OS_IPHONE
 		XThrowIfError(AudioSessionInitialize(NULL, NULL, rioInterruptionListener, this->rioUnit), "couldn't initialize audio session");
 		XThrowIfError(AudioSessionSetActive(true), "couldn't set audio session active\n");
 		
+		// audioCategory really should be ..._RecordAudio, but this setting causes callback to be never called
 		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, 
 											  sizeof(audioCategory), &audioCategory), "couldn't set audio category");
-		/*
+		
 		 XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
-		 */		
+		
+		/*
 		// set audio buffer size
 		Float32 preferredBufferSize = Fingerprinter::bufferSize;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
@@ -334,12 +358,19 @@ spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 			fprintf(stderr, "Didn't get preferred audio buffer length of %f seconds, instead got %f seconds.\n",
 					Fingerprinter::bufferSize, preferredBufferSize);
 		}
-		size = sizeof(hwSampleRate);
+		*/
+		UInt32 size = sizeof(hwSampleRate);
 		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, 
 											  &size, &hwSampleRate), "couldn't get hw sample rate");
-#endif
 		// set up Audio Unit
 		XThrowIfError(this->setupRemoteIO(inputProc, thruFormat), "couldn't setup remote i/o unit");
+
+		// configure audio frames per slice, I don't think that this is necessary
+		UInt32 maxFPS;
+		size = sizeof(maxFPS);
+		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
+		maxFPS = 4096;
+		XThrowIfError(AudioUnitSetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, size), "couldn't set the remote I/O unit's max frames per slice");		
 	}
 	catch (CAXException &e) {
 		char buf[256];
@@ -382,13 +413,10 @@ Fingerprinter::~Fingerprinter(){
 
 bool Fingerprinter::startRecording(){
 	if( !unitIsRunning ){
-		UInt32 maxFPS;
-		UInt32 size = sizeof(maxFPS);
-		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
-	
 		XThrowIfError(AudioOutputUnitStart(rioUnit), "couldn't start remote i/o unit");
 	
-		size = sizeof(thruFormat);
+		// get audio format
+		UInt32 size = sizeof(thruFormat);
 		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &thruFormat, &size), "couldn't get the remote I/O unit's output client format");
 	
 		unitIsRunning = TRUE;
