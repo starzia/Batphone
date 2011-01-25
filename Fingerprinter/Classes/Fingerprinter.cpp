@@ -94,15 +94,6 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	
 	// setup FFT
 	UInt32 log2FFTLength = log2f( Fingerprinter::specRes );
-	
-	/*
-	// right bitshift sample integers by 8 bits because they are in weird 8.24 format
-	// actually, this isn't really necessary.  Floats will just be 256 times bigger
-	// TODO: do this with a vector op
-	for( int i=0; i<inNumberFrames; i++ ){
-		data_ptr[i] >>= 8;
-	}
-	 */
 
 	// If there is no space left in the buffer for the current frame, 
 	// left-shift the right-half of the buffer to overwrite the old data.
@@ -194,7 +185,7 @@ void propListener(void *                  inClientData,
 				  UInt32                  inDataSize,
 				  const void *            inData){
 	
-	
+	printf("audio session property change\n");
 	Fingerprinter* THIS = (Fingerprinter*)inClientData;
 	if (inID == kAudioSessionProperty_AudioRouteChange){
 		try {
@@ -247,19 +238,17 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		
 		// find a component matching the description above
 		AudioComponent comp = AudioComponentFindNext(NULL, &desc);
-		//if( comp == NULL ) Throw("no matching audio component");
 		XThrowIfError(AudioComponentInstanceNew(comp, &(this->rioUnit)), "couldn't open the remote I/O unit");
 		
 		// enable input on the AU
 		UInt32 flag = 1;
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input,
 										   kInputBus, &flag, sizeof(flag)), "couldn't enable input on the remote I/O unit");
-		/* for some reason the following breaks audio (callback is never called)
-		// disable output on the AU
-		flag = 0;
+		/*
+		// enable output on the AU
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output,
 										   kOutputBus, &flag, sizeof(flag)), "couldn't disable output on the HAL unit");
-		 */	
+		*/
 		
 		// first, collect all the data pointers the callback function will need
 		CallbackData* callbackData = new CallbackData;
@@ -286,12 +275,21 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 
 										   kOutputBus, &inRenderProc, sizeof(inRenderProc)), "couldn't set remote i/o render callback");
 		
-		// Implicitly describe format
-        // set our required format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
+        // set audio format - Canonical AU format: LPCM non-interleaved 8.24 fixed point
 		memset(&outFormat, 0, sizeof(AudioStreamBasicDescription)); // clear format
 		outFormat.mSampleRate = Fingerprinter::sampleRate;
         outFormat.SetAUCanonical(1 /*numChannels*/, false /*interleaved*/);
-
+		/*
+		// Describe format
+		outFormat.mFormatID			= kAudioFormatLinearPCM;
+		outFormat.mFormatFlags		= kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+		outFormat.mFramesPerPacket	= 1;
+		outFormat.mChannelsPerFrame	= 1;
+		outFormat.mBitsPerChannel	= 16;
+		outFormat.mBytesPerPacket	= 2;
+		outFormat.mBytesPerFrame	= 2;
+		*/
+		
 		
 		// set input format
 		XThrowIfError(AudioUnitSetProperty(this->rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 
@@ -324,6 +322,8 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 /* Constructor initializes the audio system */
 Fingerprinter::Fingerprinter() :
 spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
+	this->unitIsRunning = false;
+	
 	// plotter must always have a FP available to plot, so init one here.
 	this->fingerprint = new float[Fingerprinter::fpLength];
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -342,44 +342,26 @@ spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
 		UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
 		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, 
 											  sizeof(audioCategory), &audioCategory), "couldn't set audio category");
-		
-		 XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
-		
 		/*
-		// set audio buffer size
-		Float32 preferredBufferSize = Fingerprinter::bufferSize;
-		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, 
-											  sizeof(preferredBufferSize), &preferredBufferSize), "couldn't set i/o buffer duration");
-		// get the audio buffer size to see whether our request was granted
-		UInt32 size = sizeof(preferredBufferSize);
-		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration,
-											  &size, &preferredBufferSize ), "couldn't get i/o buffer duration");
-		if( preferredBufferSize < Fingerprinter::bufferSize ){
-			fprintf(stderr, "Didn't get preferred audio buffer length of %f seconds, instead got %f seconds.\n",
-					Fingerprinter::bufferSize, preferredBufferSize);
-		}
+		// allow sound output from other apps to mix with our sound ouput
+		UInt32 mix = true;
+		XThrowIfError(AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, 
+											  sizeof(mix), &mix), "couldn't set mixing");
 		*/
+		XThrowIfError(AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, this), "couldn't set property listener");	
+		
 		UInt32 size = sizeof(hwSampleRate);
 		XThrowIfError(AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, 
 											  &size, &hwSampleRate), "couldn't get hw sample rate");
 		// set up Audio Unit
 		XThrowIfError(this->setupRemoteIO(inputProc, thruFormat), "couldn't setup remote i/o unit");
-
-		// configure audio frames per slice, I don't think that this is necessary
-		UInt32 maxFPS;
-		size = sizeof(maxFPS);
-		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &size), "couldn't get the remote I/O unit's max frames per slice");
-		maxFPS = 4096;
-		XThrowIfError(AudioUnitSetProperty(rioUnit, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, size), "couldn't set the remote I/O unit's max frames per slice");		
 	}
 	catch (CAXException &e) {
 		char buf[256];
 		fprintf(stderr, "Error: %s (%s)\n", e.mOperation, e.FormatError(buf));
-		unitIsRunning = FALSE;
 	}
 	catch (...) {
 		fprintf(stderr, "An unknown error occurred\n");
-		unitIsRunning = FALSE;
 	}
 }	
 
@@ -417,9 +399,25 @@ bool Fingerprinter::startRecording(){
 	
 		// get audio format
 		UInt32 size = sizeof(thruFormat);
-		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &thruFormat, &size), "couldn't get the remote I/O unit's output client format");
+		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 
+										   kInputBus, &thruFormat, &size ), "couldn't get the remote I/O unit's output client format");
 	
-		unitIsRunning = TRUE;
+		// print audio format
+		char audioDesc[100];
+		thruFormat.AsString(audioDesc, 100);
+		printf( "Started audio with format:\n%s\n", audioDesc );
+
+		// test that AU is indeed running
+		UInt32 running;
+		size = sizeof(running);
+		XThrowIfError(AudioUnitGetProperty(rioUnit, kAudioOutputUnitProperty_IsRunning, kAudioUnitScope_Global,
+										   kInputBus, &running, &size ), "couldn't get AU running state");
+		
+		if( running ){
+			unitIsRunning = TRUE;
+		}else{
+			printf("startRecording failed!\n");
+		}
 	}
 	return unitIsRunning;
 }
@@ -427,6 +425,7 @@ bool Fingerprinter::startRecording(){
 
 bool Fingerprinter::stopRecording(){
 	if( unitIsRunning ){
+		printf("stopped recording\n");
 		XThrowIfError(AudioOutputUnitStop(rioUnit), "couldn't stop remote i/o unit");
 		unitIsRunning = FALSE;
 	}
