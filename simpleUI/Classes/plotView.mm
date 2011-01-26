@@ -34,7 +34,17 @@
 	self.lineColor[1] = 0.0; //G
 	self.lineColor[2] = 0.0; //B
 	self.lineColor[3] = 1.0; //alpha
+	
+	// enable clicks
+	self.userInteractionEnabled = YES;
+	
     return self;
+}
+
+// to handle clicks
+-(BOOL) canBecomeFirstResponder{ return YES; }
+-(void) touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event{
+	[self autoRange];
 }
 
 -(void) setVector: (float*)dataPtr length:(unsigned int)len{
@@ -50,11 +60,16 @@
     
 	// Drawing code
     CGContextRef context = UIGraphicsGetCurrentContext();
-	
-	// update view range
+
+	// zoom out, if necessary
 	float min_val = *std::min_element(self.data, self.data+self.length ); 
-	float max_val = *std::max_element(self.data, self.data+self.length ); 
-	[self setYRange_min:min_val max:max_val];
+	float max_val = *std::max_element(self.data, self.data+self.length );
+	if( min_val < self.minY ){
+		[self setYRange_min:min_val max:self.maxY];
+	}
+	if( max_val > self.maxY ){
+		[self setYRange_min:self.minY max:max_val];
+	}
 	
 	// Get boundary information for this view, so that drawing can be scaled
 	float X = self.bounds.size.width;
@@ -85,6 +100,13 @@
 	self.minY = newMinY;
 	self.maxY = newMaxY;
 	[self setNeedsDisplay]; // make it redraw
+}
+
+-(void) autoRange{
+	// update view range
+	float min_val = *std::min_element(self.data, self.data+self.length ); 
+	float max_val = *std::max_element(self.data, self.data+self.length );
+	[self setYRange_min:min_val max:max_val];	
 }
 
 - (void)dealloc {

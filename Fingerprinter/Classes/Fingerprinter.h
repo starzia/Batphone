@@ -55,7 +55,7 @@ public:
 	static const unsigned int historyLength; /* number of time windows in the history (spectrogram) */
 	static const float windowOffset; /* spacing of spectrogram time windows, in seconds */
 	static const float freqCutoff; /* lower fraction of the fingerprint to use.  Higher frequencies are discarded. */
-	
+	static const unsigned int accumulationNum; /* number of consecutive spectra to average into each spectrogram column */
 	int setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamBasicDescription& outFormat);
 
 private:	

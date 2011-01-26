@@ -27,8 +27,9 @@ using namespace std;
 // CONSTANTS
 const unsigned int Fingerprinter::sampleRate = 44100;
 const unsigned int Fingerprinter::specRes = 1024;
-const float        Fingerprinter::windowOffset = 0.025;
-const unsigned int Fingerprinter::historyLength = 10 /* second duration */ / Fingerprinter::windowOffset;
+const float        Fingerprinter::windowOffset = 0.01;
+const unsigned int Fingerprinter::accumulationNum = 10;
+const unsigned int Fingerprinter::historyLength = 10 /* second duration */ / Fingerprinter::accumulationNum / Fingerprinter::windowOffset;
 const float        Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
 const unsigned int Fingerprinter::fpLength = Fingerprinter::specRes * Fingerprinter::freqCutoff / 22050.0;
 #define kOutputBus 0
@@ -48,6 +49,9 @@ typedef struct{
 	pthread_mutex_t* lock; // fingerprint lock
 	// signal processing buffers
 	float* A __attribute__ ((aligned (16))); // scratch // aligned for SIMD
+	float* hamm __attribute__ ((aligned (16))); // hamming window
+	float* acc __attribute__ ((aligned (16))); // spectrum accumulator
+	int accCount;
 	float* frameBuffer __attribute__ ((aligned (16))); // aligned for SIMD
 	int fbIndex; // index of next space to be filled in the frameBuffer
 	int startIndex; // index of next window to be analyzed
@@ -120,10 +124,6 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	
 	// if we don't yet have sufficient data, just return.
 	if( cd->fbIndex < windowFrames ) return 0;
-
-	// generate Hamming window
-	float window[Fingerprinter::specRes];
-	vDSP_hamm_window( window, Fingerprinter::specRes, 0 ); // create window
 	
 	// loop over as many overlapping windows as are present in the buffer.
 	int stepSize = floor(Fingerprinter::windowOffset * Fingerprinter::sampleRate);
@@ -132,7 +132,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		memcpy( cd->A, cd->frameBuffer+cd->startIndex, sizeof(float)*Fingerprinter::specRes );
 		
 		// apply Hamming window
-		vDSP_vmul(cd->A, 1, window, 1, cd->A, 1, Fingerprinter::specRes); //apply
+		vDSP_vmul(cd->A, 1, cd->hamm, 1, cd->A, 1, Fingerprinter::specRes); //apply
 		
 		// take fft 	
 		// ctoz and ztoc are needed to convert from "split" and "interleaved" complex formats
@@ -143,18 +143,28 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		
 		// use vDSP_zaspec to get power spectrum
 		vDSP_zaspec( &(cd->compl_buf), cd->A, Fingerprinter::specRes );
+						
+		// store results in accumulator
+		vDSP_vadd(cd->A, 1, cd->acc, 1, cd->acc, 1, Fingerprinter::fpLength);
 		
-		// convert to dB
-		float reference=1.0f;
-		vDSP_vdbcon( cd->A, 1, &reference, cd->A, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude
-		
-		if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
-		
-		// save in spectrogram
-		cd->spectrogram->update( cd->A );
-		// update fingerprint from spectrogram summary
-		cd->spectrogram->getSummary( cd->fingerprint );
-		pthread_mutex_unlock( cd->lock );
+		if ( ++cd->accCount >= Fingerprinter::accumulationNum ){
+			if( pthread_mutex_lock( cd->lock ) ) printf( "lock failed!\n" );
+
+			// convert to dB
+			float reference=1.0f * Fingerprinter::accumulationNum; //divide by number of summed spectra
+			vDSP_vdbcon( cd->acc, 1, &reference, cd->acc, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude			
+			
+			// save in spectrogram
+			cd->spectrogram->update( cd->acc );
+			// update fingerprint from spectrogram summary
+			cd->spectrogram->getSummary( cd->fingerprint );
+			pthread_mutex_unlock( cd->lock );
+			
+			// clear accumulator
+			float zerof=0.0f;
+			vDSP_vfill( &zerof, cd->acc, 1, Fingerprinter::fpLength );
+			cd->accCount = 0;
+		}
 	}
 	
 	return 0;
@@ -260,8 +270,14 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 		callbackData->lock = &(this->lock);
 		// allocate buffers for signal processing
 		callbackData->A = new float[2*Fingerprinter::specRes];
-		unsigned int fbLenCandidate = 2 * ceil(Fingerprinter::windowOffset*Fingerprinter::sampleRate);
-		callbackData->fbLen = max(fbLenCandidate,2*Fingerprinter::specRes); // allow twice the space b/c it will be shifted
+		callbackData->accCount=0;
+		callbackData->acc = new float[Fingerprinter::fpLength];
+		float zero=0.0f;
+		vDSP_vfill( &zero, callbackData->acc, 1, Fingerprinter::fpLength );
+		// generate Hamming window
+		callbackData->hamm = new float[Fingerprinter::specRes];
+		vDSP_hamm_window( callbackData->hamm, Fingerprinter::specRes, 0 );
+		callbackData->fbLen = 0.5*Fingerprinter::sampleRate; // just pick a large value for now.
 		callbackData->frameBuffer = new float[callbackData->fbLen];
 		callbackData->compl_buf.realp = new float[Fingerprinter::specRes];
 		callbackData->compl_buf.imagp = new float[Fingerprinter::specRes];

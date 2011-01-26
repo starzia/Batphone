@@ -202,7 +202,7 @@
 				// email database
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone DB v%@]",
 				 [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
-				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[1023]\n" 
+				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[n]\n" 
 								isHTML:NO];
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
 								 mimeType:@"text/plain" 
