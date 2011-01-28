@@ -375,6 +375,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = simpleUI_Prefix.pch;
 				INFOPLIST_FILE = "simpleUI-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				PRODUCT_NAME = Batphone;
 			};
 			name = Debug;
@@ -388,6 +389,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = simpleUI_Prefix.pch;
 				INFOPLIST_FILE = "simpleUI-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				PRODUCT_NAME = Batphone;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -406,7 +408,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "1668BF73-26B9-4B7C-9291-1536AE835E51";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "96DBDC89-0F02-4367-8189-46D71E3C94EF";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
@@ -422,6 +424,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = simpleUI_Prefix.pch;
 				INFOPLIST_FILE = "simpleUI-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				PRODUCT_NAME = Batphone;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -461,7 +464,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
-				SDKROOT = iphoneos4.1;
+				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
