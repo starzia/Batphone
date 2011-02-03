@@ -26,6 +26,8 @@
 
 // set the y axis range of the plot
 -(void)setYRange_min: (float)Ymin  max:(float)Ymax;
+// automatically set the range based on the values in the vector
+-(void)autoRange;
 -(id)initWith_Frame:(CGRect)frame;
 -(void)setVector: (float*)data length:(unsigned int)len;
 

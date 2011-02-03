@@ -159,7 +159,7 @@ static const int numCandidates = 10;
 -(void) viewWillAppear:(BOOL)animated{
 	if( !plotTimer ){
 		// create timer to update the plot
-		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.2
 														  target:self
 														selector:@selector(updatePlot)
 														userInfo:nil
@@ -215,6 +215,7 @@ static const int numCandidates = 10;
 		// if fingerprint is newly available, then dismiss alert
 		if( alert.visible && self.newFingerprint[0]>0 ){
 			[alert dismissWithClickedButtonIndex:0 animated:YES];
+			[self.plot autoRange]; // set plot range
 		}
 	}
 }

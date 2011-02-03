@@ -101,7 +101,8 @@
 	if( section == 1 ){
 		return @"Advanced database options";
 	}else{
-		return @"";
+		return [NSString stringWithFormat:@"Batphone version: %@",
+				[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	}
 }
 
@@ -109,7 +110,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
 	if( section == 0 ){
-		return 1;
+		return 2;
 	}else{
 		return 3;
 	}
@@ -138,6 +139,8 @@
 	}else if( indexPath.section == 0){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Send us feedback";
+		}else if(indexPath.row == 1){
+			cell.textLabel.text = @"Visit the project website";
 		}
 	}
 	
@@ -197,15 +200,17 @@
 			
 			if( indexPath.section == 1 ){
 				// email database
-				[mailer setSubject:@"[Batphone DB]"];
-				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[1023]\n" 
+				[mailer setSubject:[NSString stringWithFormat:@"[Batphone DB v%@]",
+				 [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
+				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[n]\n" 
 								isHTML:NO];
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
 			}else{
 				// email feedback
-				[mailer setSubject:@"[Batphone feedback]"];
+				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
+									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
 				[mailer setMessageBody:@"" isHTML:NO];
 			}
 			[mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
@@ -221,6 +226,11 @@
 			[myAlert show];
 			[myAlert release];	
 		}
+	}
+	// visit website
+	else if( indexPath.section == 0 && indexPath.row == 1 ){
+		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
+		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
 	// delete
 	else if( indexPath.section == 1 && indexPath.row == 2 ){
