@@ -12,6 +12,7 @@
 
 @synthesize app;
 @synthesize URLField;
+@synthesize sharing;
 
 #pragma mark -
 #pragma mark Initialization
@@ -30,6 +31,10 @@
 		URLField.text = @"http://stevetarzia.com/batphone/database.txt";
 		[URLField setBackgroundColor:[UIColor whiteColor]];
 		
+		// create the sharing switch
+		UISwitch* shSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
+		self.sharing = shSwitch;
+		[shSwitch release];
     }
     return self;
 }
@@ -94,15 +99,19 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    return 2;
+    return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	if( section == 1 ){
-		return @"Advanced database options";
-	}else{
+	if( section == 0 ){
+		return @"Privacy settings";
+	}else if( section == 1 ){
 		return [NSString stringWithFormat:@"Batphone version: %@",
 				[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	}else if( section == 2 ){
+		return @"Advanced database options";		
+	}else{
+		return @"";
 	}
 }
 
@@ -110,9 +119,13 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
 	if( section == 0 ){
+		return 1;
+	}else if( section == 1 ){
 		return 2;
-	}else{
+	}else if( section == 2 ){
 		return 3;
+	}else{
+		return 0;
 	}
 }
 
@@ -128,64 +141,36 @@
     }
     
     // Configure the cell...
-	if(indexPath.section == 1 ){
-		if(indexPath.row == 0){
+	if(indexPath.section == 0 ){
+		if( indexPath.row == 0 ){
+			cell.textLabel.text = @"Data sharing";
+			cell.accessoryView = self.sharing;
+			
+			bool sharingOn = [self.app.options objectForKey:@"enableSharing"];
+			[(UISwitch *)cell.accessoryView setOn:sharingOn];   // TODO get value from app.options
+/*
+			[(UISwitch *)cell.accessoryView addTarget:self action:@selector(mySelector)
+									 forControlEvents:UIControlEventValueChanged];
+*/			
+		}
+	}else if( indexPath.section == 1){
+		if( indexPath.row == 0 ){
+			cell.textLabel.text = @"Send us feedback";
+		}else if(indexPath.row == 1){
+			cell.textLabel.text = @"Visit the project website";
+		}
+	}else if(indexPath.section == 2){
+		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Email database";
 		}else if(indexPath.row == 1){
 			cell.textLabel.text = @"Load database";
 		}else if(indexPath.row == 2){
 			cell.textLabel.text = @"Clear database";
 		}
-	}else if( indexPath.section == 0){
-		if( indexPath.row == 0 ){
-			cell.textLabel.text = @"Send us feedback";
-		}else if(indexPath.row == 1){
-			cell.textLabel.text = @"Visit the project website";
-		}
-	}
-	
+	}	
     return cell;
 }
 
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-}
-*/
-
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
 
 
 #pragma mark -
@@ -193,12 +178,12 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	// Email DB or feedback
-	if( indexPath.row == 0 ){
+	if( indexPath.row == 0 && (indexPath.section > 0 ) ){
 		if( [MFMailComposeViewController canSendMail] ){
 			MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
 			mailer.mailComposeDelegate = self;
 			
-			if( indexPath.section == 1 ){
+			if( indexPath.section == 2 ){
 				// email database
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone DB v%@]",
 				 [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
@@ -207,7 +192,7 @@
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app.database getDBFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
-			}else{
+			}else if(indexPath.section == 1 ){
 				// email feedback
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
 									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
@@ -228,12 +213,12 @@
 		}
 	}
 	// visit website
-	else if( indexPath.section == 0 && indexPath.row == 1 ){
+	else if( indexPath.section == 1 && indexPath.row == 1 ){
 		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
 		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
 	// delete
-	else if( indexPath.section == 1 && indexPath.row == 2 ){
+	else if( indexPath.section == 2 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
 														 delegate:self 
@@ -243,7 +228,7 @@
 		[myAlert release];
 	}
 	// load from URL
-	else if( indexPath.section == 1 && indexPath.row == 1 ){
+	else if( indexPath.section == 2 && indexPath.row == 1 ){
 		// Ask for URL
 		UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"Please supply a URL" 
 															message:@"These location tags will be added to your current database.  You should backup your database first.\n\n\n" 
@@ -257,6 +242,10 @@
 		[alertview show];
 		[alertview release];
 	} 
+	// share data setting
+	else if( indexPath.section == 0 && indexPath.row == 0 ){
+		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
 }
 
 	

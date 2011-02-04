@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "Fingerprinter.h"
 #import "FingerprintDB.h"
+#import "RobustDictionary.h"
 #import <vector>
 #import <CoreLocation/CoreLocation.h>
 
@@ -34,6 +35,7 @@ using std::vector;
 	Fingerprinter* fp;
 	CLLocationManager *locationManager; 	// data for SkyHook/GPS localization
 	FingerprintDB* database;
+	RobustDictionary* options;
 }
 
 // accessors
@@ -47,6 +49,7 @@ using std::vector;
 @property (nonatomic) Fingerprinter* fp; 
 @property (nonatomic, retain) FingerprintDB* database;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
+@property (nonatomic, retain) RobustDictionary* options;
 
 // member functions
 -(void) printFingerprint: (Fingerprint) fingerprint;

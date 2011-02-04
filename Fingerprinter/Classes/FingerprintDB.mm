@@ -63,6 +63,7 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 
 @implementation FingerprintDB;
 
+@synthesize useRemoteDB;
 @synthesize len;
 @synthesize cache;
 @synthesize buf1;
@@ -72,6 +73,7 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 
 -(id) initWithFPLength:(unsigned int) fpLength{
 	[super init];
+	useRemoteDB = false;
 	len = fpLength;
 	buf1 = new float[fpLength];
 	[self loadCache];
@@ -169,33 +171,34 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
 	newEntry.uuid = [[NSString alloc] initWithFormat:@"-1"]; // TODO generate UUID
 	
-	// send the request to the remote database
-	[self addToRemoteDB:newEntry];
-	
-	/* NOTE after transitioning to the remote DB, we can no longer record these 
-	   new entries in the cache because we don't have the correct uuid yet.  New
-	   entries should be returned in the next query (including the assigned uuid)
-	   and at that time they will be added to the cache
-	 
-	// add it to the cache DB
-	[self addToCache:newEntry];
-	
-	// save new line in DB file
-	{
-		// prepare the entry string
-		NSMutableString *content = [[NSMutableString alloc] init];
-		[self appendEntry:newEntry toString:content];
-		
-		// open database file for appending
-		NSString* filename = [[self getDBFilename] retain];
-		std::ofstream dbFile;
-		dbFile.open([filename UTF8String], std::ios::out | std::ios::app);
-		dbFile << [content UTF8String]; // append the new entry
-		dbFile.close();
-		[filename release];
-		[content release];
+	// remote insert
+	if( self.useRemoteDB ){
+		// send the request to the remote database
+		[self addToRemoteDB:newEntry];
+		/* Note that entries added to the remote database will later be added to 
+		   the local cache when they are returned as match results. */
 	}
-	 */
+	// cache insert
+	else{
+		[self addToCache:newEntry];
+		
+		// save new line in DB file
+		{
+			// prepare the entry string
+			NSMutableString *content = [[NSMutableString alloc] init];
+			[self appendEntry:newEntry toString:content];
+			
+			// open database file for appending
+			NSString* filename = [[self getDBFilename] retain];
+			std::ofstream dbFile;
+			dbFile.open([filename UTF8String], std::ios::out | std::ios::app);
+			dbFile << [content UTF8String]; // append the new entry
+			dbFile.close();
+			[filename release];
+			[content release];
+		}
+	}
+	// cleanup
 	[newEntry autorelease];
 	return newEntry.uuid;
 }
@@ -287,11 +290,24 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	self.callbackTarget = target;
 	self.callbackSelector = selector;
 	
-	NSMutableString *post = [[NSMutableString alloc] init];
-	[post appendFormat:@"&num_matches=%d",numMatches];
+	// asynchronous remote query
+	if( self.useRemoteDB ){
+		NSMutableString *post = [[NSMutableString alloc] init];
+		[post appendFormat:@"&num_matches=%d",numMatches];
 	
-	[self httpPostWithString:post type:@"select" observation:obs location:loc];	
-	[post release];
+		[self httpPostWithString:post type:@"select" observation:obs location:loc];	
+		[post release];
+	}
+	// synchronous cache query
+	else{
+		NSMutableArray* matches = [[NSMutableArray alloc] init];
+		[self queryCacheForMatches:matches observation:obs numMatches:numMatches 
+						  location:loc distanceMetric:distance];
+		// notify client that matches are ready
+		[callbackTarget performSelector:callbackSelector withObject:matches];
+		[matches release];
+	}
+
 }
 
 

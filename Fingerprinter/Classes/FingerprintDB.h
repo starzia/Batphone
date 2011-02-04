@@ -62,6 +62,7 @@ typedef enum{
 @interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
 	NSMutableArray* cache; // NSMutableArray* of DBEntry* : a list of recently seen fingerprints from the remote database
+	bool useRemoteDB; // toggle use of remote (Internet) database vs. just using the local cache
 	
 	// buffers for intermediate values, so that we don't have to allocate in functions.
 	float* buf1 __attribute__ ((aligned (16))); // aligned for SIMD
@@ -73,6 +74,7 @@ typedef enum{
 	SEL callbackSelector; // callback function for match query results
 };
 
+@property (nonatomic) bool useRemoteDB;
 @property (nonatomic) unsigned int len;
 @property (retain) NSMutableArray* cache;
 @property (nonatomic) float* buf1;
@@ -82,7 +84,8 @@ typedef enum{
 
 -(id) initWithFPLength:(unsigned int) fpLength;
 	
-/* Starts an asynchronous query.  When result is ready, call [target selector:(NSMutableArray*)result] */
+/* Starts an asynchronous query.  When result is ready, call [target selector:(NSMutableArray*)result].
+   Will use local cache unless useRemoteDB is set to true. */
 -(void) startQueryWithObservation:(const float[])observation  /* observed Fingerprint we want to match */
 					   numMatches:(unsigned int)numMatches /* desired number of results. NOTE: may return fewer if DB is small, possibly zero. */
 						 location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */

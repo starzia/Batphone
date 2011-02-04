@@ -30,7 +30,7 @@ using namespace std;
 @synthesize fp;
 @synthesize database;
 @synthesize locationManager;
-
+@synthesize options;
 
 - (void) printFingerprint: (Fingerprint) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -174,6 +174,22 @@ using namespace std;
 	// Turn off the idle timer, since this app doesn't rely on constant touch input
 	application.idleTimerDisabled = YES;
 	
+	// set up options dictionary
+	{
+		// get the documents directory:
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+		NSString *documentsDirectory = [paths objectAtIndex:0];
+	
+		// build the full filenames
+		NSString* optionsFile = [NSString stringWithFormat:@"%@/options.dat", documentsDirectory];
+		NSString* optionsDefaultFile = [[[NSBundle mainBundle] pathForResource:@"defaultOptions" 
+																		ofType:@"plist"] retain];
+		RobustDictionary* dict = [[RobustDictionary alloc] initWithFilename:optionsFile 
+														   defaultsFilename:optionsDefaultFile];
+		self.options = dict;
+		[dict release];
+	}
+		
 	window.backgroundColor = [UIColor groupTableViewBackgroundColor]; // set striped BG
 	
 	// set up fingerprinter
