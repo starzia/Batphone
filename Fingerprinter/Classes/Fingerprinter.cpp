@@ -29,7 +29,8 @@ const unsigned int Fingerprinter::sampleRate = 44100;
 const unsigned int Fingerprinter::specRes = 1024;
 const float        Fingerprinter::windowOffset = 0.01;
 const unsigned int Fingerprinter::accumulationNum = 10;
-const unsigned int Fingerprinter::historyLength = 10 /* second duration */ / Fingerprinter::accumulationNum / Fingerprinter::windowOffset;
+const unsigned int Fingerprinter::historyTime = 10; //seconds
+const unsigned int Fingerprinter::historyCount = Fingerprinter::historyTime / Fingerprinter::accumulationNum / Fingerprinter::windowOffset;
 const float        Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
 const unsigned int Fingerprinter::fpLength = Fingerprinter::specRes * Fingerprinter::freqCutoff / 22050.0;
 #define kOutputBus 0
@@ -337,7 +338,7 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 
 /* Constructor initializes the audio system */
 Fingerprinter::Fingerprinter() :
-spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
+spectrogram( Fingerprinter::fpLength, Fingerprinter::historyCount ){
 	this->unitIsRunning = false;
 	
 	// plotter must always have a FP available to plot, so init one here.

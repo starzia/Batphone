@@ -88,9 +88,20 @@
     return self;
 }
 
-
+-(void)showCheckinButton{
+	self.checkinButton.hidden = NO;
+}
 -(void)checkIn{
+	// check in
 	[self.app checkinWithRoom:self.room inBuilding:self.building];
+	
+	// now hide the checkin button until we have fresh data
+	self.checkinButton.hidden = YES; 
+	[NSTimer scheduledTimerWithTimeInterval:Fingerprinter::historyTime
+									 target:self
+								   selector:@selector(showCheckinButton)
+								   userInfo:nil
+									repeats:NO];
 }
 
 

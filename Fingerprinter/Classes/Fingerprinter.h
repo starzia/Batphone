@@ -52,7 +52,8 @@ public:
 	static const unsigned int sampleRate; /* audio hardware sampling rate, in Hz */
 	static const unsigned int specRes; /* frequency resolution for FFT */
 	static const unsigned int fpLength; /* number of elements in the fingerprint array */
-	static const unsigned int historyLength; /* number of time windows in the history (spectrogram) */
+	static const unsigned int historyTime; /* seconds of audio in the history (spectrogram) */
+	static const unsigned int historyCount; /* number of time windows in the history (spectrogram) */
 	static const float windowOffset; /* spacing of spectrogram time windows, in seconds */
 	static const float freqCutoff; /* lower fraction of the fingerprint to use.  Higher frequencies are discarded. */
 	static const unsigned int accumulationNum; /* number of consecutive spectra to average into each spectrogram column */
