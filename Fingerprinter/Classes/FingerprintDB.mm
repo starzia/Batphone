@@ -227,7 +227,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	
 	// additional request-specific post data
 	[post appendFormat:@"%@",postExtra];
-	//NSLog(@"%@",post);
+	///NSLog(@"%@",post);
 
 	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
 	[post release];
@@ -629,7 +629,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		NSMutableArray* matches = [[NSMutableArray alloc] init];
 		
 		// parse the HTTP response
-		NSString *aStr = [[NSString alloc] initWithData:connectionData encoding:NSASCIIStringEncoding];  
+		NSString *aStr = [[NSString alloc] initWithData:connectionData encoding:NSASCIIStringEncoding]; 
+		///NSLog( @"HTTP response: %@", aStr );
 		NSScanner *scanner = [NSScanner scannerWithString:aStr];
 		if( ![scanner isAtEnd] ){
 			

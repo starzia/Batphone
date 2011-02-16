@@ -217,7 +217,7 @@ static const int numCandidates = 10;
 	}
 	[matchTable reloadData];
 }
-
+	 
 /* called by timer */
 -(void) updatePlot{
 	// get the current fingerprint and save to "New" slot

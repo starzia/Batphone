@@ -34,7 +34,7 @@ using std::vector;
 @property Fingerprint newFingerprint;
 @property (nonatomic, retain) NSTimer  *plotTimer; // periodic timer to update the plot
 @property (nonatomic, retain) NSTimer  *queryTimer; // periodic timer to update the plot
-@property (nonatomic, retain) UITableView *matchTable;
+@property (retain) UITableView *matchTable;
 @property (retain) NSMutableArray* matches;
 @property (nonatomic) DistanceMetric distanceMetric;
 @property (nonatomic, retain) UIAlertView *alert;
