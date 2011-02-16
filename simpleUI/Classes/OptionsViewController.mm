@@ -14,6 +14,10 @@
 @synthesize URLField;
 @synthesize sharing;
 
+-(void)sharingChanged{
+	[self.app.options setObject:[NSNumber numberWithBool:self.sharing.on] forKey:@"enableSharing"];
+}
+
 #pragma mark -
 #pragma mark Initialization
 
@@ -34,7 +38,13 @@
 		// create the sharing switch
 		UISwitch* shSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
 		self.sharing = shSwitch;
+		// set switch value
+		[shSwitch setOn:[[self.app.options objectForKey:@"enableSharing"] boolValue]];
+		// set callback
+		[shSwitch addTarget:self action:@selector(sharingChanged)
+		   forControlEvents:UIControlEventValueChanged];
 		[shSwitch release];
+		
     }
     return self;
 }
@@ -139,19 +149,12 @@
     if (cell == nil) {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
     }
-    
-    // Configure the cell...
+
+	// Configure the cell...
 	if(indexPath.section == 0 ){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Data sharing";
-			cell.accessoryView = self.sharing;
-			
-			bool sharingOn = [self.app.options objectForKey:@"enableSharing"];
-			[(UISwitch *)cell.accessoryView setOn:sharingOn];   // TODO get value from app.options
-/*
-			[(UISwitch *)cell.accessoryView addTarget:self action:@selector(mySelector)
-									 forControlEvents:UIControlEventValueChanged];
-*/			
+			cell.accessoryView = self.sharing;	
 		}
 	}else if( indexPath.section == 1){
 		if( indexPath.row == 0 ){

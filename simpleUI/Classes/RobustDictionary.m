@@ -46,6 +46,8 @@
 -(void) setObject:(id)obj forKey:(NSString*)key{
 	[self.dict setObject:obj forKey:key];
 	[self save];
+	///NSLog(@"saved dictionary: %@",[self.dict description]);
+	[self load];
 }
 
 
@@ -58,9 +60,10 @@
 	// test that dict file exists
 	if( [[NSFileManager defaultManager] fileExistsAtPath:self.filename] ){
 		// load dictionary
-		NSMutableDictionary* d = [[NSMutableDictionary alloc] initWithContentsOfFile:defaultsFilename];
+		NSMutableDictionary* d = [[NSMutableDictionary alloc] initWithContentsOfFile:filename];
 		self.dict = d;
 		[d release];
+		///NSLog(@"loaded dictionary : %@", [self.dict description]);
 	}else{
 		// copy default values
 		NSMutableDictionary* d = [[NSMutableDictionary alloc] initWithDictionary:self.defaultsDict];
