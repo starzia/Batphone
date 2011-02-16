@@ -195,7 +195,8 @@ using namespace std;
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
 	self.database = [[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength];
-	
+	self.database.useRemoteDB = [[self.options objectForKey:@"enableSharing"] boolValue];
+								 
 	// set up Core Location
 	self.locationManager = [[[CLLocationManager alloc] init] autorelease];
 	self.locationManager.delegate = self; // send loc updates to myself

@@ -76,8 +76,10 @@ const float neighborhoodRadius=20; // meters, the maximum distance of a fingerpr
 	useRemoteDB = false;
 	len = fpLength;
 	buf1 = new float[fpLength];
-	[self loadCache];
 	cache = [[NSMutableArray alloc] init];
+	if( ![self loadCache] ){
+		NSLog(@"Error loading cache");
+	}
 	httpConnectionData = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
 	/*
 	httpConnectionData = CFDictionaryCreateMutable( kCFAllocatorDefault,
@@ -434,9 +436,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 													usedEncoding:nil
 														   error:nil];
 	[filename release];
-
+	
 	// fill DB with content
     bool loadSuccess = [self loadCacheFromString:content];
+
 	[content release];
 	// save entire database to file if we loaded the default DB from the app bundle
 	if( loadedDefault && loadSuccess ) [self saveCache];

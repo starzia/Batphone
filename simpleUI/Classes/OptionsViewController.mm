@@ -15,7 +15,10 @@
 @synthesize sharing;
 
 -(void)sharingChanged{
+	// store changes
 	[self.app.options setObject:[NSNumber numberWithBool:self.sharing.on] forKey:@"enableSharing"];
+	// update app state
+	self.app.database.useRemoteDB = self.sharing.on;
 }
 
 #pragma mark -
