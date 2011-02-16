@@ -34,6 +34,9 @@
 	delete [] fingerprint;
 	[super dealloc];
 }
+-(NSString*)description{
+	return [NSString stringWithFormat:@"(%@) %@ : %@ %@",self.uuid,self.building,self.room,[self.location description]];
+}
 @end
 
 @implementation Match;
@@ -563,19 +566,26 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 -(void) deleteRoom:(const NSString*)room
 		inBuilding:(const NSString*)building{
+	// we can't modify a NSMutableArray while enumerating it, so we store the value to remove here:
+	NSMutableArray *entriesToRemove = [[NSMutableArray alloc] init];
 	bool didSomething = false;
+	
 	for( DBEntry* e in cache ){
 		if( [e.building isEqualToString:building] && 
 		   [e.room isEqualToString:room] ){
-			[cache removeObject:e];
+			[entriesToRemove addObject:e];
 			didSomething = true;
 		}
 	}
-	// if DB was modified then resave it
-	if(didSomething){
+	
+	// remove elements
+	if( didSomething ){
+		[cache removeObjectsInArray:entriesToRemove];	
+	
+		// if DB was modified then resave it
 		[self saveCache];
 	}
-	
+	[entriesToRemove release];
 }
 
 #pragma mark -

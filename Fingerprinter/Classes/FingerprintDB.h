@@ -32,6 +32,7 @@ using std::vector;
 @property (nonatomic,retain) NSString* room;
 @property (nonatomic) float* fingerprint;
 @property (nonatomic,retain) CLLocation* location;
+-(NSString*)description;
 @end
 
 

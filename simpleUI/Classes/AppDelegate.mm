@@ -175,7 +175,7 @@ using namespace std;
 	// if "delete" button was clicked then clear this room from the database
 	if( buttonIndex == 1 ){
 		[database deleteRoom:locationViewController.room 
-				  inBuilding:locationViewController.room ];
+				  inBuilding:locationViewController.building ];
 		// pop view off stack
 		[navController popViewControllerAnimated:YES];
 	}
