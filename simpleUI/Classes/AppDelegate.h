@@ -57,6 +57,9 @@ using std::vector;
 
 // show details of a room
 -(void) showRoom:(NSString*)room inBuilding:(NSString*)building;
- 
+
+// save a new room fingerprint
+-(void)checkinWithRoom:(NSString*)newRoom inBuilding:(NSString*)newBuilding;
+
 @end
 

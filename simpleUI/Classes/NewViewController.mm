@@ -120,18 +120,9 @@
 		NSString* newRoom = [[NSString alloc] initWithString:self.roomField.text];
 		currentBuilding = newBuilding;
 		
-		// get new fingerprint
-		Fingerprint newFP = new float[Fingerprinter::fpLength];
-		app.fp->getFingerprint( newFP );
-		// add to database
-		NSString* uuid = [app.database insertFingerprint:newFP
-											   building:newBuilding
-												   room:newRoom
-											   location:[app getLocation] ];
-		NSLog(@"room '%@': %@ %@ saved",uuid,newBuilding,newRoom);
+		[self.app checkinWithRoom:newRoom inBuilding:newBuilding];
 		[newBuilding release];
 		[newRoom release];
-		delete [] newFP;
 		
 		return true;
 	}else{

@@ -21,6 +21,7 @@
 @synthesize plotIndex;
 @synthesize label;
 @synthesize map;
+@synthesize checkinButton;
 
 
  // The custom initializer.  
@@ -58,6 +59,18 @@
 		self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 		[self.view addSubview:plot];
 		
+		// Add checkin button to window
+		rect = CGRectMake(80, 25, 160.0f, 40.0f);
+		self.checkinButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+		self.checkinButton.frame = rect;
+		[self.checkinButton setTitle:@"Check in" forState:UIControlStateNormal];
+
+		[self.checkinButton addTarget:self 
+							   action:@selector(checkIn)
+					 forControlEvents:UIControlEventTouchUpInside];
+
+		[self.view addSubview:self.checkinButton];
+		
 		// create timer to update the plot
 		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:1
 														  target:self
@@ -73,6 +86,11 @@
 		[self resetWithBuilding:building room:room];
 	}
     return self;
+}
+
+
+-(void)checkIn{
+	[self.app checkinWithRoom:self.room inBuilding:self.building];
 }
 
 

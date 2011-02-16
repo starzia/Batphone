@@ -266,12 +266,12 @@ static const int numCandidates = 10;
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
 	if( distanceMetric == DistanceMetricCombined ){
-		return [NSString stringWithFormat:@"Closest tags"];
+		return [NSString stringWithFormat:@"Closest locations"];
 	}else if( distanceMetric == DistanceMetricPhysical ){
-		return [NSString stringWithFormat:@"Closest tags (%.0f meter accuracy)",
+		return [NSString stringWithFormat:@"Closest locations (%.0f m accuracy)",
 				app.getLocation.horizontalAccuracy];
 	}else{
-		return @"Closest tags";
+		return @"Closest locations";
 	}
 }
 

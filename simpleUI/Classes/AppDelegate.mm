@@ -43,6 +43,20 @@ using namespace std;
 	return locationManager.location;
 }
 
+-(void)checkinWithRoom:(NSString*)newRoom inBuilding:(NSString*)newBuilding{
+	// get new fingerprint
+	Fingerprint newFP = new float[Fingerprinter::fpLength];
+	fp->getFingerprint( newFP );
+	// add to database
+	NSString* uuid = [database insertFingerprint:newFP
+										building:newBuilding
+											room:newRoom
+										location:[self getLocation] ];
+	NSLog(@"room '%@': %@ %@ saved",uuid,newBuilding,newRoom);
+	delete [] newFP;
+}
+
+
 
 #pragma mark -
 #pragma mark CLLocationManagerDelegate
@@ -70,7 +84,7 @@ using namespace std;
 		NewViewController *aNewViewController = [[NewViewController alloc]
 												 initWithApp:self];
 		self.newViewController = aNewViewController;
-		newViewController.title = @"New tag";
+		newViewController.title = @"Check in";
 		[aNewViewController release];
 	}
 	// update picker to reflect possible database changes (new/deleted rooms)
@@ -145,8 +159,8 @@ using namespace std;
 // delete room
 -(void) deleteRoomButtonHandler{
 	// show confimation popup
-	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really delete tags?" 
-													  message:@"You are about to delete all tags for this room." 
+	UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really delete location?" 
+													  message:@"You are about to delete all history for this room." 
 													 delegate:self 
 											cancelButtonTitle:@"Cancel" 
 											otherButtonTitles:nil];
@@ -211,7 +225,7 @@ using namespace std;
 	MatchViewController *aMatchViewController = [[MatchViewController alloc]
 												 initWithApp:self];
 	self.matchViewController = aMatchViewController;
-	matchViewController.title = @"Location";
+	matchViewController.title = @"Neighborhood";
 	[aMatchViewController release];
 
 	// set up navigation controller
