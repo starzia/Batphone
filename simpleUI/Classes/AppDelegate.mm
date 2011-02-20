@@ -30,6 +30,7 @@ using namespace std;
 @synthesize fp;
 @synthesize database;
 @synthesize locationManager;
+@synthesize motionManager;
 @synthesize options;
 
 - (void) printFingerprint: (Fingerprint) fingerprint{
@@ -208,7 +209,7 @@ using namespace std;
 	
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
-	self.database = [[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength];
+	self.database = [[[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength] autorelease];
 	self.database.useRemoteDB = [[self.options objectForKey:@"enableSharing"] boolValue];
 								 
 	// set up Core Location
@@ -221,6 +222,27 @@ using namespace std;
 	locationManager.purpose = @"Location information from the device's radios can be used to improve accuracy."; // to be displayed in system's user prompt
 	[self.locationManager startUpdatingLocation]; // start location service
 		
+	// set up motion
+	{
+		self.motionManager = [[[CMMotionManager alloc] init] autorelease];
+		self.motionManager.deviceMotionUpdateInterval = 0.01; //in seconds
+
+		if(!motionManager.deviceMotionAvailable){
+			NSLog(@"ERROR: device motion not available!");
+		}
+			
+		// block for motion data callback
+		CMDeviceMotionHandler motionHandler = ^ (CMDeviceMotion *motionData, NSError *error) {
+			NSLog(@"Motion: g:{%f %f %f} accel:{%f %f %f}", 
+				  motionData.gravity.x, motionData.gravity.y, motionData.gravity.z, 
+				  motionData.userAcceleration.x, motionData.userAcceleration.y, motionData.userAcceleration.z ); 
+		};
+		
+		// start receiving updates
+		[self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue]
+												withHandler:motionHandler];
+	}
+	
 	// initialize the first view controller
 	MatchViewController *aMatchViewController = [[MatchViewController alloc]
 												 initWithApp:self];
@@ -294,6 +316,7 @@ using namespace std;
      See also applicationDidEnterBackground:.
      */
 	self.fp->stopRecording();
+	[self.motionManager stopDeviceMotionUpdates]; // turn off sensors.
 }
 
 

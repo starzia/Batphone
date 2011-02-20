@@ -38,6 +38,8 @@
 	<array>
 		<string>location-services</string>
 		<string>microphone</string>
+		<string>accelerometer</string>
+		<string>gyroscope</string>
 	</array>
 </dict>
 </plist>

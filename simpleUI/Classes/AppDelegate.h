@@ -12,6 +12,7 @@
 #import "RobustDictionary.h"
 #import <vector>
 #import <CoreLocation/CoreLocation.h>
+#import <CoreMotion/CoreMotion.h>
 
 using std::vector;
 
@@ -34,6 +35,7 @@ using std::vector;
 	 
 	Fingerprinter* fp;
 	CLLocationManager *locationManager; 	// data for SkyHook/GPS localization
+	CMMotionManager* motionManager;
 	FingerprintDB* database;
 	RobustDictionary* options;
 }
@@ -49,6 +51,7 @@ using std::vector;
 @property (nonatomic) Fingerprinter* fp; 
 @property (nonatomic, retain) FingerprintDB* database;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
+@property (nonatomic, retain) CMMotionManager* motionManager;
 @property (nonatomic, retain) RobustDictionary* options;
 
 // member functions
