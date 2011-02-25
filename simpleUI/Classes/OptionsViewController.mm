@@ -112,7 +112,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    return 3;
+    return 4;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -122,7 +122,9 @@
 		return [NSString stringWithFormat:@"Batphone version: %@",
 				[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	}else if( section == 2 ){
-		return @"Advanced database options";		
+		return @"Advanced fingerprint options";		
+	}else if( section == 3 ){
+		return @"Advanced motion data options";		
 	}else{
 		return @"";
 	}
@@ -137,6 +139,8 @@
 		return 2;
 	}else if( section == 2 ){
 		return 3;
+	}else if( section == 3 ){
+		return 2;
 	}else{
 		return 0;
 	}
@@ -152,6 +156,8 @@
     if (cell == nil) {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
     }
+	
+	cell.accessoryView = nil;
 
 	// Configure the cell...
 	if(indexPath.section == 0 ){
@@ -172,6 +178,12 @@
 			cell.textLabel.text = @"Load database";
 		}else if(indexPath.row == 2){
 			cell.textLabel.text = @"Clear database";
+		}
+	}else if(indexPath.section == 3){
+		if( indexPath.row == 0 ){
+			cell.textLabel.text = @"Email motion data";
+		}else if(indexPath.row == 1){
+			cell.textLabel.text = @"Clear motion data";
 		}
 	}	
     return cell;
@@ -198,6 +210,15 @@
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app.database getDBFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
+			}else if( indexPath.section == 3 ){
+				// email motion data
+				[mailer setSubject:[NSString stringWithFormat:@"[Batphone motion v%@]",
+									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
+				[mailer setMessageBody:@"Data in motion.txt is stored with one line per motion vector.  Each line has the following fields (separated by tabs): G_x, G_y, G_z, userAccel_x, userAccel_y, userAccel_z" 
+								isHTML:NO];
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app getMotionDataFilename]] 
+								 mimeType:@"text/plain" 
+								 fileName:@"motion.txt"];
 			}else if(indexPath.section == 1 ){
 				// email feedback
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
@@ -223,7 +244,7 @@
 		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
 		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
-	// delete
+	// delete database
 	else if( indexPath.section == 2 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
@@ -232,6 +253,13 @@
 												otherButtonTitles:@"Delete",nil];
 		[myAlert show];
 		[myAlert release];
+	}
+	// delete motion data file
+	else if( indexPath.section == 3 && indexPath.row == 1 ){
+		[[NSFileManager defaultManager] removeItemAtPath:[app getMotionDataFilename]
+												   error:nil];
+		// deselect
+		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 	}
 	// load from URL
 	else if( indexPath.section == 2 && indexPath.row == 1 ){

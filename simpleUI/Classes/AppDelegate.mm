@@ -15,6 +15,10 @@
 #import "LocationViewController.h"
 #import "OptionsViewController.h"
 
+// for data motion file writing
+#include <iostream>
+#include <fstream>
+
 using namespace std;
 
 
@@ -171,6 +175,48 @@ using namespace std;
 }
 
 #pragma mark -
+#pragma mark motionData
+
+// perform affine transformation specified in matrix m.
+void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
+	CMAcceleration old_a = *a;
+	a->x = old_a.x * m.m11 + old_a.y * m.m12 + old_a.z * m.m13;	
+	a->y = old_a.x * m.m21 + old_a.y * m.m22 + old_a.z * m.m23;	
+	a->z = old_a.x * m.m31 + old_a.y * m.m32 + old_a.z * m.m33;	
+}
+
+-(NSString*)getMotionDataFilename{
+	// get the documents directory:
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	
+	// build the full filename
+	return [NSString stringWithFormat:@"%@/%@", documentsDirectory, @"motion.txt"];
+}
+
+-(void) handleMotionData:(CMDeviceMotion*) motionData{
+	CMAttitude* att = motionData.attitude;
+	CMAcceleration userAccel = motionData.userAcceleration;
+	// convert userAcceleration to world frame
+	///multiplyVecByMat( &userAccel, motionData.attitude.rotationMatrix );
+	// save new line in data file
+	NSString* line = [[NSString alloc] initWithFormat:@"%f\t%f\t%f\t%f\t%f\t%f\t%f\n", 
+					  motionData.timestamp, userAccel.x, userAccel.y, userAccel.z,
+					  att.roll, att.pitch, att.yaw
+					  ]; 
+		
+	// open data file for appending
+	NSString* filename = [[self getMotionDataFilename] retain];
+	std::ofstream dFile;
+	dFile.open([filename UTF8String], std::ios::out | std::ios::app);
+	dFile << [line UTF8String]; // append the new entry
+	dFile.close();
+	[filename release];
+	
+	[line release];
+}
+
+#pragma mark -
 #pragma mark UIAlertViewDelegate (delete room popup)
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex{
 	// if "delete" button was clicked then clear this room from the database
@@ -225,7 +271,7 @@ using namespace std;
 	// set up motion
 	{
 		self.motionManager = [[[CMMotionManager alloc] init] autorelease];
-		self.motionManager.deviceMotionUpdateInterval = 0.01; //in seconds
+		self.motionManager.deviceMotionUpdateInterval = 0.001; //in seconds.  If a very small value is chosen, then the minimum HW sampling period is used instead
 
 		if(!motionManager.deviceMotionAvailable){
 			NSLog(@"ERROR: device motion not available!");
@@ -233,9 +279,7 @@ using namespace std;
 			
 		// block for motion data callback
 		CMDeviceMotionHandler motionHandler = ^ (CMDeviceMotion *motionData, NSError *error) {
-			NSLog(@"Motion: g:{%f %f %f} accel:{%f %f %f}", 
-				  motionData.gravity.x, motionData.gravity.y, motionData.gravity.z, 
-				  motionData.userAcceleration.x, motionData.userAcceleration.y, motionData.userAcceleration.z ); 
+			[self handleMotionData:motionData];
 		};
 		
 		// start receiving updates
@@ -341,7 +385,9 @@ using namespace std;
 	delete[] fp;
 	delete database;
     [self.locationManager release];
-    [super dealloc];
+	[self.motionManager release];
+    
+	[super dealloc];
 }
 
 
