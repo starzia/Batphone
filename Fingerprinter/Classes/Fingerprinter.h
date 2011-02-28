@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <queue>
-#include <string>
 
 #import <AudioUnit/AudioUnit.h>
 #import <AudioToolbox/AudioToolbox.h>
@@ -61,7 +60,6 @@ public:
 
 private:	
 	/* private data members */
-	Spectrogram			spectrogram;
 	Fingerprint			fingerprint;
 	pthread_mutex_t		lock; // for mutually exclusive access to fingerprint
 	
@@ -71,4 +69,7 @@ public: // the following must be public for audio callback function to access th
 	AURenderCallbackStruct		inputProc;
 	CAStreamBasicDescription	thruFormat;
 	Float64						hwSampleRate;
+
+	// the following is public ony for convenient access to its enableLogging function.
+	Spectrogram			spectrogram;
 };

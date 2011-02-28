@@ -112,7 +112,12 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    return 4;
+	if( self.app.detailedLogging ){
+		// if logging is enabled then show controls
+		return 4;
+	}else{
+		return 3;
+	}
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -124,7 +129,7 @@
 	}else if( section == 2 ){
 		return @"Advanced fingerprint options";		
 	}else if( section == 3 ){
-		return @"Advanced motion data options";		
+		return @"Advanced logging options";		
 	}else{
 		return @"";
 	}
@@ -181,9 +186,9 @@
 		}
 	}else if(indexPath.section == 3){
 		if( indexPath.row == 0 ){
-			cell.textLabel.text = @"Email motion data";
+			cell.textLabel.text = @"Email motion/audio data";
 		}else if(indexPath.row == 1){
-			cell.textLabel.text = @"Clear motion data";
+			cell.textLabel.text = @"Clear motion/audio data";
 		}
 	}	
     return cell;
@@ -219,6 +224,9 @@
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app getMotionDataFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"motion.txt"];
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app getSpectrogramFilename]] 
+								 mimeType:@"text/plain" 
+								 fileName:@"spectrogram.txt"];
 			}else if(indexPath.section == 1 ){
 				// email feedback
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
@@ -254,10 +262,19 @@
 		[myAlert show];
 		[myAlert release];
 	}
-	// delete motion data file
+	// delete logging data files
 	else if( indexPath.section == 3 && indexPath.row == 1 ){
 		[[NSFileManager defaultManager] removeItemAtPath:[app getMotionDataFilename]
 												   error:nil];
+		// must pause logging to close the file first
+		self.app.fp->spectrogram.disableLogging();
+		[[NSFileManager defaultManager] removeItemAtPath:[app getSpectrogramFilename]
+												   error:nil];
+		//re-enable logging
+		if( self.app.detailedLogging ){
+			self.app.fp->spectrogram.enableLoggingToFilename( [[self.app getSpectrogramFilename] UTF8String] );
+		}
+		
 		// deselect
 		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 	}

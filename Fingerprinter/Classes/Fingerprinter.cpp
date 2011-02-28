@@ -157,6 +157,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 			
 			// save in spectrogram
 			cd->spectrogram->update( cd->acc );
+			
 			// update fingerprint from spectrogram summary
 			cd->spectrogram->getSummary( cd->fingerprint );
 			pthread_mutex_unlock( cd->lock );

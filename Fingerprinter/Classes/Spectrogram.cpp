@@ -8,9 +8,9 @@
  */
 
 #include "Spectrogram.h"
-#import <Accelerate/Accelerate.h> // for vector operations
 #include <algorithm> // for nth_element
 #include <vector>
+#include <time.h>
 using std::vector;
 
 #define PERCENTILE (0.05)
@@ -18,6 +18,8 @@ using std::vector;
 
 Spectrogram::Spectrogram(unsigned int freq_bins, unsigned int time_bins): 
 freqBins(freq_bins), timeBins(time_bins){
+	this->enableLogging = false;
+
 	// allocate data sliding windows	
 	slidingWindows = new SlidingWindow*[freq_bins];
 	for( unsigned int i=0; i<freq_bins; i++ ){
@@ -30,6 +32,7 @@ Spectrogram::~Spectrogram(){
 		delete slidingWindows[i];
 	}
 	delete[] slidingWindows;
+	disableLogging(); // to close log file
 }
 
 void Spectrogram::update(float* s){
@@ -38,6 +41,18 @@ void Spectrogram::update(float* s){
 	for( unsigned int i=0; i<this->freqBins; i++ ){
 		slidingWindows[i]->update( s[i] );
 	}
+	
+	// log value, if required
+	if( enableLogging ){
+		time_t currentTime;
+		time( &currentTime );
+		logFile << currentTime << '\t';
+		for( unsigned int i=0; i<this->freqBins; i++ ){
+			logFile << s[i] << '\t';
+		}
+		logFile << '\n';
+	}
+	
 	if(THREAD_SAFE) pthread_mutex_unlock( &lock );
 }
 
@@ -49,4 +64,20 @@ void Spectrogram::getSummary(float* outBuf){
 		outBuf[i] = slidingWindows[i]->getVal();
 	}
 	if(THREAD_SAFE) pthread_mutex_unlock( &lock );
+}
+
+void Spectrogram::enableLoggingToFilename( const char* logFilename ){
+	if( !enableLogging ){
+		logFile.open( logFilename );
+		if( !logFile.fail() ){
+			enableLogging = true;
+		}
+	}
+}
+
+void Spectrogram::disableLogging(){
+	if( enableLogging ){
+		logFile.close();
+		enableLogging = false;
+	}
 }

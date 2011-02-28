@@ -38,6 +38,7 @@ using std::vector;
 	CMMotionManager* motionManager;
 	FingerprintDB* database;
 	RobustDictionary* options;
+	bool detailedLogging; // log fine-grained sensor data (for testing only!)
 }
 
 // accessors
@@ -53,11 +54,13 @@ using std::vector;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
 @property (nonatomic, retain) CMMotionManager* motionManager;
 @property (nonatomic, retain) RobustDictionary* options;
+@property (nonatomic) bool detailedLogging;
 
 // member functions
 -(void) printFingerprint: (Fingerprint) fingerprint;
 -(CLLocation*)getLocation; // return the current GPSLocation from locationManager
 -(NSString*)getMotionDataFilename;
+-(NSString*)getSpectrogramFilename;
 
 // show details of a room
 -(void) showRoom:(NSString*)room inBuilding:(NSString*)building;

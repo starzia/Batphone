@@ -36,6 +36,7 @@ using namespace std;
 @synthesize locationManager;
 @synthesize motionManager;
 @synthesize options;
+@synthesize detailedLogging;
 
 - (void) printFingerprint: (Fingerprint) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -175,7 +176,7 @@ using namespace std;
 }
 
 #pragma mark -
-#pragma mark motionData
+#pragma mark logging (motion)
 
 // perform affine transformation specified in matrix m.
 void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
@@ -192,6 +193,15 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	
 	// build the full filename
 	return [NSString stringWithFormat:@"%@/%@", documentsDirectory, @"motion.txt"];
+}
+
+-(NSString*)getSpectrogramFilename{
+	// get the documents directory:
+	NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+	NSString *documentsDirectory = [paths objectAtIndex:0];
+	
+	// build the full filename
+	return [NSString stringWithFormat:@"%@/%@", documentsDirectory, @"spectrogram.txt"];
 }
 
 -(void) handleMotionData:(CMDeviceMotion*) motionData{
@@ -232,6 +242,8 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 #pragma mark Application lifecycle
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+	self.detailedLogging = true; // TODO: never leave detailed logging on for a public release
+	
 	// Turn off the idle timer, since this app doesn't rely on constant touch input
 	application.idleTimerDisabled = YES;
 	
@@ -268,8 +280,8 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	locationManager.purpose = @"Location information from the device's radios can be used to improve accuracy."; // to be displayed in system's user prompt
 	[self.locationManager startUpdatingLocation]; // start location service
 		
-	// set up motion
-	{
+	// set up motion and spectrogram logging
+	if( self.detailedLogging ){
 		self.motionManager = [[[CMMotionManager alloc] init] autorelease];
 		self.motionManager.deviceMotionUpdateInterval = 0.001; //in seconds.  If a very small value is chosen, then the minimum HW sampling period is used instead
 
@@ -285,8 +297,11 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 		// start receiving updates
 		[self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue currentQueue]
 												withHandler:motionHandler];
+		
+		// set up logging of spectrogram
+		self.fp->spectrogram.enableLoggingToFilename( [[self getSpectrogramFilename] UTF8String] );
 	}
-	
+		
 	// initialize the first view controller
 	MatchViewController *aMatchViewController = [[MatchViewController alloc]
 												 initWithApp:self];
