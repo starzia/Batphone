@@ -37,6 +37,7 @@ using namespace std;
 @synthesize motionManager;
 @synthesize options;
 @synthesize detailedLogging;
+@synthesize watchdogTimer;
 
 - (void) printFingerprint: (Fingerprint) fingerprint{
 	for( unsigned int i=0; i<Fingerprinter::fpLength; ++i ){
@@ -62,6 +63,16 @@ using namespace std;
 	delete [] newFP;
 }
 
+
+-(void)checkAudio{
+	// get new fingerprint
+	Fingerprint newFP = new float[Fingerprinter::fpLength];
+	if( !fp->getFingerprint( newFP ) ){
+		// if there is no valid fingerprint, then reset audio
+		self.fp->stopRecording();
+		self.fp->startRecording();
+	}
+}
 
 
 #pragma mark -
@@ -331,6 +342,14 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	// disable shake-to-undo because user will be moving around a lot with this app
 	[UIApplication sharedApplication].applicationSupportsShakeToEdit = NO; 
 	
+	// start watchdog timer for audio
+	// This should not fire when app is in background, so we don't have to worry about it
+	// starting audio when it should be stopped.
+	self.watchdogTimer = [NSTimer scheduledTimerWithTimeInterval:15
+														  target:self
+														selector:@selector(checkAudio)
+														userInfo:nil
+														 repeats:YES];
     return YES;
 }
 

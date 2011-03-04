@@ -83,7 +83,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	
 	// cast our data structure
 	CallbackData* cd = (CallbackData*)inRefCon;
-	
+	// retreive audio samples
 	try{
 		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, 
 									   kInputBus, inNumberFrames, ioData), "Callback: AudioUnitRender" );
@@ -94,9 +94,10 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		return 1;
 	}
 	SInt32 *data_ptr = (SInt32 *)(ioData->mBuffers[0].mData);
-	// the samples are 24 bit but padded on the right to give 32 bits.  Hence the right shift
-	//printf( "%d  ", data_ptr[0]>>8 );
 	
+	// the samples are 24 bit but padded on the right to give 32 bits.  
+	// Hence we can right shift as follows: data_ptr[i]>>8
+		
 	// setup FFT
 	UInt32 log2FFTLength = log2f( Fingerprinter::specRes );
 
@@ -154,6 +155,13 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 			// convert to dB
 			float reference=1.0f * Fingerprinter::accumulationNum; //divide by number of summed spectra
 			vDSP_vdbcon( cd->acc, 1, &reference, cd->acc, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude			
+			
+			// As a precation, test that spectrum is valid
+			if( !(cd->acc[0] >= 0 || cd->acc[0] <= 0 ) ){ // is NaN
+				printf( "spectrum is NaN\n" );
+				pthread_mutex_unlock( cd->lock );
+				return 0;
+			}
 			
 			// save in spectrogram
 			cd->spectrogram->update( cd->acc );

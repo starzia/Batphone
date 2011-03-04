@@ -141,7 +141,7 @@ static const int numCandidates = 10;
 	indicator.center = CGPointMake(140, 110);  
 	[indicator startAnimating];  
 	[alert addSubview:indicator];  
-	[indicator release];  	
+	[indicator release];
 	
     [super viewDidLoad];
 }
