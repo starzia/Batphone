@@ -231,7 +231,26 @@
 
 -(void) scanWiFi{
 	[self.networksManager scanNetworks];
-	NSLog(@"WiFi: %@", [self.networksManager description]);
+	NSDictionary* networks = [[self.networksManager networks] retain];
+	// open data file for appending
+	NSString* filename = [NSString stringWithFormat:@"%@/scans.txt", self.storagePath];
+	std::ofstream dFile;
+	dFile.open([filename UTF8String], std::ios::out | std::ios::app);
+	NSTimeInterval now = [[NSDate date] timeIntervalSinceReferenceDate];
+	NSMutableString* newEntry = [[NSMutableString alloc] initWithFormat:@"%.2f\n",now];
+	// scan through each AP
+	for (id key in [self.networksManager networks]){
+		// save new line in data file
+		[newEntry appendFormat:@"\t%@\t%@\t%@\t%@\n",
+					key, //Station BBSID (MAC Address)
+					[[networks objectForKey: key] objectForKey:@"RSSI"], //Signal Strength
+					[[networks objectForKey: key] objectForKey:@"CHANNEL"],  //Operating Channel
+					[[networks objectForKey: key] objectForKey:@"SSID_STR"] //Station Name
+		 ];
+	}
+	dFile << [newEntry UTF8String]; // append the new entry
+	dFile.close();
+	[networks release];
 }
 
 

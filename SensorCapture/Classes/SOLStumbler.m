@@ -48,17 +48,18 @@
 
 - (void)scanNetworks
 {
-	///NSLog(@"Scanning WiFi Channels...");
+	NSDictionary *parameters = [[NSDictionary alloc] initWithObjectsAndKeys:
+								[NSNumber numberWithBool:NO], @"SCAN_MERGE", // don't discard multiple MACs for each network
+								nil];
 	
-	NSDictionary *parameters = [[NSDictionary alloc] init];
 	NSArray *scan_networks; //is a CFArrayRef of CFDictionaryRef(s) containing key/value data on each discovered network
 	
 	apple80211Scan(airportHandle, &scan_networks, parameters);
+	[parameters release];
 	
 	for (int i = 0; i < [scan_networks count]; i++) {
 		[networks setObject:[scan_networks objectAtIndex: i] forKey:[[scan_networks objectAtIndex: i] objectForKey:@"BSSID"]];
 	}
-	///NSLog(@"Scanning WiFi Channels Finished.");	
 }
 
 - (int)numberOfNetworks
