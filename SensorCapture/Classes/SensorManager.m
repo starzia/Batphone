@@ -15,11 +15,59 @@
 @synthesize videoInput;
 @synthesize stillImageOutput;
 @synthesize stillTimer;
+@synthesize audioTimer;
+@synthesize recorder;
+
+
+-(void)stopAudio{
+	if( self.recorder != nil ){
+		[self.recorder stop];
+		//[self.recorder release];
+	}
+	
+}
+
+
+-(void)restartAudio{
+	// build filename
+	NSDate *now = [NSDate date];
+	NSString *wavFile = [NSString stringWithFormat:@"%@/%.2f.wav",
+						 self.storagePath,[now timeIntervalSince1970]];
+	NSURL *wavFileURL = [NSURL fileURLWithPath:wavFile];
+	
+	NSDictionary *recordSettings = [NSDictionary 
+									dictionaryWithObjectsAndKeys:
+									[NSNumber numberWithInt:kAudioFormatLinearPCM], 
+									AVFormatIDKey,
+									[NSNumber numberWithInt: 16], 
+									AVLinearPCMBitDepthKey,
+									[NSNumber numberWithInt: 1], 
+									AVNumberOfChannelsKey,
+									[NSNumber numberWithFloat:44100.0], 
+									AVSampleRateKey,
+									nil];
+
+	AVAudioRecorder* audioRecorder = [[AVAudioRecorder alloc] initWithURL:wavFileURL
+																 settings:recordSettings
+																	error:nil];
+	[audioRecorder prepareToRecord];
+	
+	// stop previous recorder, if any
+	[self stopAudio];
+	
+	// start new recorder
+	[audioRecorder record];
+	NSLog(@"started recording to: %@", wavFile);
+	self.recorder = audioRecorder;
+	[audioRecorder release];
+}
+
 
 -(id)initWithStoragePath:(NSString*)path{
 	self = [super init];
 	if( self != nil ){
 		self.storagePath = path;
+		self.recorder = nil;
 		
 		// SET UP VIDEO DEVICE.  See code in AVCamDemo for dealing w/ device conection and disconnection
 		// find the correct video device
@@ -75,6 +123,13 @@
 														 userInfo:nil
 														  repeats:YES];
 		
+		// SET TIMER FOR AUDIO
+		[self restartAudio]; // get started immediately
+		self.audioTimer = [NSTimer scheduledTimerWithTimeInterval:60
+														   target:self
+														 selector:@selector(restartAudio)
+														 userInfo:nil
+														  repeats:YES];
 	}
 	return self;	
 }
@@ -115,6 +170,11 @@
                                                                  NSLog(@"still image capture error");
                                                              }
                                                          }];
+}
+
+-(void)dealloc{
+	[self stopAudio];
+	[super dealloc];
 }
 
 @end

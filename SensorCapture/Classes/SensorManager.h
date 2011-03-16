@@ -17,6 +17,8 @@
     AVCaptureDeviceInput *videoInput;
     AVCaptureStillImageOutput *stillImageOutput;
 	NSTimer* stillTimer;
+	NSTimer* audioTimer;
+	AVAudioRecorder* recorder;
 }
 
 @property (nonatomic,retain) NSString* storagePath;
@@ -25,6 +27,8 @@
 @property (nonatomic,retain) AVCaptureDeviceInput *videoInput;
 @property (nonatomic,retain) AVCaptureStillImageOutput *stillImageOutput;
 @property (nonatomic,retain) NSTimer* stillTimer;
+@property (nonatomic,retain) NSTimer* audioTimer;
+@property (nonatomic,retain) AVAudioRecorder* recorder;
 
 -(id)initWithStoragePath:(NSString*)path;
 
