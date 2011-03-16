@@ -12,6 +12,9 @@
 #include <iostream>
 #include <fstream>
 
+
+#pragma mark -
+#pragma mark SensorManager
 @implementation SensorManager
 @synthesize storagePath;
 @synthesize session;
@@ -19,11 +22,13 @@
 @synthesize stillImageOutput;
 @synthesize stillTimer;
 @synthesize audioTimer;
+@synthesize scanTimer;
 @synthesize recorder;
 @synthesize locationManager;
 @synthesize motionManager;
 @synthesize opq;
 @synthesize bootTime;
+@synthesize networksManager;
 
 
 -(void)stopAudio{
@@ -75,6 +80,7 @@
 		self.storagePath = path;
 		self.recorder = nil;
 		self.bootTime= -1.0; // set this when first motion event happens
+		self.networksManager = [[[SOLStumbler alloc] init] autorelease];
 		
 		// SET UP VIDEO DEVICE.  See code in AVCamDemo for dealing w/ device conection and disconnection
 		// find the correct video device
@@ -135,6 +141,13 @@
 		self.audioTimer = [NSTimer scheduledTimerWithTimeInterval:10
 														   target:self
 														 selector:@selector(restartAudio)
+														 userInfo:nil
+														  repeats:YES];
+		
+		// SET TIMER FOR WIFI SCAN
+		self.scanTimer = [NSTimer scheduledTimerWithTimeInterval:1
+														  target:self
+														 selector:@selector(scanWiFi)
 														 userInfo:nil
 														  repeats:YES];
 		
@@ -215,6 +228,12 @@
 -(CLLocation*)getLocation{
 	return locationManager.location;
 }
+
+-(void) scanWiFi{
+	[self.networksManager scanNetworks];
+	NSLog(@"WiFi: %@", [self.networksManager description]);
+}
+
 
 #pragma mark -
 #pragma mark CLLocationManagerDelegate

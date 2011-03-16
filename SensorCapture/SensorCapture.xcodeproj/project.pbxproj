@@ -18,6 +18,7 @@
 		AAA487AE13305C6D0064D3CD /* SensorManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAA487AD13305C6D0064D3CD /* SensorManager.mm */; };
 		AAA487C113305DDA0064D3CD /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA487C013305DDA0064D3CD /* CoreMotion.framework */; };
 		AAA487C313305DE70064D3CD /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA487C213305DE70064D3CD /* CoreLocation.framework */; };
+		AACC0AA113312F3800CFC793 /* SOLStumbler.m in Sources */ = {isa = PBXBuildFile; fileRef = AACC0AA013312F3800CFC793 /* SOLStumbler.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +39,8 @@
 		AAA487AD13305C6D0064D3CD /* SensorManager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SensorManager.mm; sourceTree = "<group>"; };
 		AAA487C013305DDA0064D3CD /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		AAA487C213305DE70064D3CD /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		AACC0A9F13312F3800CFC793 /* SOLStumbler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SOLStumbler.h; path = ../SensorCapture/Classes/SOLStumbler.h; sourceTree = SOURCE_ROOT; };
+		AACC0AA013312F3800CFC793 /* SOLStumbler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SOLStumbler.m; path = ../SensorCapture/Classes/SOLStumbler.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -60,13 +63,14 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				AACC0A9F13312F3800CFC793 /* SOLStumbler.h */,
+				AACC0AA013312F3800CFC793 /* SOLStumbler.m */,
 				1D3623240D0F684500981E51 /* SensorCaptureAppDelegate.h */,
 				1D3623250D0F684500981E51 /* SensorCaptureAppDelegate.m */,
 				28D7ACF60DDB3853001CB0EB /* SensorCaptureViewController.h */,
 				28D7ACF70DDB3853001CB0EB /* SensorCaptureViewController.m */,
 				AAA48705133020F60064D3CD /* SensorManager.h */,
 				AAA487AD13305C6D0064D3CD /* SensorManager.mm */,
-				29B97315FDCFA39411CA2CEA /* Other Sources */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -83,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				080E96DDFE201D6D7F000001 /* Classes */,
+				29B97315FDCFA39411CA2CEA /* Other Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				19C28FACFE9D520D11CA2CBB /* Products */,
@@ -97,7 +102,6 @@
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
 			name = "Other Sources";
-			path = ..;
 			sourceTree = "<group>";
 		};
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
@@ -189,6 +193,7 @@
 				1D3623260D0F684500981E51 /* SensorCaptureAppDelegate.m in Sources */,
 				28D7ACF80DDB3853001CB0EB /* SensorCaptureViewController.m in Sources */,
 				AAA487AE13305C6D0064D3CD /* SensorManager.mm in Sources */,
+				AACC0AA113312F3800CFC793 /* SOLStumbler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,6 +235,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				PREBINDING = NO;
 				SDKROOT = iphoneos;
 			};
@@ -243,6 +249,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
 				SDKROOT = iphoneos;
