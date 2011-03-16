@@ -8,6 +8,9 @@
 
 #import "SensorManager.h"
 
+// for data motion file writing
+#include <iostream>
+#include <fstream>
 
 @implementation SensorManager
 @synthesize storagePath;
@@ -17,12 +20,15 @@
 @synthesize stillTimer;
 @synthesize audioTimer;
 @synthesize recorder;
+@synthesize locationManager;
+@synthesize motionManager;
+@synthesize opq;
+@synthesize bootTime;
 
 
 -(void)stopAudio{
 	if( self.recorder != nil ){
 		[self.recorder stop];
-		//[self.recorder release];
 	}
 	
 }
@@ -32,7 +38,7 @@
 	// build filename
 	NSDate *now = [NSDate date];
 	NSString *wavFile = [NSString stringWithFormat:@"%@/%.2f.wav",
-						 self.storagePath,[now timeIntervalSince1970]];
+						 self.storagePath,[now timeIntervalSinceReferenceDate]];
 	NSURL *wavFileURL = [NSURL fileURLWithPath:wavFile];
 	
 	NSDictionary *recordSettings = [NSDictionary 
@@ -57,7 +63,7 @@
 	
 	// start new recorder
 	[audioRecorder record];
-	NSLog(@"started recording to: %@", wavFile);
+	///NSLog(@"started recording to: %@", wavFile);
 	self.recorder = audioRecorder;
 	[audioRecorder release];
 }
@@ -68,6 +74,7 @@
 	if( self != nil ){
 		self.storagePath = path;
 		self.recorder = nil;
+		self.bootTime= -1.0; // set this when first motion event happens
 		
 		// SET UP VIDEO DEVICE.  See code in AVCamDemo for dealing w/ device conection and disconnection
 		// find the correct video device
@@ -125,11 +132,39 @@
 		
 		// SET TIMER FOR AUDIO
 		[self restartAudio]; // get started immediately
-		self.audioTimer = [NSTimer scheduledTimerWithTimeInterval:60
+		self.audioTimer = [NSTimer scheduledTimerWithTimeInterval:10
 														   target:self
 														 selector:@selector(restartAudio)
 														 userInfo:nil
 														  repeats:YES];
+		
+		// SET UP CORE LOCATION LOGGING
+		self.locationManager = [[[CLLocationManager alloc] init] autorelease];
+		self.locationManager.delegate = self; // send loc updates to myself
+		// Note that desiredAccuracy affects power consumption
+		locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
+		locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
+		locationManager.headingFilter = kCLHeadingFilterNone; // as above
+		locationManager.purpose = @"Location information from the device's radios can be used to improve accuracy."; // to be displayed in system's user prompt
+		[self.locationManager startUpdatingLocation]; // start location service
+		
+		// SETUP MOTION LOGGING
+		self.motionManager = [[[CMMotionManager alloc] init] autorelease];
+		self.motionManager.deviceMotionUpdateInterval = 0.001; //in seconds.  If a very small value is chosen, then the minimum HW sampling period is used instead
+		
+		if(!motionManager.deviceMotionAvailable){
+			NSLog(@"ERROR: device motion not available!");
+		}
+		
+		// block for motion data callback
+		CMDeviceMotionHandler motionHandler = ^ (CMDeviceMotion *motionData, NSError *error) {
+			[self handleMotionData:motionData];
+		};
+		
+		// start receiving updates
+		self.opq = [[[NSOperationQueue alloc] init] autorelease];
+		[self.motionManager startDeviceMotionUpdatesToQueue:self.opq
+												withHandler:motionHandler];
 	}
 	return self;	
 }
@@ -162,8 +197,8 @@
 																 // build filename
 																 NSDate *now = [NSDate date];
 																 NSString *jpgFile = [NSString stringWithFormat:@"%@/%.2f.jpg",
-																					  self.storagePath,[now timeIntervalSince1970]];
-																 NSLog(@"wrote to file: %@",jpgFile);
+																					  self.storagePath,[now timeIntervalSinceReferenceDate]];
+																 ///NSLog(@"wrote to file: %@",jpgFile);
 																 [imageData writeToFile:jpgFile atomically:YES];
 																 
                                                              } else if (error) {
@@ -175,6 +210,78 @@
 -(void)dealloc{
 	[self stopAudio];
 	[super dealloc];
+}
+
+-(CLLocation*)getLocation{
+	return locationManager.location;
+}
+
+#pragma mark -
+#pragma mark CLLocationManagerDelegate
+// Core Location code adapted from http://mobileorchard.com/hello-there-a-corelocation-tutorial/
+- (void)locationManager:(CLLocationManager *)manager
+    didUpdateToLocation:(CLLocation *)newLocation
+           fromLocation:(CLLocation *)oldLocation 
+{
+	// convert userAcceleration to world frame
+	///multiplyVecByMat( &userAccel, motionData.attitude.rotationMatrix );
+	// save new line in data file
+	NSString* line = [newLocation description];
+	
+	// open data file for appending
+	NSString* filename = [NSString stringWithFormat:@"%@/location.txt", self.storagePath];
+	std::ofstream dFile;
+	dFile.open([filename UTF8String], std::ios::out | std::ios::app);
+	dFile.precision(13); // high precision for timestamp
+	dFile << [[NSDate date] timeIntervalSinceReferenceDate] << '\t' << [line UTF8String] << '\n'; // append the new entry
+	dFile.close();
+}
+
+- (void)locationManager:(CLLocationManager *)manager
+	   didFailWithError:(NSError *)error
+{
+	NSLog(@"Error: %@", [error description]);
+}
+
+
+#pragma mark -
+#pragma mark logging (motion)
+
+// perform affine transformation specified in matrix m.
+void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
+	CMAcceleration old_a = *a;
+	a->x = old_a.x * m.m11 + old_a.y * m.m12 + old_a.z * m.m13;	
+	a->y = old_a.x * m.m21 + old_a.y * m.m22 + old_a.z * m.m23;	
+	a->z = old_a.x * m.m31 + old_a.y * m.m32 + old_a.z * m.m33;	
+}
+
+
+-(void) handleMotionData:(CMDeviceMotion*) motionData{
+	// motionData timestamp is time since the device was booted.
+	// first set the timestamp offset, if needed
+	if( self.bootTime < 0 ){
+		NSTimeInterval currTime = [[NSDate date] timeIntervalSinceReferenceDate];
+		self.bootTime = currTime - motionData.timestamp;
+	}
+	CMAttitude* att = motionData.attitude;
+	CMAcceleration userAccel = motionData.userAcceleration;
+	// convert userAcceleration to world frame
+	///multiplyVecByMat( &userAccel, motionData.attitude.rotationMatrix );
+	// save new line in data file
+	NSString* line = [[NSString alloc] initWithFormat:@"%f\t%f\t%f\t%f\t%f\t%f\t%f\n", 
+					  motionData.timestamp+self.bootTime, userAccel.x, userAccel.y, userAccel.z,
+					  att.roll, att.pitch, att.yaw
+					  ]; 
+	
+	// open data file for appending
+	NSString* filename = [NSString stringWithFormat:@"%@/motion.txt", self.storagePath];
+	std::ofstream dFile;
+	dFile.open([filename UTF8String], std::ios::out | std::ios::app);
+	dFile.precision(13); // high precision for timestamp
+	dFile << [line UTF8String]; // append the new entry
+	dFile.close();
+	
+	[line release];
 }
 
 @end

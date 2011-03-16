@@ -28,6 +28,7 @@
 	<string>MainWindow</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
+		<string>location-services</string>
 		<string>microphone</string>
 		<string>still-camera</string>
 		<string>gyroscope</string>

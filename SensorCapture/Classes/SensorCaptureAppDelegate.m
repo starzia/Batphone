@@ -21,6 +21,9 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {    
     // Override point for customization after application launch.
 
+	// Turn off the idle timer, since this app doesn't rely on constant touch input
+	application.idleTimerDisabled = YES;
+
 	// initialize view controller
 	self.viewController = [[[SensorCaptureViewController alloc] init] autorelease];
 	
