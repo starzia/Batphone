@@ -303,12 +303,14 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	}
 	CMAttitude* att = motionData.attitude;
 	CMAcceleration userAccel = motionData.userAcceleration;
+	CMAcceleration grav = motionData.gravity;
+	CMRotationRate rot = motionData.rotationRate;
 	// convert userAcceleration to world frame
 	///multiplyVecByMat( &userAccel, motionData.attitude.rotationMatrix );
 	// save new line in data file
-	NSString* line = [[NSString alloc] initWithFormat:@"%f\t%f\t%f\t%f\t%f\t%f\t%f\n", 
+	NSString* line = [[NSString alloc] initWithFormat:@"%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n", 
 					  motionData.timestamp+self.bootTime, userAccel.x, userAccel.y, userAccel.z,
-					  att.roll, att.pitch, att.yaw
+					  att.roll, att.pitch, att.yaw, rot.x, rot.y, rot.z, grav.x, grav.y, grav.z
 					  ]; 
 	
 	// open data file for appending
