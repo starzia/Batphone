@@ -7,38 +7,38 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1D3623260D0F684500981E51 /* SensorCaptureAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1D3623250D0F684500981E51 /* SensorCaptureAppDelegate.m */; };
 		1D60589B0D05DD56006BFB54 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		288765A50DF7441C002DB57D /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 288765A40DF7441C002DB57D /* CoreGraphics.framework */; };
 		28AD733F0D9D9553002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD733E0D9D9553002E5188 /* MainWindow.xib */; };
-		28D7ACF80DDB3853001CB0EB /* SensorCaptureViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28D7ACF70DDB3853001CB0EB /* SensorCaptureViewController.m */; };
 		AAA48700133020E00064D3CD /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA486FF133020E00064D3CD /* AVFoundation.framework */; };
 		AAA487AE13305C6D0064D3CD /* SensorManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAA487AD13305C6D0064D3CD /* SensorManager.mm */; };
 		AAA487C113305DDA0064D3CD /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA487C013305DDA0064D3CD /* CoreMotion.framework */; };
 		AAA487C313305DE70064D3CD /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA487C213305DE70064D3CD /* CoreLocation.framework */; };
+		AAB43CB41335C168002C1952 /* SensorCaptureViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAB43CB31335C168002C1952 /* SensorCaptureViewController.mm */; };
+		AAB43CD91335C340002C1952 /* SensorCaptureAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAB43CD81335C340002C1952 /* SensorCaptureAppDelegate.mm */; };
 		AACC0AA113312F3800CFC793 /* SOLStumbler.m in Sources */ = {isa = PBXBuildFile; fileRef = AACC0AA013312F3800CFC793 /* SOLStumbler.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D3623240D0F684500981E51 /* SensorCaptureAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SensorCaptureAppDelegate.h; sourceTree = "<group>"; };
-		1D3623250D0F684500981E51 /* SensorCaptureAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SensorCaptureAppDelegate.m; sourceTree = "<group>"; };
 		1D6058910D05DD3D006BFB54 /* SensorCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SensorCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		288765A40DF7441C002DB57D /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		28AD733E0D9D9553002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		28D7ACF60DDB3853001CB0EB /* SensorCaptureViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SensorCaptureViewController.h; sourceTree = "<group>"; };
-		28D7ACF70DDB3853001CB0EB /* SensorCaptureViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SensorCaptureViewController.m; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		32CA4F630368D1EE00C91783 /* SensorCapture_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SensorCapture_Prefix.pch; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* SensorCapture-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "SensorCapture-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
+		AA0E65BE133593B5008FC7B7 /* SensorManager.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = SensorManager.hpp; path = ../SensorCapture/Classes/SensorManager.hpp; sourceTree = SOURCE_ROOT; };
 		AAA486FF133020E00064D3CD /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
-		AAA48705133020F60064D3CD /* SensorManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SensorManager.h; sourceTree = "<group>"; };
 		AAA487AD13305C6D0064D3CD /* SensorManager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = SensorManager.mm; sourceTree = "<group>"; };
 		AAA487C013305DDA0064D3CD /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		AAA487C213305DE70064D3CD /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		AAB43CB31335C168002C1952 /* SensorCaptureViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = SensorCaptureViewController.mm; path = ../SensorCapture/Classes/SensorCaptureViewController.mm; sourceTree = SOURCE_ROOT; };
+		AAB43CD81335C340002C1952 /* SensorCaptureAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = SensorCaptureAppDelegate.mm; path = ../SensorCapture/Classes/SensorCaptureAppDelegate.mm; sourceTree = SOURCE_ROOT; };
 		AACC0A9F13312F3800CFC793 /* SOLStumbler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SOLStumbler.h; path = ../SensorCapture/Classes/SOLStumbler.h; sourceTree = SOURCE_ROOT; };
 		AACC0AA013312F3800CFC793 /* SOLStumbler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SOLStumbler.m; path = ../SensorCapture/Classes/SOLStumbler.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
@@ -65,11 +65,11 @@
 			children = (
 				AACC0A9F13312F3800CFC793 /* SOLStumbler.h */,
 				AACC0AA013312F3800CFC793 /* SOLStumbler.m */,
+				AAB43CD81335C340002C1952 /* SensorCaptureAppDelegate.mm */,
 				1D3623240D0F684500981E51 /* SensorCaptureAppDelegate.h */,
-				1D3623250D0F684500981E51 /* SensorCaptureAppDelegate.m */,
 				28D7ACF60DDB3853001CB0EB /* SensorCaptureViewController.h */,
-				28D7ACF70DDB3853001CB0EB /* SensorCaptureViewController.m */,
-				AAA48705133020F60064D3CD /* SensorManager.h */,
+				AAB43CB31335C168002C1952 /* SensorCaptureViewController.mm */,
+				AA0E65BE133593B5008FC7B7 /* SensorManager.hpp */,
 				AAA487AD13305C6D0064D3CD /* SensorManager.mm */,
 			);
 			path = Classes;
@@ -190,10 +190,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
-				1D3623260D0F684500981E51 /* SensorCaptureAppDelegate.m in Sources */,
-				28D7ACF80DDB3853001CB0EB /* SensorCaptureViewController.m in Sources */,
 				AAA487AE13305C6D0064D3CD /* SensorManager.mm in Sources */,
 				AACC0AA113312F3800CFC793 /* SOLStumbler.m in Sources */,
+				AAB43CB41335C168002C1952 /* SensorCaptureViewController.mm in Sources */,
+				AAB43CD91335C340002C1952 /* SensorCaptureAppDelegate.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "SensorManager.h"
+#import "SensorManager.hpp"
 
 @interface SensorCaptureViewController : UIViewController {
 	SensorManager* sensorManager;

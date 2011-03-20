@@ -13,6 +13,7 @@
 
 @interface SOLStumbler : NSObject {
 	NSMutableDictionary *networks; //Key: MAC Address (BSSID)
+	NSDictionary *parameters; // settings for scan
 	
 	void *libHandle;
 	void *airportHandle;	
@@ -22,6 +23,7 @@
 	int (*associate)(void *, NSDictionary*, NSString*);
 	int (*apple80211Scan)(void *, NSArray **, void *);
 }
+@property (nonatomic,retain) NSDictionary* parameters;
 
 - (NSDictionary *)networks;								//returns all 802.11 scanned network(s)
 - (NSDictionary *)network:(NSString *) BSSID;			//return specific 802.11 network by BSSID (MAC Address)

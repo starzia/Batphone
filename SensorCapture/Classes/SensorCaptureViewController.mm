@@ -18,11 +18,13 @@
     self = [super init];
     if (self) {
 		// Custom initialization
+		self.view.backgroundColor = [UIColor blackColor];
 		
 		// set up sensorManager
 		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 		NSString *documentsDirectory = [paths objectAtIndex:0];
-		self.sensorManager = [[[SensorManager alloc] initWithStoragePath:documentsDirectory] autorelease];
+		self.sensorManager = [[[SensorManager alloc] initWithStoragePath:documentsDirectory
+																	view:self.view] autorelease];
     }
     return self;
 }

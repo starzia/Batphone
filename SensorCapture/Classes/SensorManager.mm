@@ -6,12 +6,7 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
-#import "SensorManager.h"
-
-// for data motion file writing
-#include <iostream>
-#include <fstream>
-
+#import "SensorManager.hpp"
 
 #pragma mark -
 #pragma mark SensorManager
@@ -29,6 +24,8 @@
 @synthesize opq;
 @synthesize bootTime;
 @synthesize networksManager;
+@synthesize view;
+@synthesize motionFile;
 
 
 -(void)stopAudio{
@@ -74,13 +71,15 @@
 }
 
 
--(id)initWithStoragePath:(NSString*)path{
+-(id)initWithStoragePath:(NSString*)path view:(UIView*)flashView{
 	self = [super init];
 	if( self != nil ){
 		self.storagePath = path;
 		self.recorder = nil;
 		self.bootTime= -1.0; // set this when first motion event happens
 		self.networksManager = [[[SOLStumbler alloc] init] autorelease];
+		self.view = flashView;
+		self.motionFile = new std::ofstream();
 		
 		// SET UP VIDEO DEVICE.  See code in AVCamDemo for dealing w/ device conection and disconnection
 		// find the correct video device
@@ -93,6 +92,10 @@
 				}
 			}
 		}
+		// lock white balance so that snapshot colors are comparable
+		[camera lockForConfiguration:NULL];
+		camera.whiteBalanceMode = AVCaptureWhiteBalanceModeLocked;
+		[camera unlockForConfiguration];
 		NSLog(@"using camera: %@", [camera localizedName] );
 		
 		// Init the device inputs
@@ -214,6 +217,24 @@
 																 ///NSLog(@"wrote to file: %@",jpgFile);
 																 [imageData writeToFile:jpgFile atomically:YES];
 																 
+																 // flash screen
+																 if( self.view != nil ){
+																	 UIView *flashView = [[UIView alloc] initWithFrame:[self.view frame]];
+																	 [flashView setBackgroundColor:[UIColor whiteColor]];
+																	 [flashView setAlpha:0.f];
+																	 [[self.view window] addSubview:flashView];
+																	 
+																	 [UIView animateWithDuration:.2f
+																					  animations:^{
+																						  [flashView setAlpha:1.f];
+																						  [flashView setAlpha:0.f];
+																					  }
+																					  completion:^(BOOL finished){
+																						  [flashView removeFromSuperview];
+																						  [flashView release];
+																					  }
+																	  ];
+																 }
                                                              } else if (error) {
                                                                  NSLog(@"still image capture error");
                                                              }
@@ -221,6 +242,8 @@
 }
 
 -(void)dealloc{
+	self.motionFile->close();
+	delete self.motionFile;
 	[self stopAudio];
 	[super dealloc];
 }
@@ -313,14 +336,13 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 					  att.roll, att.pitch, att.yaw, rot.x, rot.y, rot.z, grav.x, grav.y, grav.z
 					  ]; 
 	
-	// open data file for appending
-	NSString* filename = [NSString stringWithFormat:@"%@/motion.txt", self.storagePath];
-	std::ofstream dFile;
-	dFile.open([filename UTF8String], std::ios::out | std::ios::app);
-	dFile.precision(13); // high precision for timestamp
-	dFile << [line UTF8String]; // append the new entry
-	dFile.close();
-	
+	// if necessary, open data file for appending
+	if( !self.motionFile->is_open() ){
+		NSString* filename = [NSString stringWithFormat:@"%@/motion.txt", self.storagePath];
+		self.motionFile->open([filename UTF8String], std::ios::out | std::ios::app);
+	}
+	self.motionFile->precision(13); // high precision for timestamp
+	*(self.motionFile) << [line UTF8String]; // append the new entry
 	[line release];
 }
 

@@ -6,11 +6,17 @@
 //  Copyright 2011 __MyCompanyName__. All rights reserved.
 //
 
+// for data motion file writing
+#import <iostream>
+#import <fstream>
+
+
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 #import <CoreLocation/CoreLocation.h>
 #import <CoreMotion/CoreMotion.h>
 #import "SOLStumbler.h"
+
 
 @interface SensorManager : NSObject <CLLocationManagerDelegate> {
 	NSString* storagePath;
@@ -28,6 +34,8 @@
 	NSOperationQueue *opq; // operation queue for motion updates
 	NSTimeInterval bootTime; // used to convert timestamps
 	SOLStumbler *networksManager;
+	UIView *view; // view on top of which to flash when photo is taken. Can be null
+	std::ofstream *motionFile; // log file for motion data
 }
 
 @property (nonatomic,retain) NSString* storagePath;
@@ -44,8 +52,10 @@
 @property (nonatomic,retain) NSOperationQueue* opq;
 @property (nonatomic) NSTimeInterval bootTime;
 @property (nonatomic,retain) SOLStumbler *networksManager;
+@property (nonatomic,retain) UIView *view;
+@property (nonatomic) std::ofstream *motionFile;
 
--(id)initWithStoragePath:(NSString*)path;
+-(id)initWithStoragePath:(NSString*)path view:(UIView*)view;
 -(CLLocation*)getLocation; // return the current GPSLocation from locationManager
 -(void) handleMotionData:(CMDeviceMotion*) motionData;
 -(void) scanWiFi;

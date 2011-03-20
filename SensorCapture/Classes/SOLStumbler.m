@@ -10,12 +10,22 @@
 #import "SOLStumbler.h"
 
 @implementation SOLStumbler
+@synthesize parameters;
 
 - (id)init
 {
 	self = [super init];
 	
+	// scanned networks
 	networks = [[NSMutableDictionary alloc] init];
+
+	// scanning parameters
+	NSDictionary *theParameters = [[NSDictionary alloc] initWithObjectsAndKeys:
+								   [NSNumber numberWithBool:NO], @"SCAN_MERGE", // don't discard multiple MACs for each network
+								   nil];
+	self.parameters = theParameters;
+	[parameters release];
+
 
 	libHandle = dlopen("/System/Library/SystemConfiguration/WiFiManager.bundle/WiFiManager", RTLD_LAZY);
 	
@@ -48,15 +58,11 @@
 
 - (void)scanNetworks
 {
-	NSDictionary *parameters = [[NSDictionary alloc] initWithObjectsAndKeys:
-								[NSNumber numberWithBool:NO], @"SCAN_MERGE", // don't discard multiple MACs for each network
-								nil];
-	
 	NSArray *scan_networks; //is a CFArrayRef of CFDictionaryRef(s) containing key/value data on each discovered network
 	
-	apple80211Scan(airportHandle, &scan_networks, parameters);
-	[parameters release];
+	apple80211Scan(airportHandle, &scan_networks, self.parameters);
 	
+	[networks removeAllObjects];
 	for (int i = 0; i < [scan_networks count]; i++) {
 		[networks setObject:[scan_networks objectAtIndex: i] forKey:[[scan_networks objectAtIndex: i] objectForKey:@"BSSID"]];
 	}
