@@ -120,15 +120,9 @@
 		NSString* newRoom = [[NSString alloc] initWithString:self.roomField.text];
 		currentBuilding = newBuilding;
 		
-		// get new fingerprint
-		Fingerprint newFP = new float[Fingerprinter::fpLength];
-		app.fp->getFingerprint( newFP );
-		// add to database
-		UInt32 uid = app.database->insertFingerprint(newFP, newBuilding, newRoom, [app getLocation] );
-		NSLog(@"room #%d: %@ %@ saved",uid,newBuilding,newRoom);
+		[self.app checkinWithRoom:newRoom inBuilding:newBuilding];
 		[newBuilding release];
 		[newRoom release];
-		delete [] newFP;
 		
 		return true;
 	}else{
@@ -170,7 +164,7 @@
 -(void) resetPicker{
 	// reload list of buildings
 	buildingsCache.clear();
-	app.database->getAllBuildings( buildingsCache );
+	[app.database getAllBuildings:buildingsCache];
 	currentBuilding = @"";
 	
 	// clear list of rooms
@@ -239,13 +233,13 @@ numberOfRowsInComponent:(NSInteger)component{
 	if( component == 0 ){
 		// reload list of buildings
 		buildingsCache.clear();
-		app.database->getAllBuildings( buildingsCache );
+		[app.database getAllBuildings:buildingsCache];
 		
 		return buildingsCache.size()+1; // plus one for "custom" row
 	}else{
 		// reload list of rooms
 		roomsCache.clear();
-		app.database->getRoomsInBuilding( roomsCache, currentBuilding );
+		[app.database getRooms:roomsCache inBuilding:currentBuilding];
 		return roomsCache.size()+1; // plus one for "custom" row
 	}
 }

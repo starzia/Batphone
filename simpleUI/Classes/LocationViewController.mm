@@ -21,6 +21,7 @@
 @synthesize plotIndex;
 @synthesize label;
 @synthesize map;
+@synthesize checkinButton;
 
 
  // The custom initializer.  
@@ -58,6 +59,18 @@
 		self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 		[self.view addSubview:plot];
 		
+		// Add checkin button to window
+		rect = CGRectMake(80, 25, 160.0f, 40.0f);
+		self.checkinButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+		self.checkinButton.frame = rect;
+		[self.checkinButton setTitle:@"Check in" forState:UIControlStateNormal];
+
+		[self.checkinButton addTarget:self 
+							   action:@selector(checkIn)
+					 forControlEvents:UIControlEventTouchUpInside];
+
+		[self.view addSubview:self.checkinButton];
+		
 		// create timer to update the plot
 		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:1
 														  target:self
@@ -75,6 +88,22 @@
     return self;
 }
 
+-(void)showCheckinButton{
+	self.checkinButton.hidden = NO;
+}
+-(void)checkIn{
+	// check in
+	[self.app checkinWithRoom:self.room inBuilding:self.building];
+	
+	// now hide the checkin button until we have fresh data
+	self.checkinButton.hidden = YES; 
+	[NSTimer scheduledTimerWithTimeInterval:Fingerprinter::historyTime
+									 target:self
+								   selector:@selector(showCheckinButton)
+								   userInfo:nil
+									repeats:NO];
+}
+
 
 -(void)resetWithBuilding:(NSString*)theBuilding
 					room:(NSString*)theRoom{
@@ -83,8 +112,10 @@
 	
 	fingerprints.clear();
 	// load room's fingerprints from database
-	app.database->getEntriesFrom( fingerprints, self.building, self.room );
-
+	[app.database getEntries:fingerprints
+					fromRoom:self.room
+				  inBuilding:self.building];
+	
 	if( fingerprints.size() <= 0 ){
 		NSLog(@"ERROR: somehow viewing empty room");
 	}

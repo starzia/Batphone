@@ -9,8 +9,10 @@
 #import <UIKit/UIKit.h>
 #import "Fingerprinter.h"
 #import "FingerprintDB.h"
+#import "RobustDictionary.h"
 #import <vector>
 #import <CoreLocation/CoreLocation.h>
+#import <CoreMotion/CoreMotion.h>
 
 using std::vector;
 
@@ -33,7 +35,11 @@ using std::vector;
 	 
 	Fingerprinter* fp;
 	CLLocationManager *locationManager; 	// data for SkyHook/GPS localization
+	CMMotionManager* motionManager;
 	FingerprintDB* database;
+	RobustDictionary* options;
+	bool detailedLogging; // log fine-grained sensor data (for testing only!)
+	NSTimer  *watchdogTimer; // periodic timer to reset audio if it's not working
 }
 
 // accessors
@@ -45,15 +51,25 @@ using std::vector;
 @property (nonatomic, retain) OptionsViewController *optionsViewController;
 
 @property (nonatomic) Fingerprinter* fp; 
-@property (nonatomic) FingerprintDB* database;
+@property (nonatomic, retain) FingerprintDB* database;
 @property (nonatomic, retain) CLLocationManager *locationManager;  
+@property (nonatomic, retain) CMMotionManager* motionManager;
+@property (nonatomic, retain) RobustDictionary* options;
+@property (nonatomic) bool detailedLogging;
+@property (nonatomic, retain) NSTimer  *watchdogTimer;
 
 // member functions
 -(void) printFingerprint: (Fingerprint) fingerprint;
 -(CLLocation*)getLocation; // return the current GPSLocation from locationManager
+-(NSString*)getMotionDataFilename;
+-(NSString*)getSpectrogramFilename;
+-(void)checkAudio; // tests that audio is working, if not reset.
 
 // show details of a room
 -(void) showRoom:(NSString*)room inBuilding:(NSString*)building;
- 
+
+// save a new room fingerprint
+-(void)checkinWithRoom:(NSString*)newRoom inBuilding:(NSString*)newBuilding;
+
 @end
 

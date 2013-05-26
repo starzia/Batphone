@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <queue>
-#include <string>
 
 #import <AudioUnit/AudioUnit.h>
 #import <AudioToolbox/AudioToolbox.h>
@@ -52,7 +51,8 @@ public:
 	static const unsigned int sampleRate; /* audio hardware sampling rate, in Hz */
 	static const unsigned int specRes; /* frequency resolution for FFT */
 	static const unsigned int fpLength; /* number of elements in the fingerprint array */
-	static const unsigned int historyLength; /* number of time windows in the history (spectrogram) */
+	static const unsigned int historyTime; /* seconds of audio in the history (spectrogram) */
+	static const unsigned int historyCount; /* number of time windows in the history (spectrogram) */
 	static const float windowOffset; /* spacing of spectrogram time windows, in seconds */
 	static const float freqCutoff; /* lower fraction of the fingerprint to use.  Higher frequencies are discarded. */
 	static const unsigned int accumulationNum; /* number of consecutive spectra to average into each spectrogram column */
@@ -60,7 +60,6 @@ public:
 
 private:	
 	/* private data members */
-	Spectrogram			spectrogram;
 	Fingerprint			fingerprint;
 	pthread_mutex_t		lock; // for mutually exclusive access to fingerprint
 	
@@ -70,4 +69,7 @@ public: // the following must be public for audio callback function to access th
 	AURenderCallbackStruct		inputProc;
 	CAStreamBasicDescription	thruFormat;
 	Float64						hwSampleRate;
+
+	// the following is public ony for convenient access to its enableLogging function.
+	Spectrogram			spectrogram;
 };

@@ -17,9 +17,11 @@
 <UIAlertViewDelegate, MFMailComposeViewControllerDelegate> {
 	AppDelegate* app;
 	UITextField* URLField;
+	UISwitch* sharing;
 }
 @property (nonatomic, retain) AppDelegate* app;
 @property (nonatomic, retain) UITextField* URLField;
+@property (nonatomic, retain) UISwitch* sharing;
 
 // custom initializer
 - (id)initWithStyle:(UITableViewStyle)style app:(AppDelegate *)theApp;

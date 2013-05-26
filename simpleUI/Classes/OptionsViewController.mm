@@ -12,6 +12,14 @@
 
 @synthesize app;
 @synthesize URLField;
+@synthesize sharing;
+
+-(void)sharingChanged{
+	// store changes
+	[self.app.options setObject:[NSNumber numberWithBool:self.sharing.on] forKey:@"enableSharing"];
+	// update app state
+	self.app.database.useRemoteDB = self.sharing.on;
+}
 
 #pragma mark -
 #pragma mark Initialization
@@ -29,6 +37,16 @@
 		URLField.placeholder = @"eg. http://somesite.com/file.txt";
 		URLField.text = @"http://stevetarzia.com/batphone/database.txt";
 		[URLField setBackgroundColor:[UIColor whiteColor]];
+		
+		// create the sharing switch
+		UISwitch* shSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
+		self.sharing = shSwitch;
+		// set switch value
+		[shSwitch setOn:[[self.app.options objectForKey:@"enableSharing"] boolValue]];
+		// set callback
+		[shSwitch addTarget:self action:@selector(sharingChanged)
+		   forControlEvents:UIControlEventValueChanged];
+		[shSwitch release];
 		
     }
     return self;
@@ -94,15 +112,26 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-    return 2;
+	if( self.app.detailedLogging ){
+		// if logging is enabled then show controls
+		return 4;
+	}else{
+		return 3;
+	}
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	if( section == 1 ){
-		return @"Advanced database options";
-	}else{
+	if( section == 0 ){
+		return @"Privacy settings";
+	}else if( section == 1 ){
 		return [NSString stringWithFormat:@"Batphone version: %@",
 				[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	}else if( section == 2 ){
+		return @"Advanced fingerprint options";		
+	}else if( section == 3 ){
+		return @"Advanced logging options";		
+	}else{
+		return @"";
 	}
 }
 
@@ -110,9 +139,15 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
 	if( section == 0 ){
+		return 1;
+	}else if( section == 1 ){
+		return 2;
+	}else if( section == 2 ){
+		return 3;
+	}else if( section == 3 ){
 		return 2;
 	}else{
-		return 3;
+		return 0;
 	}
 }
 
@@ -126,66 +161,39 @@
     if (cell == nil) {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier] autorelease];
     }
-    
-    // Configure the cell...
-	if(indexPath.section == 1 ){
-		if(indexPath.row == 0){
+	
+	cell.accessoryView = nil;
+
+	// Configure the cell...
+	if(indexPath.section == 0 ){
+		if( indexPath.row == 0 ){
+			cell.textLabel.text = @"Data sharing";
+			cell.accessoryView = self.sharing;	
+		}
+	}else if( indexPath.section == 1){
+		if( indexPath.row == 0 ){
+			cell.textLabel.text = @"Send us feedback";
+		}else if(indexPath.row == 1){
+			cell.textLabel.text = @"Visit the project website";
+		}
+	}else if(indexPath.section == 2){
+		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Email database";
 		}else if(indexPath.row == 1){
 			cell.textLabel.text = @"Load database";
 		}else if(indexPath.row == 2){
 			cell.textLabel.text = @"Clear database";
 		}
-	}else if( indexPath.section == 0){
+	}else if(indexPath.section == 3){
 		if( indexPath.row == 0 ){
-			cell.textLabel.text = @"Send us feedback";
+			cell.textLabel.text = @"Email motion/audio data";
 		}else if(indexPath.row == 1){
-			cell.textLabel.text = @"Visit the project website";
+			cell.textLabel.text = @"Clear motion/audio data";
 		}
-	}
-	
+	}	
     return cell;
 }
 
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }   
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-}
-*/
-
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
 
 
 #pragma mark -
@@ -193,21 +201,33 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	// Email DB or feedback
-	if( indexPath.row == 0 ){
+	if( indexPath.row == 0 && (indexPath.section > 0 ) ){
 		if( [MFMailComposeViewController canSendMail] ){
 			MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
 			mailer.mailComposeDelegate = self;
 			
-			if( indexPath.section == 1 ){
+			if( indexPath.section == 2 ){
 				// email database
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone DB v%@]",
 				 [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
 				[mailer setMessageBody:@"Data in database.txt is stored with one line per tagged fingerprint.  Each line has the following fields (separated by tabs): tag id, unix-style timestamp, latitude, longitude, altitude (m), horizontal accuracy (m), vertical accuracy (m), building name, room name, fingerprint[0],...,fingerprint[n]\n" 
 								isHTML:NO];
-				[mailer addAttachmentData:[NSData dataWithContentsOfFile:app.database->getDBFilename()] 
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app.database getDBFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
-			}else{
+			}else if( indexPath.section == 3 ){
+				// email motion data
+				[mailer setSubject:[NSString stringWithFormat:@"[Batphone motion v%@]",
+									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
+				[mailer setMessageBody:@"Data in motion.txt is stored with one line per motion vector.  Each line has the following fields (separated by tabs): G_x, G_y, G_z, userAccel_x, userAccel_y, userAccel_z" 
+								isHTML:NO];
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app getMotionDataFilename]] 
+								 mimeType:@"text/plain" 
+								 fileName:@"motion.txt"];
+				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app getSpectrogramFilename]] 
+								 mimeType:@"text/plain" 
+								 fileName:@"spectrogram.txt"];
+			}else if(indexPath.section == 1 ){
 				// email feedback
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
 									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
@@ -228,12 +248,12 @@
 		}
 	}
 	// visit website
-	else if( indexPath.section == 0 && indexPath.row == 1 ){
+	else if( indexPath.section == 1 && indexPath.row == 1 ){
 		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
 		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
-	// delete
-	else if( indexPath.section == 1 && indexPath.row == 2 ){
+	// delete database
+	else if( indexPath.section == 2 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
 														 delegate:self 
@@ -242,8 +262,24 @@
 		[myAlert show];
 		[myAlert release];
 	}
+	// delete logging data files
+	else if( indexPath.section == 3 && indexPath.row == 1 ){
+		[[NSFileManager defaultManager] removeItemAtPath:[app getMotionDataFilename]
+												   error:nil];
+		// must pause logging to close the file first
+		self.app.fp->spectrogram.disableLogging();
+		[[NSFileManager defaultManager] removeItemAtPath:[app getSpectrogramFilename]
+												   error:nil];
+		//re-enable logging
+		if( self.app.detailedLogging ){
+			self.app.fp->spectrogram.enableLoggingToFilename( [[self.app getSpectrogramFilename] UTF8String] );
+		}
+		
+		// deselect
+		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
 	// load from URL
-	else if( indexPath.section == 1 && indexPath.row == 1 ){
+	else if( indexPath.section == 2 && indexPath.row == 1 ){
 		// Ask for URL
 		UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"Please supply a URL" 
 															message:@"These location tags will be added to your current database.  You should backup your database first.\n\n\n" 
@@ -257,6 +293,10 @@
 		[alertview show];
 		[alertview release];
 	} 
+	// share data setting
+	else if( indexPath.section == 0 && indexPath.row == 0 ){
+		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
 }
 
 	
@@ -268,7 +308,7 @@
 	if( [alertView.title isEqualToString:@"Really clear database?"] ){
 		// if "delete" button was clicked then clear the database
 		if( buttonIndex == 1 ){
-			app.database->clear();
+			[app.database clearCache];
 			// TODO: somehow clear the match table
 		}
 	}
@@ -291,11 +331,11 @@
 				[myAlert release];
 			}else{
 				// if download succeeded
-				if( app.database->loadFromString( urlContents ) ){
+				if( [app.database loadCacheFromString:urlContents] ){
 					// successfully loaded database
-					app.database->save();
+					[app.database saveCache];
 				}else{
-					app.database->clear();
+					[app.database clearCache];
 					UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Error loading database" 
 																	  message:@"The file you specified is not a valid database file." 
 																	 delegate:self 

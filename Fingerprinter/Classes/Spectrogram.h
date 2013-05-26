@@ -10,6 +10,9 @@
 #import "SlidingWindow.h"
 #include <pthread.h> // for mutex
 
+#include <iostream> // for ofstream
+#include <fstream>
+
 // Sliding window spectrogram, with our new summary vector function
 class Spectrogram{
 public:
@@ -24,6 +27,12 @@ public:
 	/* destructor */
 	~Spectrogram();
 	
+	/* Enable spectrogram logging.  Every time a spectrum is added to the sliding
+	 * window spectrogram it is also time-stamped and appended as a new line in 
+	 * the specified file. */
+	void enableLoggingToFilename( const char* logFilename );
+	void disableLogging();
+	
 	/* dimensions of the spectrogram */
 	unsigned int freqBins;
 	unsigned int timeBins;
@@ -33,4 +42,7 @@ private:
 	SlidingWindow** slidingWindows;	
 	/* lock to prevent retrieval of data while updating */
 	pthread_mutex_t lock;
+	
+	bool				enableLogging;
+	std::ofstream			logFile;
 };

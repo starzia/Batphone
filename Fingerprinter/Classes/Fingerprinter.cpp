@@ -29,7 +29,8 @@ const unsigned int Fingerprinter::sampleRate = 44100;
 const unsigned int Fingerprinter::specRes = 1024;
 const float        Fingerprinter::windowOffset = 0.01;
 const unsigned int Fingerprinter::accumulationNum = 10;
-const unsigned int Fingerprinter::historyLength = 10 /* second duration */ / Fingerprinter::accumulationNum / Fingerprinter::windowOffset;
+const unsigned int Fingerprinter::historyTime = 10; //seconds
+const unsigned int Fingerprinter::historyCount = Fingerprinter::historyTime / Fingerprinter::accumulationNum / Fingerprinter::windowOffset;
 const float        Fingerprinter::freqCutoff = 7000.0; // use only the first 7kHz
 const unsigned int Fingerprinter::fpLength = Fingerprinter::specRes * Fingerprinter::freqCutoff / 22050.0;
 #define kOutputBus 0
@@ -82,7 +83,7 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 	
 	// cast our data structure
 	CallbackData* cd = (CallbackData*)inRefCon;
-	
+	// retreive audio samples
 	try{
 		XThrowIfError( AudioUnitRender(cd->rioUnit, ioActionFlags, inTimeStamp, 
 									   kInputBus, inNumberFrames, ioData), "Callback: AudioUnitRender" );
@@ -93,9 +94,10 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 		return 1;
 	}
 	SInt32 *data_ptr = (SInt32 *)(ioData->mBuffers[0].mData);
-	// the samples are 24 bit but padded on the right to give 32 bits.  Hence the right shift
-	//printf( "%d  ", data_ptr[0]>>8 );
 	
+	// the samples are 24 bit but padded on the right to give 32 bits.  
+	// Hence we can right shift as follows: data_ptr[i]>>8
+		
 	// setup FFT
 	UInt32 log2FFTLength = log2f( Fingerprinter::specRes );
 
@@ -154,8 +156,16 @@ static OSStatus callback( 	 void						*inRefCon, /* the user-specified state dat
 			float reference=1.0f * Fingerprinter::accumulationNum; //divide by number of summed spectra
 			vDSP_vdbcon( cd->acc, 1, &reference, cd->acc, 1, Fingerprinter::fpLength, 1 ); // 1 for power, not amplitude			
 			
+			// As a precation, test that spectrum is valid
+			if( !(cd->acc[0] >= 0 || cd->acc[0] <= 0 ) ){ // is NaN
+				printf( "spectrum is NaN\n" );
+				pthread_mutex_unlock( cd->lock );
+				return 0;
+			}
+			
 			// save in spectrogram
 			cd->spectrogram->update( cd->acc );
+			
 			// update fingerprint from spectrogram summary
 			cd->spectrogram->getSummary( cd->fingerprint );
 			pthread_mutex_unlock( cd->lock );
@@ -337,7 +347,7 @@ int Fingerprinter::setupRemoteIO( AURenderCallbackStruct inRenderProc, CAStreamB
 
 /* Constructor initializes the audio system */
 Fingerprinter::Fingerprinter() :
-spectrogram( Fingerprinter::fpLength, Fingerprinter::historyLength ){
+spectrogram( Fingerprinter::fpLength, Fingerprinter::historyCount ){
 	this->unitIsRunning = false;
 	
 	// plotter must always have a FP available to plot, so init one here.

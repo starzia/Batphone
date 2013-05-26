@@ -45,6 +45,7 @@ static const int numCandidates = 10;
 	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
 		self.app = theApp;
+		self.matches = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -79,7 +80,7 @@ static const int numCandidates = 10;
 	CGRect rect = CGRectMake(10, 10, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
-	// make line red
+	// make line green
 	self.plot.lineColor[0] = 0.5; //R
 	self.plot.lineColor[1] = 1; //G
 	self.plot.lineColor[2] = 0.2; //B
@@ -140,7 +141,7 @@ static const int numCandidates = 10;
 	indicator.center = CGPointMake(140, 110);  
 	[indicator startAnimating];  
 	[alert addSubview:indicator];  
-	[indicator release];  	
+	[indicator release];
 	
     [super viewDidLoad];
 }
@@ -159,7 +160,7 @@ static const int numCandidates = 10;
 -(void) viewWillAppear:(BOOL)animated{
 	if( !plotTimer ){
 		// create timer to update the plot
-		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.2
+		self.plotTimer = [NSTimer scheduledTimerWithTimeInterval:0.1
 														  target:self
 														selector:@selector(updatePlot)
 														userInfo:nil
@@ -191,13 +192,16 @@ static const int numCandidates = 10;
 
 -(void) query{
 	// query for matches
-	matches.clear(); // clear previous results
-	app.database->queryMatches( matches, self.newFingerprint, numCandidates, 
-							    [app getLocation], distanceMetric );
-	// update table
-	[matchTable reloadData];
-	
-	// update map
+	[matches removeAllObjects]; // clear previous results
+	[app.database startQueryWithObservation:self.newFingerprint
+								 numMatches:numCandidates
+								   location:[app getLocation]
+							 distanceMetric:distanceMetric
+							   resultTarget:self
+								   selector:@selector(updateMatches:)];
+
+	// UNRELATED TO QUERY...
+	// update map with current skyhook location
 	[map removeAnnotations:map.annotations];
 	[LocationViewController annotateMap:map 
 							   location:[self.app getLocation]
@@ -205,6 +209,15 @@ static const int numCandidates = 10;
 	[LocationViewController zoomToFitMapAnnotations:map];
 }
 
+/* called by FingerprintDB query callback */
+-(void) updateMatches:(NSArray*) results{
+	// load in the new results
+	if( results != nil ){
+		[matches setArray:results];
+	}
+	[matchTable reloadData];
+}
+	 
 /* called by timer */
 -(void) updatePlot{
 	// get the current fingerprint and save to "New" slot
@@ -253,18 +266,17 @@ static const int numCandidates = 10;
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
 	if( distanceMetric == DistanceMetricCombined ){
-		return [NSString stringWithFormat:@"Closest tags",
-											FingerprintDB::neighborhoodRadius];
+		return [NSString stringWithFormat:@"Closest locations"];
 	}else if( distanceMetric == DistanceMetricPhysical ){
-		return [NSString stringWithFormat:@"Closest tags (%.0f meter accuracy)",
+		return [NSString stringWithFormat:@"Closest locations (%.0f m accuracy)",
 				app.getLocation.horizontalAccuracy];
 	}else{
-		return @"Closest tags";
+		return @"Closest locations";
 	}
 }
 
 - (NSInteger)tableView:(UITableView *)table numberOfRowsInSection:(NSInteger)section {
-	return matches.size();
+	return [matches count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)table cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -276,25 +288,28 @@ static const int numCandidates = 10;
 									   reuseIdentifier:kMatchCellID] autorelease];
 		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	}
-	DBEntry* entry = &matches[indexPath.row].entry;
-	// main label is the room name
-	cell.textLabel.text = [[[NSString alloc] 
-		initWithFormat:@"%d) %@ : %@",indexPath.row+1,
-						entry->building, entry->room ] autorelease];
-	// secondary label depends on the distance metric
-	NSString* detailText;
-	if( distanceMetric == DistanceMetricAcoustic ){
-		detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
-											matches[indexPath.row].distance];		
-	}else if( distanceMetric == DistanceMetricPhysical ){
-		detailText = [[NSString alloc] initWithFormat:@"estimated physical distance: %.0f meters", 
-											matches[indexPath.row].distance];
-	}else{ // DistanceMetricCombined
-		detailText = [[NSString alloc] initWithFormat:@"acoustic+physical distance: %.3f", 
-					  matches[indexPath.row].distance];		
+	if( [matches count] > indexPath.row ){
+		Match* match = [matches objectAtIndex:indexPath.row];
+		DBEntry* entry =  match.entry;
+		// main label is the room name
+		cell.textLabel.text = [[[NSString alloc] 
+								initWithFormat:@"%d) %@ : %@",indexPath.row+1,
+								entry.building, entry.room ] autorelease];
+		// secondary label depends on the distance metric
+		NSString* detailText;
+		if( distanceMetric == DistanceMetricAcoustic ){
+			detailText = [[NSString alloc] initWithFormat:@"acoustic fingerprint distance: %.1f dB", 
+						  match.distance];		
+		}else if( distanceMetric == DistanceMetricPhysical ){
+			detailText = [[NSString alloc] initWithFormat:@"estimated physical distance: %.0f meters", 
+						  match.distance];
+		}else{ // DistanceMetricCombined
+			detailText = [[NSString alloc] initWithFormat:@"acoustic+physical distance: %.3f", 
+						  match.distance];		
+		}
+		cell.detailTextLabel.text = detailText;
+		[detailText release];
 	}
-	cell.detailTextLabel.text = detailText;
-	[detailText release];
     return cell;
 }
 
@@ -302,8 +317,9 @@ static const int numCandidates = 10;
 // will navigate to a new view controller displaying details about that location.
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-	DBEntry* entry = &matches[indexPath.row].entry;
-	[app showRoom:entry->room inBuilding:entry->building];
+	Match* match = [matches objectAtIndex:indexPath.row];
+	DBEntry* entry =  match.entry;
+	[app showRoom:entry.room inBuilding:entry.building];
 }
 
 
