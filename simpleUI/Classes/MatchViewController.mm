@@ -97,7 +97,8 @@ static const int numCandidates = 10;
 	rect = CGRectMake( 0, 120, 320, 245 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect style:UITableViewStylePlain] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
-	matchTable.delegate = matchTable.dataSource = self;
+	matchTable.delegate = self;
+    matchTable.dataSource = self;
 	[self.view addSubview:matchTable];
 	
 	// create tabbar at bottom
@@ -293,7 +294,7 @@ static const int numCandidates = 10;
 		DBEntry* entry =  match.entry;
 		// main label is the room name
 		cell.textLabel.text = [[[NSString alloc] 
-								initWithFormat:@"%d) %@ : %@",indexPath.row+1,
+								initWithFormat:@"%ld) %@ : %@",(unsigned long)indexPath.row+1,
 								entry.building, entry.room ] autorelease];
 		// secondary label depends on the distance metric
 		NSString* detailText;

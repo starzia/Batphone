@@ -62,7 +62,6 @@ using std::sort;
 
 
 const NSString* DBFilename = @"db.txt";
-const float neighborhoodRadius=20; // meters, the maximum distance of a fingerprint returned from a query when DistanceMetricCombined is used.
 
 @implementation FingerprintDB;
 
@@ -114,7 +113,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 							location:(CLLocation*)location /* optional estimate of the current GPS location; if unneeded, set to NULL_GPS */
 					  distanceMetric:(DistanceMetric)distanceMetric{
 	// calculate distances to all entries in DB cache
-	pair<float,int> distances[[cache count]]; // first element of pair is distance, second is index
+    pair<float,int> *distances = new pair<float,int>[cache.count]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<[cache count]; ++i ){
 		DBEntry* cacheI = (DBEntry*)[cache objectAtIndex:0];
 		// if using acoustic or combined criterion then acoustic distance is primary sorting key
@@ -155,6 +154,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 			}
 		}
 	}
+    delete[] distances;
 	return k;
 }
 
@@ -226,7 +226,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		 location.coordinate.latitude, location.coordinate.longitude, location.altitude ];
 	}
 	// use device id for user name
-	[post appendFormat:@"&user_id=%@", [[UIDevice currentDevice] uniqueIdentifier] ];
+	[post appendFormat:@"&user_id=%@", [[UIDevice currentDevice] identifierForVendor] ];
 	
 	// additional request-specific post data
 	[post appendFormat:@"%@",postExtra];
@@ -234,7 +234,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 	NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
 	[post release];
-	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];
+	NSString *postLength = [NSString stringWithFormat:@"%ld", (unsigned long)[postData length]];
 	
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	[request setURL:[NSURL URLWithString:@"http://belmont.eecs.northwestern.edu/cgi-bin/fingerprint/interface.py"]];
@@ -248,7 +248,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	NSURLConnection *theConnection=[[NSURLConnection alloc] initWithRequest:request delegate:self];
 	if (theConnection) {
 		// create record for this connection
-		NSMutableDictionary *connectionInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
+		NSMutableDictionary *connectionInfo = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
 											   [NSMutableData dataWithLength:0], @"receivedData", type, @"type",nil];
 		[httpConnectionData setObject:connectionInfo forKey:[theConnection description]];
 		[connectionInfo release];
@@ -334,7 +334,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 -(float) combinedDistanceFrom:(float[])A
 					  withLoc:(const CLLocation*)locA
-						   to:(float[])B
+						   to:(const float[])B
 					  withLoc:(const CLLocation*)locB{
 	float sigDist = [self signalDistanceFrom:A to:B];
 	float physDist = [locA distanceFromLocation:locB];
@@ -496,7 +496,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		[cache addObject:newEntry];
 		[newEntry release];
 	}
-    NSLog(@"loaded %d database cache entries", [cache count]);
+    NSLog(@"loaded %lu database cache entries", (unsigned long)[cache count]);
 	return true; // TODO: handle improper file format errors and return false
 }
 		
@@ -534,7 +534,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	  inBuilding:(const NSString*)building{        /* input */
 	bool ret = false;
 	for( DBEntry* e in cache ){
-		if( [e.building isEqualToString:building] ){
+		if( [building isEqualToString:e.building] ){
 			NSString* currentRoom = e.room;
 			// Note that we are not retaining this string b/c we assume that the 
 			// DB entry will not be erased while we are using the results
@@ -556,8 +556,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		inBuilding:(const NSString*)building{
 	bool success = false;
 	for( DBEntry* e in cache ){
-		if( [e.building isEqualToString:building] && 
-		   [e.room isEqualToString:room] ){
+		if( [building isEqualToString:e.building] &&
+		      [room isEqualToString:e.room] ){
 			result.push_back( e );
 			success = true;
 		}
@@ -572,8 +572,8 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	bool didSomething = false;
 	
 	for( DBEntry* e in cache ){
-		if( [e.building isEqualToString:building] && 
-		   [e.room isEqualToString:room] ){
+		if( [building isEqualToString:e.building] &&
+		      [room isEqualToString:e.room] ){
 			[entriesToRemove addObject:e];
 			didSomething = true;
 		}

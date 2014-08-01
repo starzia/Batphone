@@ -35,7 +35,7 @@
 		// Set the value of our string
 		[locationLabel setText:@"Describe your\ncurrent location:"];
 		// Center Align the label's text
-		[locationLabel setTextAlignment:UITextAlignmentLeft];
+		[locationLabel setTextAlignment:NSTextAlignmentLeft];
 		locationLabel.textColor = [UIColor darkTextColor];
 		locationLabel.backgroundColor = [UIColor clearColor];
 		// set font
@@ -46,7 +46,7 @@
 		// add question mark graphic
 		UILabel* question = [[UILabel alloc] initWithFrame:CGRectMake(0, 25, 320, 100)];
 		[question setText:@"?"];
-		[question setTextAlignment:UITextAlignmentCenter];
+		[question setTextAlignment:NSTextAlignmentCenter];
 		question.textColor = [UIColor darkTextColor];
 		question.backgroundColor = [UIColor clearColor];
 		[question setFont:[UIFont fontWithName:@"Arial" size:96]];
@@ -77,7 +77,8 @@
 		currentBuilding = @"";
 		rect = CGRectMake( 0, 200, 300, 215 );
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
-		roomPicker.delegate = roomPicker.dataSource = self;
+		roomPicker.delegate = self;
+        roomPicker.dataSource = self;
 		roomPicker.showsSelectionIndicator = YES;
 		[self.view addSubview:roomPicker];
     }

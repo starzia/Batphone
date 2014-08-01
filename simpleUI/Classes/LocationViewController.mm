@@ -48,7 +48,7 @@
 		// Add plot label
 		CGRect labelRect = CGRectMake(0 , 100, 320.0f, 20.0f);
 		self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
-		[label setTextAlignment:UITextAlignmentCenter];
+		[label setTextAlignment:NSTextAlignmentCenter];
 		label.textColor = [UIColor darkTextColor];
 		label.backgroundColor = [UIColor clearColor];
 		[label setFont:[UIFont fontWithName:@"Arial" size:10]];

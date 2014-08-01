@@ -8,6 +8,7 @@
 
 #import "plotView.h"
 #include <algorithm> //for min_element, max_element
+#import "CoreGraphics/CGContext.h"
 
 @implementation plotView
 
@@ -76,7 +77,7 @@
 	float Y = self.bounds.size.height;
 
 	// Drawing lines with the appropriate color
-	CGContextSetStrokeColor(context, self.lineColor);
+	CGContextSetStrokeColor(context, (CGFloat*)self.lineColor);
 
 	float plot_range = self.maxY - self.minY;
 	float xStep = X/(self.length-1);

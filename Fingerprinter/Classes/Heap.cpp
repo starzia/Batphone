@@ -98,7 +98,7 @@ void Heap::siftDown( unsigned int position ){
 		while( (left_child_pos=LEFTCHILD(position)) < size ){ // if no left-child, then there is nowhere to move down
 			right_child_pos=RIGHTCHILD(position); 
 			if( vals[left_child_pos] > vals[position] 
-			    || (right_child_pos < size) && vals[right_child_pos] > vals[position] ){ // violated heap property
+			    || (right_child_pos < size && vals[right_child_pos] > vals[position]) ){ // violated heap property
 				if( right_child_pos >= size // if no right child
 				    || vals[left_child_pos] > vals[right_child_pos] ){ // or left child is larger
 					// swap with left child
@@ -119,7 +119,7 @@ void Heap::siftDown( unsigned int position ){
 		while( (left_child_pos=LEFTCHILD(position)) < size ){ // if no left-child, then there is nowhere to move down
 			right_child_pos=RIGHTCHILD(position); 
 			if( vals[left_child_pos] < vals[position] 
-			   || (right_child_pos < size) && vals[right_child_pos] < vals[position] ){ // violated heap property
+			   || (right_child_pos < size && vals[right_child_pos] < vals[position]) ){ // violated heap property
 				if( right_child_pos >= size // if no right child
 				   || vals[left_child_pos] < vals[right_child_pos] ){ // or left child is larger
 					// swap with left child

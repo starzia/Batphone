@@ -417,7 +417,7 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	[navController release];
 
 	delete[] fp;
-	delete database;
+	[self.database release];
     [self.locationManager release];
 	[self.motionManager release];
     
