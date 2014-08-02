@@ -33,6 +33,7 @@
 		AA7D3C721310B4F700389FA8 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA7D3C711310B4F700389FA8 /* CoreMotion.framework */; };
 		AA8F13E512FCABBC0014BF6C /* RobustDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = AA8F13E412FCABBC0014BF6C /* RobustDictionary.m */; };
 		AA8F140112FCC5390014BF6C /* defaultOptions.plist in Resources */ = {isa = PBXBuildFile; fileRef = AA8F140012FCC5390014BF6C /* defaultOptions.plist */; };
+		AA8F90E9198D94A100B6D9AC /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AA8F90E8198D94A100B6D9AC /* Default-568h@2x.png */; };
 		AA91A1BC128A42A5007C27A4 /* OptionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */; };
 		AA91A243128A5B33007C27A4 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA91A242128A5B33007C27A4 /* MessageUI.framework */; };
 		AA91A360128E04DB007C27A4 /* combined.png in Resources */ = {isa = PBXBuildFile; fileRef = AA91A35F128E04DB007C27A4 /* combined.png */; };
@@ -92,6 +93,7 @@
 		AA8F13E312FCABBC0014BF6C /* RobustDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RobustDictionary.h; sourceTree = "<group>"; };
 		AA8F13E412FCABBC0014BF6C /* RobustDictionary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RobustDictionary.m; sourceTree = "<group>"; };
 		AA8F140012FCC5390014BF6C /* defaultOptions.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = defaultOptions.plist; sourceTree = "<group>"; };
+		AA8F90E8198D94A100B6D9AC /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		AA91A1BA128A42A5007C27A4 /* OptionsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OptionsViewController.h; sourceTree = "<group>"; };
 		AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OptionsViewController.mm; sourceTree = "<group>"; };
 		AA91A242128A5B33007C27A4 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
@@ -213,6 +215,7 @@
 				AA1E573112890972001A12E3 /* crt@2x.png */,
 				AA1E572412890192001A12E3 /* Default.png */,
 				AA1E572512890192001A12E3 /* Default@2x.png */,
+				AA8F90E8198D94A100B6D9AC /* Default-568h@2x.png */,
 				AA49CB851287A2BD0056E52B /* mic.png */,
 				AA49CB7312879E870056E52B /* bullseye.png */,
 				AACB4B351281022E00E6F3EA /* database.txt */,
@@ -333,6 +336,7 @@
 				AAAF2D6A1263A03E003C20EB /* Icon@2x.png in Resources */,
 				AACB4B361281022E00E6F3EA /* database.txt in Resources */,
 				AA49CB7412879E870056E52B /* bullseye.png in Resources */,
+				AA8F90E9198D94A100B6D9AC /* Default-568h@2x.png in Resources */,
 				AA49CB861287A2BD0056E52B /* mic.png in Resources */,
 				AA1E572612890192001A12E3 /* Default.png in Resources */,
 				AA1E572712890192001A12E3 /* Default@2x.png in Resources */,
