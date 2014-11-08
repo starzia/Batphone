@@ -12,14 +12,6 @@
 
 @synthesize app;
 @synthesize URLField;
-@synthesize sharing;
-
--(void)sharingChanged{
-	// store changes
-	[self.app.options setObject:[NSNumber numberWithBool:self.sharing.on] forKey:@"enableSharing"];
-	// update app state
-	self.app.database.useRemoteDB = self.sharing.on;
-}
 
 #pragma mark -
 #pragma mark Initialization
@@ -37,61 +29,9 @@
 		URLField.placeholder = @"eg. http://somesite.com/file.txt";
 		URLField.text = @"http://stevetarzia.com/batphone/database.txt";
 		[URLField setBackgroundColor:[UIColor whiteColor]];
-		
-		// create the sharing switch
-		UISwitch* shSwitch = [[UISwitch alloc] initWithFrame:CGRectZero];
-		self.sharing = shSwitch;
-		// set switch value
-		[shSwitch setOn:[[self.app.options objectForKey:@"enableSharing"] boolValue]];
-		// set callback
-		[shSwitch addTarget:self action:@selector(sharingChanged)
-		   forControlEvents:UIControlEventValueChanged];
-		[shSwitch release];
-		
     }
     return self;
 }
-
-
-#pragma mark -
-#pragma mark View lifecycle
-
-/*
-- (void)viewDidLoad {
-    [super viewDidLoad];
-
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-}
-*/
-
-/*
-- (void)viewWillAppear:(BOOL)animated {
-    [super viewWillAppear:animated];
-}
-*/
-/*
-- (void)viewDidAppear:(BOOL)animated {
-    [super viewDidAppear:animated];
-}
-*/
-/*
-- (void)viewWillDisappear:(BOOL)animated {
-    [super viewWillDisappear:animated];
-}
-*/
-/*
-- (void)viewDidDisappear:(BOOL)animated {
-    [super viewDidDisappear:animated];
-}
-*/
-/*
-// Override to allow orientations other than the default portrait orientation.
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    // Return YES for supported orientations
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
-*/
 
 
 #pragma mark -
@@ -112,23 +52,17 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     // Return the number of sections.
-	if( self.app.detailedLogging ){
-		// if logging is enabled then show controls
-		return 4;
-	}else{
-		return 3;
-	}
+    // If detailed logging is enabled then show controls
+    return 2 + self.app.detailedLogging;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	if( section == 0 ){
-		return @"Privacy settings";
-	}else if( section == 1 ){
+    if( section == 0 ){
 		return [NSString stringWithFormat:@"Batphone version: %@",
 				[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
-	}else if( section == 2 ){
+	}else if( section == 1 ){
 		return @"Advanced fingerprint options";		
-	}else if( section == 3 ){
+	}else if( section == 2 ){
 		return @"Advanced logging options";		
 	}else{
 		return @"";
@@ -138,13 +72,11 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-	if( section == 0 ){
-		return 1;
-	}else if( section == 1 ){
+    if( section == 0 ){
 		return 2;
-	}else if( section == 2 ){
+	}else if( section == 1 ){
 		return 3;
-	}else if( section == 3 ){
+	}else if( section == 2 ){
 		return 2;
 	}else{
 		return 0;
@@ -165,18 +97,13 @@
 	cell.accessoryView = nil;
 
 	// Configure the cell...
-	if(indexPath.section == 0 ){
-		if( indexPath.row == 0 ){
-			cell.textLabel.text = @"Data sharing";
-			cell.accessoryView = self.sharing;	
-		}
-	}else if( indexPath.section == 1){
+	if( indexPath.section == 0 ){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Send us feedback";
 		}else if(indexPath.row == 1){
 			cell.textLabel.text = @"Visit the project website";
 		}
-	}else if(indexPath.section == 2){
+	}else if( indexPath.section == 1 ){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Email database";
 		}else if(indexPath.row == 1){
@@ -184,7 +111,7 @@
 		}else if(indexPath.row == 2){
 			cell.textLabel.text = @"Clear database";
 		}
-	}else if(indexPath.section == 3){
+	}else if( indexPath.section == 2 ){
 		if( indexPath.row == 0 ){
 			cell.textLabel.text = @"Email motion/audio data";
 		}else if(indexPath.row == 1){
@@ -201,12 +128,12 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
 	// Email DB or feedback
-	if( indexPath.row == 0 && (indexPath.section > 0 ) ){
+	if( indexPath.row == 0 ){
 		if( [MFMailComposeViewController canSendMail] ){
 			MFMailComposeViewController *mailer = [[MFMailComposeViewController alloc] init];
 			mailer.mailComposeDelegate = self;
 			
-			if( indexPath.section == 2 ){
+			if( indexPath.section == 1 ){
 				// email database
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone DB v%@]",
 				 [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
@@ -215,7 +142,7 @@
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app.database getDBFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"database.txt"];
-			}else if( indexPath.section == 3 ){
+			}else if( indexPath.section == 2 ){
 				// email motion data
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone motion v%@]",
 									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
@@ -227,13 +154,13 @@
 				[mailer addAttachmentData:[NSData dataWithContentsOfFile:[app getSpectrogramFilename]] 
 								 mimeType:@"text/plain" 
 								 fileName:@"spectrogram.txt"];
-			}else if(indexPath.section == 1 ){
+			}else if(indexPath.section == 0 ){
 				// email feedback
 				[mailer setSubject:[NSString stringWithFormat:@"[Batphone feedback v%@]",
 									[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]] ];
 				[mailer setMessageBody:@"" isHTML:NO];
+       	        [mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
 			}
-			[mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
 			
 			[self presentModalViewController:mailer animated:YES];
 			[mailer release];
@@ -248,12 +175,12 @@
 		}
 	}
 	// visit website
-	else if( indexPath.section == 1 && indexPath.row == 1 ){
+	else if( indexPath.section == 0 && indexPath.row == 1 ){
 		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
 		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
 	// delete database
-	else if( indexPath.section == 2 && indexPath.row == 2 ){
+	else if( indexPath.section == 1 && indexPath.row == 2 ){
 		UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Really clear database?" 
 														  message:@"You are about to delete ALL of your location tags." 
 														 delegate:self 
@@ -263,7 +190,7 @@
 		[myAlert release];
 	}
 	// delete logging data files
-	else if( indexPath.section == 3 && indexPath.row == 1 ){
+	else if( indexPath.section == 2 && indexPath.row == 1 ){
 		[[NSFileManager defaultManager] removeItemAtPath:[app getMotionDataFilename]
 												   error:nil];
 		// must pause logging to close the file first
@@ -279,7 +206,7 @@
 		[self.tableView deselectRowAtIndexPath:indexPath animated:YES];
 	}
 	// load from URL
-	else if( indexPath.section == 2 && indexPath.row == 1 ){
+	else if( indexPath.section == 1 && indexPath.row == 1 ){
 		// Ask for URL
 		UIAlertView *alertview = [[UIAlertView alloc] initWithTitle:@"Please supply a URL" 
 															message:@"These location tags will be added to your current database.  You should backup your database first.\n\n\n" 

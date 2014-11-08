@@ -59,7 +59,10 @@ typedef enum{
 
 #pragma mark -
 #pragma mark FingerprintDB
-// Database class
+/**
+ * Represents a fingerprint database, with methods to query for matches.
+ * It can use a remote database, but this feature is not currently being used.
+ */
 @interface FingerprintDB : NSObject{
 	unsigned int len; // length of the Fingerprint vectors
 	NSMutableArray* cache; // NSMutableArray* of DBEntry* : a list of recently seen fingerprints from the remote database

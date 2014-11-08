@@ -253,7 +253,7 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 #pragma mark Application lifecycle
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-	self.detailedLogging = true; // TODO: never leave detailed logging on for a public release
+	self.detailedLogging = false; // Detailed logging should never be enabled for a public release
 	
 	// Turn off the idle timer, since this app doesn't rely on constant touch input
 	application.idleTimerDisabled = YES;
@@ -279,7 +279,6 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
 	self.database = [[[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength] autorelease];
-	self.database.useRemoteDB = [[self.options objectForKey:@"enableSharing"] boolValue];
 								 
 	// set up Core Location
 	self.locationManager = [[[CLLocationManager alloc] init] autorelease];

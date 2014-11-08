@@ -238,7 +238,6 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	[request setURL:[NSURL URLWithString:@"http://belmont.eecs.northwestern.edu/cgi-bin/fingerprint/interface.py"]];
-	///[request setURL:[NSURL URLWithString:@"http://fingerprint.cs.northwestern.edu/interface.pl"]];
 	[request setHTTPMethod:@"POST"];
 	[request setValue:postLength forHTTPHeaderField:@"Content-Length"];
 	[request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
