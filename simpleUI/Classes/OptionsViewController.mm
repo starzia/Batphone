@@ -11,7 +11,6 @@
 @implementation OptionsViewController
 
 @synthesize app;
-@synthesize URLField;
 
 #pragma mark -
 #pragma mark Initialization
@@ -20,15 +19,7 @@
 // The custom initializer.  
 - (id)initWithStyle:(UITableViewStyle)style app:(AppDelegate *)theApp{
     if ((self = [super initWithStyle:style])) {
-		self.app = theApp;
-		
-		// create URL text field
-		UITextField *utextfield = [[UITextField alloc] initWithFrame:CGRectMake(12.0, 120.0, 260.0, 25.0)]; 
-		self.URLField = utextfield;
-		[utextfield release];		
-		URLField.placeholder = @"eg. http://somesite.com/file.txt";
-		URLField.text = @"http://stevetarzia.com/batphone/database.txt";
-		[URLField setBackgroundColor:[UIColor whiteColor]];
+		self.app = theApp;	
     }
     return self;
 }
@@ -214,7 +205,9 @@
 												  cancelButtonTitle:@"Cancel" 
 												  otherButtonTitles:@"Load", nil];
 		// Adds a URL Field
-		[alertview addSubview:self.URLField];
+        alertview.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [alertview textFieldAtIndex:0].placeholder = @"eg. http://somesite.com/file.txt";
+        [alertview textFieldAtIndex:0].text = @"http://stevetarzia.com/batphone/database.txt";
 		
 		// Show alert on screen.
 		[alertview show];
@@ -244,6 +237,7 @@
 		// if load button was clicked
 		if( buttonIndex == 1 ){
 			// try downloading
+            UITextField* URLField = [alertView textFieldAtIndex:0];
 			NSString* urlContents = [[NSString alloc] initWithContentsOfURL:[NSURL URLWithString:URLField.text]
 																   encoding:NSUTF8StringEncoding
 																	  error:nil];
@@ -301,7 +295,6 @@
 
 
 - (void)dealloc {
-	[URLField release];
 	[app release];
     [super dealloc];
 }

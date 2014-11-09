@@ -349,6 +349,7 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 														selector:@selector(checkAudio)
 														userInfo:nil
 														 repeats:YES];
+    window.rootViewController = navController;
     return YES;
 }
 

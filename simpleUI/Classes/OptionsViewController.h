@@ -16,7 +16,6 @@
 @interface OptionsViewController : UITableViewController 
 <UIAlertViewDelegate, MFMailComposeViewControllerDelegate> {
 	AppDelegate* app;
-	UITextField* URLField;
 }
 @property (nonatomic, retain) AppDelegate* app;
 @property (nonatomic, retain) UITextField* URLField;
