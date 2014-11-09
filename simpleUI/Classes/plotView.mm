@@ -83,7 +83,7 @@
 	float xStep = X/(self.length-1);
 	float yStep = Y/plot_range;
 	
-	if( self.length > 0 ){
+	if( self.length > 0 && isfinite(data[0]) ){ // data will be -Inf if audio permission is not yet granted
 		// start off the line at the left side
 		CGContextMoveToPoint(context, 0, Y - (self.data[0]-self.minY) * yStep);
 		for( int i=1; i<self.length; ++i ){ // starting w/2nd data point
