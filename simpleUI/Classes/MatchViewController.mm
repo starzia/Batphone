@@ -31,16 +31,6 @@ static const int numCandidates = 10;
 #pragma mark -
 #pragma mark UIViewController inherited
 
-/*
- // The designated initializer.  Override if you create the controller programmatically and want to perform customization that is not appropriate for viewDidLoad.
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
-    if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])) {
-        // Custom initialization
-    }
-    return self;
-}
- */
-
 - (id)initWithApp:(AppDelegate *)theApp{
 	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
@@ -99,7 +89,7 @@ static const int numCandidates = 10;
 	
 	// create matchTable
 	rect = CGRectMake( 0, 120 + topPadding, 320, screenHeight - 169 );
-	self.matchTable = [[[UITableView alloc] initWithFrame:rect style:UITableViewStylePlain] autorelease];
+	self.matchTable = [[[UITableView alloc] initWithFrame:rect style:UITableViewStyleGrouped] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = self;
     matchTable.dataSource = self;
@@ -206,7 +196,7 @@ static const int numCandidates = 10;
 								   selector:@selector(updateMatches:)];
 
 	// UNRELATED TO QUERY...
-	// update map with current skyhook location
+	// update map with current CoreLocation location
 	[map removeAnnotations:map.annotations];
 	[LocationViewController annotateMap:map 
 							   location:[self.app getLocation]
@@ -270,6 +260,11 @@ static const int numCandidates = 10;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+    // if second section is shown, show instructions there
+    if( matches.count == 0 ){
+        return @"Touch the \"+\" button to remember this location's fingerprint.";
+    }
+    // first section
 	if( distanceMetric == DistanceMetricCombined ){
 		return [NSString stringWithFormat:@"Closest locations"];
 	}else if( distanceMetric == DistanceMetricPhysical ){
