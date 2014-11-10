@@ -16,6 +16,7 @@ using std::vector;
 
 @interface MatchViewController : UIViewController 
 <UITableViewDelegate, UITableViewDataSource, UITabBarDelegate>{
+    UINavigationItem* navItem;
 	AppDelegate *app;
 	plotView *plot;            // live fingerprint plot
 	Fingerprint newFingerprint;

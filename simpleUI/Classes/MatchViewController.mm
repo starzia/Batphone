@@ -40,6 +40,23 @@ static const int numCandidates = 10;
     return self;
 }
 
+-(UINavigationItem*)navigationItem{
+    if( !navItem ){
+        navItem = [[UINavigationItem alloc] initWithTitle:@"Neighborhood"];
+        // add buttons to navigation bar
+        UIBarButtonItem* optionsButton = [[[UIBarButtonItem alloc] initWithTitle:@"Options"
+                                                                           style:UIBarButtonItemStylePlain
+                                                                          target:self.app
+                                                                          action:@selector(optionsButtonHandler)] autorelease];
+        [navItem setLeftBarButtonItem:optionsButton animated:NO];
+        UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd
+                                                                                    target:self.app
+                                                                                    action:@selector(newButtonHandler)] autorelease];
+        [navItem setRightBarButtonItem:newButton animated:NO];
+    }
+    return navItem;
+}
+
 // Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
 - (void)viewDidLoad {
 	self.view.backgroundColor = [UIColor clearColor];
@@ -140,15 +157,6 @@ static const int numCandidates = 10;
 	
     [super viewDidLoad];
 }
-
-
-/*
- // Override to allow orientations other than the default portrait orientation.
- - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
- // Return YES for supported orientations
- return (interfaceOrientation == UIInterfaceOrientationPortrait);
- }
- */
 
 
 // restart timers for plotting and querying
@@ -341,6 +349,7 @@ static const int numCandidates = 10;
 
 
 - (void)dealloc {
+    [navItem release];
 	[plot release];
 	[plotTimer release];
 	[queryTimer release];

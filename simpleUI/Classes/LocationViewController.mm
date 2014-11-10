@@ -92,6 +92,21 @@
     return self;
 }
 
+-(UINavigationItem*)navigationItem{
+    if( !navItem ){
+        navItem = [[UINavigationItem alloc] initWithTitle:
+                   [[NSString alloc] initWithFormat:@"%@ : %@",building,room]];
+        
+        // add button
+        UIBarButtonItem* deleteButton = [[UIBarButtonItem alloc]
+                                         initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+                                         target:self.app
+                                         action:@selector(deleteRoomButtonHandler)];
+        [navItem setRightBarButtonItem:deleteButton animated:NO];
+    }
+    return navItem;
+}
+
 -(void)showCheckinButton{
 	self.checkinButton.hidden = NO;
 }

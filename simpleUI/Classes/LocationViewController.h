@@ -12,6 +12,7 @@
 #import <MapKit/MapKit.h>
 
 @interface LocationViewController : UIViewController {
+    UINavigationItem* navItem;
 	AppDelegate *app;
 	NSString* room;
 	NSString* building;

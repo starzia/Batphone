@@ -41,5 +41,9 @@
 		<string>accelerometer</string>
 		<string>gyroscope</string>
 	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
 </dict>
 </plist>

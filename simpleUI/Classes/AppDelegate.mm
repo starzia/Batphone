@@ -98,78 +98,36 @@ using namespace std;
 -(void) newButtonHandler{
 	if( !newViewController ){
 		// create view controller
-		NewViewController *aNewViewController = [[NewViewController alloc]
-												 initWithApp:self];
-		self.newViewController = aNewViewController;
-		newViewController.title = @"Check in";
-		[aNewViewController release];
+		self.newViewController = [[NewViewController alloc] initWithApp:self];
 	}
-	// update picker to reflect possible database changes (new/deleted rooms)
-	[newViewController.roomPicker reloadAllComponents];
-	
 	// swap views
 	[navController pushViewController:newViewController animated:YES];
-
-	// add button to navigation bar
-	UIBarButtonItem* newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
-									target:self 
-									action:@selector(saveButtonHandler)];
-	[navController.navigationBar.topItem setRightBarButtonItem:newButton animated:YES];	
-	[newButton release];
 }
 
 // called after clicking a room in MatchViewController's matchTable
 -(void) showRoom:(NSString*)room inBuilding:(NSString*)building{
 	if( !locationViewController ){
 		// create view controller
-		LocationViewController *aLocationViewController = [[LocationViewController alloc]
-							   initWithApp:self building:building room:room];
-		self.locationViewController = aLocationViewController;
-		[aLocationViewController release];
+		self.locationViewController = [[LocationViewController alloc]
+							           initWithApp:self building:building room:room];
 	}else{
 		// reset room data
 		[self.locationViewController resetWithBuilding:building room:room];
 	}
-
-	// set up navigation bar
-	NSString* title = [[NSString alloc] initWithFormat:@"%@ : %@",building,room];
-	locationViewController.title = title;
-	[title release];
 	
 	// swap views
 	[navController pushViewController:locationViewController animated:YES];
-
-	// add button
-	UIBarButtonItem* deleteButton = [[UIBarButtonItem alloc] 
-						initWithBarButtonSystemItem:UIBarButtonSystemItemTrash 
-											 target:self 
-											 action:@selector(deleteRoomButtonHandler)];
-	[navController.navigationBar.topItem setRightBarButtonItem:deleteButton animated:YES];
-	[deleteButton release];
 }
 
 -(void) optionsButtonHandler{
 	if( !optionsViewController ){
 		// create new if we haven't yet
-	    OptionsViewController* opController = [[OptionsViewController alloc] 
-										   initWithStyle:UITableViewStyleGrouped
-										             app:self];
-	    self.optionsViewController = opController;
-		optionsViewController.title = @"Options";
-	    [opController release];
+	    self.optionsViewController = [[OptionsViewController alloc]
+                                      initWithStyle:UITableViewStyleGrouped
+                                                app:self];
 	}
 	// swap views
 	[navController pushViewController:optionsViewController animated:YES];
-}
-
-
--(void) saveButtonHandler{
-	// pass message on to view controller
-	if( [newViewController saveButtonHandler] ){
-		// if save was successful
-		// pop view off stack
-		[navController popViewControllerAnimated:YES];
-	}
 }
 
 
@@ -313,28 +271,15 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	}
 		
 	// initialize the first view controller
-	MatchViewController *aMatchViewController = [[MatchViewController alloc]
-												 initWithApp:self];
-	self.matchViewController = aMatchViewController;
-	matchViewController.title = @"Neighborhood";
-	[aMatchViewController release];
+    self.matchViewController = [[MatchViewController alloc] initWithApp:self];;
 
 	// set up navigation controller
 	self.navController = [[UINavigationController alloc] initWithRootViewController:matchViewController];
-	UIBarButtonItem* optionsButton = [[[UIBarButtonItem alloc] initWithTitle:@"Options"
-																	   style:UIBarButtonItemStylePlain
-																	  target:self 
-																	  action:@selector(optionsButtonHandler)] autorelease];
-	[navController.navigationBar.topItem setLeftBarButtonItem:optionsButton animated:YES];
-	UIBarButtonItem* newButton = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd 
-																				target:self 
-																				action:@selector(newButtonHandler)] autorelease];
-	[navController.navigationBar.topItem setRightBarButtonItem:newButton animated:YES];
-	[window addSubview:navController.view];	
 	
-	// update view
+    // update view
+    window.rootViewController = navController;
     [window makeKeyAndVisible];
-	
+
 	// start recording
 	self.fp->startRecording();
 
@@ -349,7 +294,6 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 														selector:@selector(checkAudio)
 														userInfo:nil
 														 repeats:YES];
-    window.rootViewController = navController;
     return YES;
 }
 

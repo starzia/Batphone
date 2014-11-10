@@ -15,6 +15,7 @@
 
 @interface OptionsViewController : UITableViewController 
 <UIAlertViewDelegate, MFMailComposeViewControllerDelegate> {
+    UINavigationItem* navItem;
 	AppDelegate* app;
 }
 @property (nonatomic, retain) AppDelegate* app;

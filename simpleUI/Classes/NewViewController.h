@@ -16,6 +16,7 @@
 	UIPickerView *roomPicker;
 	UILabel *locationLabel;
 	AppDelegate *app;
+    UINavigationItem* navItem;
 	
 	// picker state
 	vector<NSString*> buildingsCache;

@@ -24,6 +24,13 @@
     return self;
 }
 
+-(UINavigationItem*)navigationItem{
+    if( !navItem ){
+        navItem = [[UINavigationItem alloc] initWithTitle:@"Options"];
+    }
+    return navItem;
+}
+
 
 #pragma mark -
 #pragma mark MKMailComposeViewControllerDelegate

@@ -28,12 +28,17 @@
 	self.app = theApp;
 	if ((self = [super initWithNibName:nil bundle:nil])) {
         // Custom initialization
-		self.view.backgroundColor = [UIColor clearColor];
-		
+		self.view.backgroundColor = [UIColor whiteColor];
+
+        // add extra padding to the top of the view on iOS >= 7
+        CGFloat topPadding = [[UIDevice currentDevice] systemVersion].floatValue >= 7? 64 : 0;
+        CGFloat screenHeight = self.view.frame.size.height - topPadding;
+
 		// create instruction label
-		self.locationLabel = [[[UILabel alloc] initWithFrame:CGRectMake(10 , 95, 300.0f, 100.0f)] autorelease];
+		self.locationLabel = [[[UILabel alloc] initWithFrame:
+                               CGRectMake(10 , topPadding + 5, 300.0f, 40.0f)] autorelease];
 		// Set the value of our string
-		[locationLabel setText:@"Describe your\ncurrent location:"];
+		[locationLabel setText:@"Describe your current location:"];
 		// Center Align the label's text
 		[locationLabel setTextAlignment:NSTextAlignmentLeft];
 		locationLabel.textColor = [UIColor darkTextColor];
@@ -43,18 +48,8 @@
 		// Add the label to the window.
 		[self.view addSubview:locationLabel];
 		
-		// add question mark graphic
-		UILabel* question = [[UILabel alloc] initWithFrame:CGRectMake(0, 25, 320, 100)];
-		[question setText:@"?"];
-		[question setTextAlignment:NSTextAlignmentCenter];
-		question.textColor = [UIColor darkTextColor];
-		question.backgroundColor = [UIColor clearColor];
-		[question setFont:[UIFont fontWithName:@"Arial" size:96]];
-		[self.view addSubview:question];
-		[question release];
-		
 		// create buildingField
-		CGRect rect = CGRectMake(10 , 165, 150.0f, 30.0f);
+		CGRect rect = CGRectMake(10 , topPadding + 50, 150.0f, 30.0f);
 		self.buildingField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[buildingField setPlaceholder:@"building's name"];
 		[buildingField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -64,7 +59,7 @@
 		[self.view addSubview:buildingField];
 		
 		// create roomField
-		rect = CGRectMake(160 , 165, 150.0f, 30.0f);
+		rect = CGRectMake(160 , topPadding + 50, 150.0f, 30.0f);
 		self.roomField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[roomField setPlaceholder:@"room's name"];
 		[roomField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -75,7 +70,7 @@
 		
 		// create picker
 		currentBuilding = @"";
-		rect = CGRectMake( 0, 200, 300, 215 );
+		rect = CGRectMake( 0, topPadding + 200, 300, screenHeight - 180 );
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
 		roomPicker.delegate = self;
         roomPicker.dataSource = self;
@@ -83,6 +78,18 @@
 		[self.view addSubview:roomPicker];
     }
     return self;
+}
+
+-(UINavigationItem*)navigationItem{
+    if( !navItem ){
+        navItem = [[UINavigationItem alloc] initWithTitle:@"Check in"];
+        // add button to navigation bar
+        UIBarButtonItem* newButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemSave
+                                                                                   target:self
+                                                                                   action:@selector(saveButtonHandler)];
+        [navItem setRightBarButtonItem:newButton animated:NO];
+    }
+    return navItem;
 }
 
 -(void) viewWillAppear:(BOOL)animated{
@@ -93,22 +100,9 @@
 		[roomPicker selectRow:[self pickerView:roomPicker numberOfRowsInComponent:0]-1
 				  inComponent:0 animated:NO];
 	}
+    // update picker to reflect possible database changes (new/deleted rooms)
+    [roomPicker reloadAllComponents];
 }
-
-/*
-// Implement viewDidLoad to do additional setup after loading the view, typically from a nib.
-- (void)viewDidLoad {
-    [super viewDidLoad];
-}
-*/
-
-/*
-// Override to allow orientations other than the default portrait orientation.
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    // Return YES for supported orientations
-    return (interfaceOrientation == UIInterfaceOrientationPortrait);
-}
-*/
 
 #pragma mark -
 #pragma mark button event handling
@@ -125,7 +119,7 @@
 		[newBuilding release];
 		[newRoom release];
 		
-		return true;
+        [self.navigationController popViewControllerAnimated:YES];
 	}else{
 		// notify user that text fields cannot be left blank
 		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Name is missing" 
