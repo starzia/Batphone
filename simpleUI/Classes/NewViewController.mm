@@ -36,7 +36,7 @@
 
 		// create instruction label
 		self.locationLabel = [[[UILabel alloc] initWithFrame:
-                               CGRectMake(10 , topPadding + 5, 300.0f, 40.0f)] autorelease];
+                               CGRectMake(10 , topPadding + 5, 300.0f, 35.0f)] autorelease];
 		// Set the value of our string
 		[locationLabel setText:@"Describe your current location:"];
 		// Center Align the label's text
@@ -44,12 +44,12 @@
 		locationLabel.textColor = [UIColor darkTextColor];
 		locationLabel.backgroundColor = [UIColor clearColor];
 		// set font
-		[locationLabel setFont:[UIFont fontWithName:@"Arial" size:20]];
+		[locationLabel setFont:[UIFont fontWithName:@"Arial" size:18]];
 		// Add the label to the window.
 		[self.view addSubview:locationLabel];
 		
 		// create buildingField
-		CGRect rect = CGRectMake(10 , topPadding + 50, 150.0f, 30.0f);
+		CGRect rect = CGRectMake(10 , topPadding + 40, 150.0f, 30.0f);
 		self.buildingField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[buildingField setPlaceholder:@"building's name"];
 		[buildingField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -59,7 +59,7 @@
 		[self.view addSubview:buildingField];
 		
 		// create roomField
-		rect = CGRectMake(160 , topPadding + 50, 150.0f, 30.0f);
+		rect = CGRectMake(160 , topPadding + 40, 150.0f, 30.0f);
 		self.roomField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[roomField setPlaceholder:@"room's name"];
 		[roomField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -69,8 +69,9 @@
 		[self.view addSubview:roomField];
 		
 		// create picker
+        CGFloat keyboardHeight = 216;
 		currentBuilding = @"";
-		rect = CGRectMake( 0, topPadding + 200, 300, screenHeight - 180 );
+		rect = CGRectMake( 0, topPadding + 70, 320, screenHeight - keyboardHeight - (topPadding + 70));
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
 		roomPicker.delegate = self;
         roomPicker.dataSource = self;
