@@ -20,14 +20,14 @@ using std::vector;
 @interface DBEntry : NSObject{
 @public
 	long long timestamp;
-	NSString* uuid;
+	NSUUID* uuid;
 	NSString* building;
 	NSString* room;
 	float* fingerprint;
 	CLLocation* location; // estimated GPS location of this observed fingerprint
 };
 @property (nonatomic) long long timestamp;
-@property (nonatomic,retain) NSString* uuid;
+@property (nonatomic,retain) NSUUID* uuid;
 @property (nonatomic,retain) NSString* building;
 @property (nonatomic,retain) NSString* room;
 @property (nonatomic) float* fingerprint;

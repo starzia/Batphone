@@ -49,6 +49,7 @@
 	return self;
 }
 -(void) dealloc{
+    [entry release];
 	[super dealloc];
 }
 @end
@@ -115,7 +116,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	// calculate distances to all entries in DB cache
     pair<float,int> *distances = new pair<float,int>[cache.count]; // first element of pair is distance, second is index
 	for( unsigned int i=0; i<[cache count]; ++i ){
-		DBEntry* cacheI = (DBEntry*)[cache objectAtIndex:0];
+		DBEntry* cacheI = (DBEntry*)[cache objectAtIndex:i];
 		// if using acoustic or combined criterion then acoustic distance is primary sorting key
 		if( distanceMetric == DistanceMetricAcoustic ){
 			distances[i] = make_pair( [self signalDistanceFrom:observation to:cacheI.fingerprint], i );
@@ -161,7 +162,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 
 
--(NSString*) insertFingerprint:(const float[])observation
+-(NSUUID*) insertFingerprint:(const float[])observation
 					  building:(NSString*)newBuilding      
 						  room:(NSString*)newRoom /* name for the new room */
 					  location:(CLLocation*)location{
@@ -174,7 +175,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 	newEntry.fingerprint = new float[len];
 	newEntry.location = [location copy];
 	memcpy( newEntry.fingerprint, observation, sizeof(float)*len );
-	newEntry.uuid = [[NSString alloc] initWithFormat:@"-1"]; // TODO generate UUID
+    newEntry.uuid = [NSUUID UUID];
 	
 	// remote insert
 	if( self.useRemoteDB ){
@@ -271,10 +272,10 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 
 -(void) addToCache:(DBEntry*)newEntry{
 	// scan cache looking for a duplicate entry
-	// TODO: use index tree to speed this up
+	// TODO: create a DBEntry equals method and use NSSet#contains to speed this up
 	bool duplicate = false;
 	for( DBEntry* e in cache ){
-		if( [e.uuid isEqualToString:newEntry.uuid] ){
+		if( [e.uuid isEqual:newEntry.uuid] ){
 			duplicate = true;
 			break;
 		}
@@ -458,7 +459,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 		NSString* tmpStr;
 		[scanner scanUpToCharactersFromSet:[NSCharacterSet characterSetWithCharactersInString:@"\t"]
 								intoString:&tmpStr];
-		newEntry.uuid = [NSString stringWithString:tmpStr];
+		newEntry.uuid = [[NSUUID alloc] initWithUUIDString:tmpStr];
 		long long tmpLL;
 		[scanner scanLongLong:&tmpLL];
 		newEntry.timestamp = tmpLL;
@@ -656,7 +657,7 @@ bool smaller_by_first( pair<float,int> A, pair<float,int> B ){
 				Match* m = [[Match alloc] init];
 				NSString* tmpStr;
 				[scanner scanUpToString:@"\t" intoString:&tmpStr];
-				m.entry.uuid = [NSString stringWithString:tmpStr];
+				m.entry.uuid = [[NSUUID alloc] initWithUUIDString:tmpStr];
 				float tmpFloat;
 				[scanner scanFloat:&tmpFloat];
 				m.confidence = tmpFloat;
