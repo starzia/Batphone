@@ -40,7 +40,7 @@
 		  didFinishWithResult:(MFMailComposeResult)result 
 						error:(NSError*)error{
 	// make email window disappear
-	[controller dismissModalViewControllerAnimated:YES];
+	[controller dismissViewControllerAnimated:YES completion:nil];
 }
 
 
@@ -160,7 +160,9 @@
        	        [mailer setToRecipients:[NSArray arrayWithObject:@"steve@stevetarzia.com"]];
 			}
 			
-			[self presentModalViewController:mailer animated:YES];
+			[self presentViewController:mailer
+                               animated:YES
+                             completion:nil];
 			[mailer release];
 		}else{
 			UIAlertView *myAlert = [[UIAlertView alloc] initWithTitle:@"Email unavailable" 
