@@ -34,8 +34,6 @@
 	<array>
 		<string>location-services</string>
 		<string>microphone</string>
-		<string>accelerometer</string>
-		<string>gyroscope</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
