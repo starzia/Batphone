@@ -72,12 +72,20 @@ static const int numCandidates = 10;
     CGFloat topPadding = [[UIDevice currentDevice] systemVersion].floatValue >= 7? 64 : 0;
     CGFloat screenHeight = self.view.frame.size.height - topPadding;
 	
+    // create label for plot
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(100, topPadding + 7, 200, 20)];
+    label.font = [UIFont boldSystemFontOfSize:10];
+    label.textColor = [UIColor colorWithRed:0.5 green:1.0 blue:0.2 alpha:0.5];
+    label.text = @"Acoustic Background Spectrum 0 - 7 kHz";
+    
 	// add CRT image to window
 	UIImage* crtImage = [UIImage imageNamed:@"crt.png"];
 	UIImageView* imageView = [[UIImageView alloc] initWithImage:crtImage];
 	imageView.center = CGPointMake(160, 60 + topPadding);
 	[self.view addSubview:imageView];
+    [self.view addSubview:label];
 	[imageView release];
+    [label release];
 	
 	// add bat image to window
 	UIImage* batImage = [UIImage imageNamed:@"bat.png"];
