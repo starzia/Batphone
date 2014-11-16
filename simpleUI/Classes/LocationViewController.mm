@@ -8,7 +8,7 @@
 
 #import "LocationViewController.h"
 #import <MapKit/MKPointAnnotation.h>
-
+#import "UIViewController+Layout.h"
 
 @implementation LocationViewController
 
@@ -37,20 +37,16 @@
 		
 		// set up view
 		self.view.backgroundColor = [UIColor clearColor];
-        
-        // add extra padding to the top of the view on iOS >= 7
-        CGFloat topPadding = [[UIDevice currentDevice] systemVersion].floatValue >= 7? 64 : 0;
-        CGFloat screenHeight = self.view.frame.size.height - topPadding;
 		
 		// add grid image to window
 		UIImage* gridImage = [UIImage imageNamed:@"grid.png"];
 		UIImageView* imageView = [[UIImageView alloc] initWithImage:gridImage];
-		imageView.center = CGPointMake(160, topPadding + 60);
+		imageView.center = CGPointMake(160, self.topPadding + 60);
 		[self.view addSubview:imageView];
 		[imageView release];
 		
 		// Add plot label
-		CGRect labelRect = CGRectMake(0 , topPadding + 100, 320.0f, 20.0f);
+		CGRect labelRect = CGRectMake(0 , self.topPadding + 100, 320.0f, 20.0f);
 		self.label = [[[UILabel alloc] initWithFrame:labelRect] autorelease];
 		[label setTextAlignment:NSTextAlignmentCenter];
 		label.textColor = [UIColor darkTextColor];
@@ -59,12 +55,12 @@
 		[self.view addSubview:label];	
 		
 		// Add plot to window
-		CGRect rect = CGRectMake(0, topPadding, 320.0f, 100.0f);
+		CGRect rect = CGRectMake(0, self.topPadding, 320.0f, 100.0f);
 		self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 		[self.view addSubview:plot];
 		
 		// Add checkin button to window
-		rect = CGRectMake(80, topPadding + 25, 160.0f, 40.0f);
+		rect = CGRectMake(80, self.topPadding + 25, 160.0f, 40.0f);
 		self.checkinButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
 		self.checkinButton.frame = rect;
 		[self.checkinButton setTitle:@"Check in" forState:UIControlStateNormal];
@@ -82,7 +78,8 @@
 														userInfo:nil
 														 repeats:YES];
 		// Add map
-		self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,topPadding + 120,320, screenHeight - 100)] autorelease];
+		self.map = [[[MKMapView alloc] initWithFrame:
+                     CGRectMake(0, self.topPadding + 120, 320, self.viewHeight - 100)] autorelease];
 		map.mapType = MKMapTypeHybrid;
 		[self.view addSubview:map];
 		

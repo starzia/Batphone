@@ -10,6 +10,7 @@
 
 #import "MatchViewController.h"
 #import "LocationViewController.h" // for map functions
+#import "UIViewController+Layout.h"
 
 @implementation MatchViewController
 
@@ -67,21 +68,18 @@ static const int numCandidates = 10;
 		// blank fingerprint
 		self.newFingerprint[i] = 0;
 	}
-    
-    // add extra padding to the top of the view on iOS >= 7
-    CGFloat topPadding = [[UIDevice currentDevice] systemVersion].floatValue >= 7? 64 : 0;
-    CGFloat screenHeight = self.view.frame.size.height - topPadding;
 	
     // create label for plot
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(100, topPadding + 7, 200, 20)];
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(100, self.topPadding + 7, 200, 20)];
     label.font = [UIFont boldSystemFontOfSize:10];
     label.textColor = [UIColor colorWithRed:0.5 green:1.0 blue:0.2 alpha:0.5];
+    label.backgroundColor = [UIColor clearColor];
     label.text = @"Acoustic Background Spectrum 0 - 7 kHz";
     
 	// add CRT image to window
 	UIImage* crtImage = [UIImage imageNamed:@"crt.png"];
 	UIImageView* imageView = [[UIImageView alloc] initWithImage:crtImage];
-	imageView.center = CGPointMake(160, 60 + topPadding);
+	imageView.center = CGPointMake(160, 60 + self.topPadding);
 	[self.view addSubview:imageView];
     [self.view addSubview:label];
 	[imageView release];
@@ -91,12 +89,12 @@ static const int numCandidates = 10;
 	UIImage* batImage = [UIImage imageNamed:@"bat.png"];
 	UIImageView* imageView2 = [[UIImageView alloc] initWithImage:batImage];
 	imageView2.alpha = 0.2;
-	imageView2.center = CGPointMake(160, 230 + topPadding);
+	imageView2.center = CGPointMake(160, 230 + self.topPadding);
 	[self.view addSubview:imageView2];
 	[imageView2 release];
 	
 	// Add plot to window
-	CGRect rect = CGRectMake(10, 10 + topPadding, 300.0f, 100.0f);
+	CGRect rect = CGRectMake(10, 10 + self.topPadding, 300.0f, 100.0f);
 	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	// make line green
@@ -106,14 +104,14 @@ static const int numCandidates = 10;
 	[self.view addSubview:plot];
 	
 	// Add map which will be show alternatively in place of plot
-	self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,topPadding,320,125)] autorelease];
+	self.map = [[[MKMapView alloc] initWithFrame:CGRectMake(0,self.topPadding,320,125)] autorelease];
 	map.scrollEnabled = NO;
 	map.zoomEnabled = NO;
 	map.mapType = MKMapTypeHybrid;
 	[self.view addSubview:map];
 	
 	// create matchTable
-	rect = CGRectMake( 0, 120 + topPadding, 320, screenHeight - 169 );
+	rect = CGRectMake( 0, 120 + self.topPadding, 320, self.viewHeight - 169 );
 	self.matchTable = [[[UITableView alloc] initWithFrame:rect style:UITableViewStyleGrouped] autorelease];
 	matchTable.backgroundColor = [UIColor clearColor];
 	matchTable.delegate = self;
@@ -121,7 +119,7 @@ static const int numCandidates = 10;
 	[self.view addSubview:matchTable];
 	
 	// create tabbar at bottom
-	rect = CGRectMake(0, topPadding + screenHeight - 49, 320, 49);
+	rect = CGRectMake(0, self.topPadding + self.viewHeight - 49, 320, 49);
 	self.tabBar = [[[UITabBar alloc] initWithFrame:rect] autorelease];
 	tabBar.delegate = self;
 	UITabBarItem* acousticButton = [[UITabBarItem alloc] autorelease];

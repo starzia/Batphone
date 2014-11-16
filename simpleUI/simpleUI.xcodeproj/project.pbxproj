@@ -39,6 +39,7 @@
 		AA91A1BC128A42A5007C27A4 /* OptionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */; };
 		AA91A243128A5B33007C27A4 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AA91A242128A5B33007C27A4 /* MessageUI.framework */; };
 		AA91A360128E04DB007C27A4 /* combined.png in Resources */ = {isa = PBXBuildFile; fileRef = AA91A35F128E04DB007C27A4 /* combined.png */; };
+		AA957D731A184BE800EE3DAC /* UIViewController+Layout.m in Sources */ = {isa = PBXBuildFile; fileRef = AA957D721A184BE800EE3DAC /* UIViewController+Layout.m */; };
 		AAAC4D25127A149000FB24C1 /* MatchViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D23127A149000FB24C1 /* MatchViewController.mm */; };
 		AAAC4D2B127A14F100FB24C1 /* NewViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D29127A14F100FB24C1 /* NewViewController.mm */; };
 		AAAC4D30127A16A700FB24C1 /* LocationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */; };
@@ -99,6 +100,8 @@
 		AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OptionsViewController.mm; sourceTree = "<group>"; };
 		AA91A242128A5B33007C27A4 /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		AA91A35F128E04DB007C27A4 /* combined.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = combined.png; sourceTree = "<group>"; };
+		AA957D711A184BE800EE3DAC /* UIViewController+Layout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+Layout.h"; sourceTree = "<group>"; };
+		AA957D721A184BE800EE3DAC /* UIViewController+Layout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+Layout.m"; sourceTree = "<group>"; };
 		AAAC4D22127A149000FB24C1 /* MatchViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MatchViewController.h; sourceTree = "<group>"; };
 		AAAC4D23127A149000FB24C1 /* MatchViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MatchViewController.mm; sourceTree = "<group>"; };
 		AAAC4D28127A14F100FB24C1 /* NewViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewViewController.h; sourceTree = "<group>"; };
@@ -162,6 +165,8 @@
 				AA91A1BB128A42A5007C27A4 /* OptionsViewController.mm */,
 				AA8F13E312FCABBC0014BF6C /* RobustDictionary.h */,
 				AA8F13E412FCABBC0014BF6C /* RobustDictionary.m */,
+				AA957D711A184BE800EE3DAC /* UIViewController+Layout.h */,
+				AA957D721A184BE800EE3DAC /* UIViewController+Layout.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -365,6 +370,7 @@
 			files = (
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* AppDelegate.mm in Sources */,
+				AA957D731A184BE800EE3DAC /* UIViewController+Layout.m in Sources */,
 				AA7B05F412523F1200FFA088 /* Fingerprinter.cpp in Sources */,
 				AA7B05FD12523F4000FFA088 /* CADebugMacros.cpp in Sources */,
 				AA7B05FE12523F4000FFA088 /* CAStreamBasicDescription.cpp in Sources */,

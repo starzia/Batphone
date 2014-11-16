@@ -8,6 +8,7 @@
 
 #import "NewViewController.h"
 #import "LocationViewController.h" // for map zoom
+#import "UIViewController+Layout.h"
 
 @implementation NewViewController
 
@@ -30,13 +31,9 @@
         // Custom initialization
 		self.view.backgroundColor = [UIColor whiteColor];
 
-        // add extra padding to the top of the view on iOS >= 7
-        CGFloat topPadding = [[UIDevice currentDevice] systemVersion].floatValue >= 7? 64 : 0;
-        CGFloat screenHeight = self.view.frame.size.height - topPadding;
-
 		// create instruction label
 		self.locationLabel = [[[UILabel alloc] initWithFrame:
-                               CGRectMake(10 , topPadding + 5, 300.0f, 35.0f)] autorelease];
+                               CGRectMake(10 , self.topPadding + 5, 300.0f, 35.0f)] autorelease];
 		// Set the value of our string
 		[locationLabel setText:@"Describe your current location:"];
 		// Center Align the label's text
@@ -49,7 +46,7 @@
 		[self.view addSubview:locationLabel];
 		
 		// create buildingField
-		CGRect rect = CGRectMake(10 , topPadding + 40, 150.0f, 30.0f);
+		CGRect rect = CGRectMake(10 , self.topPadding + 40, 150.0f, 30.0f);
 		self.buildingField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[buildingField setPlaceholder:@"building's name"];
 		[buildingField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -59,7 +56,7 @@
 		[self.view addSubview:buildingField];
 		
 		// create roomField
-		rect = CGRectMake(160 , topPadding + 40, 150.0f, 30.0f);
+		rect = CGRectMake(160 , self.topPadding + 40, 150.0f, 30.0f);
 		self.roomField = [[[UITextField alloc] initWithFrame:rect] autorelease];
 		[roomField setPlaceholder:@"room's name"];
 		[roomField setBorderStyle:UITextBorderStyleRoundedRect];
@@ -69,9 +66,8 @@
 		[self.view addSubview:roomField];
 		
 		// create picker
-        CGFloat keyboardHeight = 216;
 		currentBuilding = @"";
-		rect = CGRectMake( 0, topPadding + 70, 320, screenHeight - keyboardHeight - (topPadding + 70));
+		rect = CGRectMake( 0, self.topPadding + 70, 320, self.viewHeight - self.keyboardHeight - (self.topPadding + 70));
 		self.roomPicker = [[[UIPickerView alloc] initWithFrame:rect] autorelease];
 		roomPicker.delegate = self;
         roomPicker.dataSource = self;
@@ -121,6 +117,7 @@
 		[newRoom release];
 		
         [self.navigationController popViewControllerAnimated:YES];
+        return true;
 	}else{
 		// notify user that text fields cannot be left blank
 		UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Name is missing" 
