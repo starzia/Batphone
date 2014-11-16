@@ -142,7 +142,7 @@ static const int numCandidates = 10;
 	[self.view addSubview:tabBar];
 	
 	// decide which tab should be used by default.
-	int defaultTab = 1;
+	int defaultTab = 0;
 	self.tabBar.selectedItem=[tabBar.items objectAtIndex:defaultTab];
 	[self tabBar:tabBar didSelectItem:[tabBar.items objectAtIndex:defaultTab]]; 
 	
