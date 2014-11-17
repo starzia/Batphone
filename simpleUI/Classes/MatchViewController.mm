@@ -209,7 +209,7 @@ static const int numCandidates = 10;
 							   resultTarget:self
 								   selector:@selector(updateMatches:)];
 
-	// UNRELATED TO QUERY...
+	// UNRELATED TO QUERY... but it's convenient to update the map at the same time
 	// update map with current CoreLocation location
 	[map removeAnnotations:map.annotations];
 	[LocationViewController annotateMap:map 

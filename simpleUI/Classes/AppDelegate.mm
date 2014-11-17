@@ -77,13 +77,11 @@ using namespace std;
 
 #pragma mark -
 #pragma mark CLLocationManagerDelegate
-// Core Location code adapted from http://mobileorchard.com/hello-there-a-corelocation-tutorial/
 - (void)locationManager:(CLLocationManager *)manager
-    didUpdateToLocation:(CLLocation *)newLocation
-           fromLocation:(CLLocation *)oldLocation 
+     didUpdateLocations:(NSArray *)locations
 {
 #ifdef DEBUG
-    NSLog(@"Location: %@", [newLocation description]);
+    NSLog(@"Location: %@", locations);
 #endif
 }
 
@@ -91,6 +89,14 @@ using namespace std;
 	   didFailWithError:(NSError *)error
 {
 	NSLog(@"Error: %@", [error description]);
+}
+
+-(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
+    if (status == kCLAuthorizationStatusDenied) {
+        NSLog(@"Localication manager authorized");
+    }else if (status == kCLAuthorizationStatusAuthorized) {
+        NSLog(@"Location manager denied!");
+    }
 }
 
 
