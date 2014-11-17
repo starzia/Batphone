@@ -27,7 +27,7 @@ using namespace std;
 @synthesize window;
 @synthesize navController;
 @synthesize matchViewController;
-@synthesize newViewController;
+@synthesize myNewViewController;
 @synthesize locationViewController;
 @synthesize optionsViewController;
 
@@ -82,7 +82,9 @@ using namespace std;
     didUpdateToLocation:(CLLocation *)newLocation
            fromLocation:(CLLocation *)oldLocation 
 {
-    //NSLog(@"Location: %@", [newLocation description]);
+#ifdef DEBUG
+    NSLog(@"Location: %@", [newLocation description]);
+#endif
 }
 
 - (void)locationManager:(CLLocationManager *)manager
@@ -96,12 +98,12 @@ using namespace std;
 #pragma mark app events
 
 -(void) newButtonHandler{
-	if( !newViewController ){
+	if( !myNewViewController ){
 		// create view controller
-		self.newViewController = [[NewViewController alloc] initWithApp:self];
+		self.myNewViewController = [[NewViewController alloc] initWithApp:self];
 	}
 	// swap views
-	[navController pushViewController:newViewController animated:YES];
+	[navController pushViewController:myNewViewController animated:YES];
 }
 
 // called after clicking a room in MatchViewController's matchTable
@@ -245,7 +247,6 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
 	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
 	locationManager.headingFilter = kCLHeadingFilterNone; // as above
-	locationManager.purpose = @"Location information from the device's radios can be used to improve accuracy."; // to be displayed in system's user prompt
 	[self.locationManager startUpdatingLocation]; // start location service
 		
 	// set up motion and spectrogram logging
@@ -354,7 +355,7 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 
 - (void)dealloc {
     [window release];
-	[newViewController release];
+	[myNewViewController release];
 	[matchViewController release];
 	[locationViewController release];
 	[optionsViewController release];

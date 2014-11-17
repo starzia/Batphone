@@ -29,7 +29,7 @@ using std::vector;
     UIWindow *window;
 	UINavigationController *navController;
 	MatchViewController *matchViewController;
-	NewViewController *newViewController;
+	NewViewController *myNewViewController;
 	LocationViewController *locationViewController;
 	OptionsViewController *optionsViewController;
 	 
@@ -46,7 +46,7 @@ using std::vector;
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) UINavigationController* navController;
 @property (nonatomic, retain) MatchViewController *matchViewController;
-@property (nonatomic, retain) NewViewController *newViewController;
+@property (nonatomic, retain) NewViewController *myNewViewController;
 @property (nonatomic, retain) LocationViewController *locationViewController;
 @property (nonatomic, retain) OptionsViewController *optionsViewController;
 
