@@ -152,6 +152,31 @@ using namespace std;
 	[myAlert release];
 }
 
+-(void)startCoreLocation{
+    // set up core location
+    CLAuthorizationStatus locationAuth = [CLLocationManager authorizationStatus];
+    if( locationAuth == kCLAuthorizationStatusRestricted ){
+        NSLog(@"Core location restricted");
+    }else if( locationAuth == kCLAuthorizationStatusDenied ){
+        NSLog(@"Core location permission denied");
+    }else{
+        self.locationManager = [[[CLLocationManager alloc] init] autorelease];
+        self.locationManager.delegate = self; // send loc updates to myself
+        if( locationAuth == kCLAuthorizationStatusNotDetermined ){
+            // ask for permission to use core location
+            [locationManager requestWhenInUseAuthorization];
+        }
+        if( [CLLocationManager locationServicesEnabled] ){
+            // Setup and start core location.  It's OK if user has not yet authorized it.
+            // Note that desiredAccuracy affects power consumption
+            locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
+            locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
+            locationManager.headingFilter = kCLHeadingFilterNone; // as above
+            [self.locationManager startUpdatingLocation]; // start location service
+        }
+    }
+}
+
 #pragma mark -
 #pragma mark logging (motion)
 
@@ -245,15 +270,6 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
 	// set up fingerprinter
 	self.fp = new Fingerprinter();
 	self.database = [[[FingerprintDB alloc] initWithFPLength:Fingerprinter::fpLength] autorelease];
-								 
-	// set up Core Location
-	self.locationManager = [[[CLLocationManager alloc] init] autorelease];
-	self.locationManager.delegate = self; // send loc updates to myself
-	// Note that desiredAccuracy affects power consumption
-	locationManager.desiredAccuracy = kCLLocationAccuracyBest; // best accuracy
-	locationManager.distanceFilter = kCLDistanceFilterNone; // notify me of all location changes, even if small
-	locationManager.headingFilter = kCLHeadingFilterNone; // as above
-	[self.locationManager startUpdatingLocation]; // start location service
 		
 	// set up motion and spectrogram logging
 	if( self.detailedLogging ){
@@ -286,7 +302,10 @@ void multiplyVecByMat( CMAcceleration* a, CMRotationMatrix m ){
     // update view
     window.rootViewController = navController;
     [window makeKeyAndVisible];
-
+    
+    // start core location
+    [self startCoreLocation];
+    
 	// start recording
 	self.fp->startRecording();
 

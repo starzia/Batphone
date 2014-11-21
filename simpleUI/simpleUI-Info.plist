@@ -40,7 +40,9 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>NSLocationUsageDescription</key>
-	<string>Location information from the device radios can be used to improve accuracy.</string>
+	<string>Location information from the device radios can be used to improve accuracy.  This is optional.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Location information from the device radios can be used to improve accuracy.  This is optional.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Microphone is used to determine your location based on ambient sounds.</string>
 </dict>

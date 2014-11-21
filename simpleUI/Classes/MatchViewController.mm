@@ -152,14 +152,16 @@ static const int numCandidates = 10;
 									  delegate:nil 
 							 cancelButtonTitle:nil 
 							 otherButtonTitles:nil];
-	[alert show];
 	// add spinning activity indicator
-	UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]  
-										  initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];  
-	indicator.center = CGPointMake(140, 110);  
-	[indicator startAnimating];  
-	[alert addSubview:indicator];  
+	UIActivityIndicatorView *indicator = [[UIActivityIndicatorView alloc]
+        initWithActivityIndicatorStyle:[self iOS7orLater]? UIActivityIndicatorViewStyleGray :  UIActivityIndicatorViewStyleWhiteLarge];
+	[indicator startAnimating];
+    if( ![self iOS7orLater] ){
+        indicator.center = CGPointMake(140, 110);
+        [alert addSubview:indicator];
+    }
 	[indicator release];
+    [alert show];
 	
     [super viewDidLoad];
 }
