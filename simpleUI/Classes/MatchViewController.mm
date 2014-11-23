@@ -95,7 +95,7 @@ static const int numCandidates = 10;
 	
 	// Add plot to window
 	CGRect rect = CGRectMake(10, 10 + self.topPadding, 300.0f, 100.0f);
-	self.plot = [[[plotView alloc] initWith_Frame:rect] autorelease];
+	self.plot = [[[PlotView alloc] initWith_Frame:rect] autorelease];
 	[self.plot setVector: newFingerprint length: Fingerprinter::fpLength];
 	// make line green
 	self.plot.lineColor[0] = 0.5; //R

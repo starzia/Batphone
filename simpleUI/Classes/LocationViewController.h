@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"
-#import "plotView.h"
+#import "PlotView.h"
 #import <MapKit/MapKit.h>
 
 @interface LocationViewController : UIViewController {
@@ -17,7 +17,7 @@
 	NSString* room;
 	NSString* building;
 	vector<DBEntry*> fingerprints;
-	plotView *plot;
+	PlotView *plot;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	int plotIndex; // index in fingerprints of currently-displayed plot
 	UILabel *label;
@@ -28,7 +28,7 @@
 @property (nonatomic, retain) NSString* room;
 @property (nonatomic, retain) NSString* building;
 @property (nonatomic) vector<DBEntry*> fingerprints;
-@property (nonatomic, retain) plotView *plot;
+@property (nonatomic, retain) PlotView *plot;
 @property (nonatomic, retain) NSTimer  *plotTimer;
 @property (nonatomic) int plotIndex;
 @property (nonatomic, retain) UILabel* label;

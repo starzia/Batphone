@@ -43,7 +43,7 @@
 		AAAC4D25127A149000FB24C1 /* MatchViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D23127A149000FB24C1 /* MatchViewController.mm */; };
 		AAAC4D2B127A14F100FB24C1 /* NewViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D29127A14F100FB24C1 /* NewViewController.mm */; };
 		AAAC4D30127A16A700FB24C1 /* LocationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */; };
-		AAC415D31254EFF0008DA27C /* plotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* plotView.mm */; };
+		AAC415D31254EFF0008DA27C /* PlotView.mm in Sources */ = {isa = PBXBuildFile; fileRef = AAC415D21254EFF0008DA27C /* PlotView.mm */; };
 		AAC5090612962DDA00A9885D /* bullseye@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAC5090312962DDA00A9885D /* bullseye@2x.png */; };
 		AAC5090712962DDA00A9885D /* combined@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAC5090412962DDA00A9885D /* combined@2x.png */; };
 		AAC5090812962DDA00A9885D /* mic@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = AAC5090512962DDA00A9885D /* mic@2x.png */; };
@@ -108,8 +108,8 @@
 		AAAC4D29127A14F100FB24C1 /* NewViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = NewViewController.mm; sourceTree = "<group>"; };
 		AAAC4D2D127A16A700FB24C1 /* LocationViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocationViewController.h; sourceTree = "<group>"; };
 		AAAC4D2E127A16A700FB24C1 /* LocationViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LocationViewController.mm; sourceTree = "<group>"; };
-		AAC415D11254EFF0008DA27C /* plotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = plotView.h; sourceTree = "<group>"; };
-		AAC415D21254EFF0008DA27C /* plotView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = plotView.mm; sourceTree = "<group>"; };
+		AAC415D11254EFF0008DA27C /* PlotView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlotView.h; sourceTree = "<group>"; };
+		AAC415D21254EFF0008DA27C /* PlotView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = PlotView.mm; sourceTree = "<group>"; };
 		AAC5090312962DDA00A9885D /* bullseye@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "bullseye@2x.png"; sourceTree = "<group>"; };
 		AAC5090412962DDA00A9885D /* combined@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "combined@2x.png"; sourceTree = "<group>"; };
 		AAC5090512962DDA00A9885D /* mic@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "mic@2x.png"; sourceTree = "<group>"; };
@@ -153,8 +153,8 @@
 			children = (
 				1D3623240D0F684500981E51 /* AppDelegate.h */,
 				1D3623250D0F684500981E51 /* AppDelegate.mm */,
-				AAC415D11254EFF0008DA27C /* plotView.h */,
-				AAC415D21254EFF0008DA27C /* plotView.mm */,
+				AAC415D11254EFF0008DA27C /* PlotView.h */,
+				AAC415D21254EFF0008DA27C /* PlotView.mm */,
 				AAAC4D22127A149000FB24C1 /* MatchViewController.h */,
 				AAAC4D23127A149000FB24C1 /* MatchViewController.mm */,
 				AAAC4D28127A14F100FB24C1 /* NewViewController.h */,
@@ -375,7 +375,7 @@
 				AA7B05FD12523F4000FFA088 /* CADebugMacros.cpp in Sources */,
 				AA7B05FE12523F4000FFA088 /* CAStreamBasicDescription.cpp in Sources */,
 				AA7B05FF12523F4000FFA088 /* CAXException.cpp in Sources */,
-				AAC415D31254EFF0008DA27C /* plotView.mm in Sources */,
+				AAC415D31254EFF0008DA27C /* PlotView.mm in Sources */,
 				AAD14E8B125C097A0066A446 /* Heap.cpp in Sources */,
 				AAD14E90125C09F70066A446 /* SlidingWindow.cpp in Sources */,
 				AAD14EC3125C0F6A0066A446 /* Spectrogram.cpp in Sources */,

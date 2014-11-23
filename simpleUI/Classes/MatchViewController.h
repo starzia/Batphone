@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "plotView.h"
+#import "PlotView.h"
 #import "AppDelegate.h"
 #import <MapKit/MapKit.h>
 
@@ -18,7 +18,7 @@ using std::vector;
 <UITableViewDelegate, UITableViewDataSource, UITabBarDelegate>{
     UINavigationItem* navItem;
 	AppDelegate *app;
-	plotView *plot;            // live fingerprint plot
+	PlotView *plot;            // live fingerprint plot
 	Fingerprint newFingerprint;
 	NSTimer  *plotTimer; // periodic timer to update the plot
 	NSTimer  *queryTimer; // periodic timer to query the DB for matches
@@ -31,7 +31,7 @@ using std::vector;
 }
 
 @property (nonatomic, retain) AppDelegate* app;
-@property (nonatomic, retain) plotView *plot;    
+@property (nonatomic, retain) PlotView *plot;
 @property Fingerprint newFingerprint;
 @property (nonatomic, retain) NSTimer  *plotTimer;
 @property (nonatomic, retain) NSTimer  *queryTimer;  
