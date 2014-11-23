@@ -30,7 +30,7 @@
 		
 		[self setNeedsDisplay]; // make it redraw
 	}
-	self.lineColor = new float[4];
+	self.lineColor = new CGFloat[4];
 	self.lineColor[0] = 0.0; //R
 	self.lineColor[1] = 0.0; //G
 	self.lineColor[2] = 0.0; //B
@@ -73,15 +73,15 @@
 	}
 	
 	// Get boundary information for this view, so that drawing can be scaled
-	float X = self.bounds.size.width;
-	float Y = self.bounds.size.height;
+	CGFloat X = self.bounds.size.width;
+	CGFloat Y = self.bounds.size.height;
 
 	// Drawing lines with the appropriate color
 	CGContextSetStrokeColor(context, (CGFloat*)self.lineColor);
 
-	float plot_range = self.maxY - self.minY;
-	float xStep = X/(self.length-1);
-	float yStep = Y/plot_range;
+	CGFloat plot_range = self.maxY - self.minY;
+	CGFloat xStep = X/(self.length-1);
+	CGFloat yStep = Y/plot_range;
 	
 	if( self.length > 0 && isfinite(data[0]) ){ // data will be -Inf if audio permission is not yet granted
 		// start off the line at the left side
@@ -97,7 +97,7 @@
 	[self setNeedsDisplay]; // make it redraw
 }
 
--(void) setYRange_min:(float)newMinY  max:(float)newMaxY {
+-(void) setYRange_min:(CGFloat)newMinY  max:(CGFloat)newMaxY {
 	self.minY = newMinY;
 	self.maxY = newMaxY;
 	[self setNeedsDisplay]; // make it redraw
