@@ -70,7 +70,7 @@ static const int numCandidates = 10;
 	}
 	
     // create label for plot
-    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(100, self.topPadding + 7, 200, 20)];
+    UILabel* label = [[UILabel alloc] initWithFrame:CGRectMake(90, self.topPadding + 7, 210, 20)];
     label.font = [UIFont boldSystemFontOfSize:10];
     label.textColor = [UIColor colorWithRed:0.5 green:1.0 blue:0.2 alpha:0.5];
     label.backgroundColor = [UIColor clearColor];
