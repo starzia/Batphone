@@ -92,9 +92,9 @@ using namespace std;
 }
 
 -(void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
-    if (status == kCLAuthorizationStatusDenied) {
+    if (status == kCLAuthorizationStatusAuthorizedAlways || status == kCLAuthorizationStatusAuthorizedWhenInUse) {
         NSLog(@"Localication manager authorized");
-    }else if (status == kCLAuthorizationStatusAuthorized) {
+    }else if (status == kCLAuthorizationStatusDenied || status == kCLAuthorizationStatusRestricted) {
         NSLog(@"Location manager denied!");
     }
 }

@@ -176,7 +176,7 @@
 	}
 	// visit website
 	else if( indexPath.section == 0 && indexPath.row == 1 ){
-		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.stevetarzia.com/batphone"]]; 
+		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.stevetarzia.com/batphone"]];
 		[tableView deselectRowAtIndexPath:indexPath animated:NO];
 	}
 	// delete database
@@ -215,8 +215,8 @@
 												  otherButtonTitles:@"Load", nil];
 		// Adds a URL Field
         alertview.alertViewStyle = UIAlertViewStylePlainTextInput;
-        [alertview textFieldAtIndex:0].placeholder = @"eg. http://somesite.com/file.txt";
-        [alertview textFieldAtIndex:0].text = @"http://stevetarzia.com/batphone/database.txt";
+        [alertview textFieldAtIndex:0].placeholder = @"eg. https://somesite.com/file.txt";
+        [alertview textFieldAtIndex:0].text = @"https://stevetarzia.com/batphone/database.txt";
 		
 		// Show alert on screen.
 		[alertview show];

@@ -71,5 +71,10 @@ using std::vector;
 // save a new room fingerprint
 -(void)checkinWithRoom:(NSString*)newRoom inBuilding:(NSString*)newBuilding;
 
+#pragma mark - UI event handlers
+-(void) newButtonHandler;
+-(void) optionsButtonHandler;
+-(void) deleteRoomButtonHandler;
+
 @end
 

@@ -83,14 +83,8 @@ const NSString* DBFilename = @"db.txt";
 	if( ![self loadCache] ){
 		NSLog(@"Error loading cache");
 	}
-	httpConnectionData = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
-	/*
-	httpConnectionData = CFDictionaryCreateMutable( kCFAllocatorDefault,
-											0,
-											&kCFTypeDictionaryKeyCallBacks,
-											&kCFTypeDictionaryValueCallBacks);
-	 */
-	 return self;
+	httpConnectionData = [NSMutableDictionary new];
+    return self;
 }
 
 

@@ -153,9 +153,6 @@ typedef enum{
 
 -(void) makeRandomFingerprint:(float[])outBuf;
 
-/* get filename for persistent storage */
--(NSString*) getDBFilename;
-
 /* appends a string description of the database entry, used for persistent storage */
 -(void) appendEntry:(const DBEntry*)entry
 		   toString:(NSMutableString*)outputBuffer;
